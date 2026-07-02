@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深度商业调研报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1a365d; --primary-rgb: 26,54,93;
+  --secondary: #2c5282; --secondary-rgb: 44,82,130;
+  --accent: #ed8936; --accent-rgb: 237,137,54;
+  --bg: #f7fafc; --bg-rgb: 247,250,252;
+  --text: #2d3748; --text-rgb: 45,55,72;
+  --text-light: #718096;
+  --border: #e2e8f0;
+  --success: #38a169; --danger: #e53e3e;
+  --h1: 36px; --h2: 28px; --h3: 22px; --h4: 18px;
+  --body: 16px; --note: 14px;
+  --sans: "Noto Sans SC", sans-serif;
+  --serif: "Noto Serif SC", serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--text);background:var(--bg);line-height:1.8;-webkit-font-smoothing:antialiased;margin:0}
+.container{max-width:1200px;margin:0 auto}
+.content{padding:40px 60px}
+h1{line-height:1.2}h2{line-height:1.4}h3{line-height:1.4}h4{line-height:1.4}
+.body-text p{line-height:1.8}.note{line-height:1.5;font-size:var(--note)}
+
+/* Top Nav */
+.top-nav{position:sticky;top:0;z-index:100;height:60px;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 60px}
+.top-nav .nav-logo{font-size:18px;font-weight:700;color:var(--primary)}
+.top-nav .nav-links{display:flex;gap:32px;font-size:14px}
+.top-nav .nav-links a{color:var(--text-light);text-decoration:none}
+.top-nav .nav-links a:hover{color:var(--primary)}
+
+/* Cover */
+.cover{background:linear-gradient(135deg,#1a365d 0%,#2c5282 100%);height:400px;padding:60px;color:white;display:flex;flex-direction:column;justify-content:center}
+.cover h1{font-size:42px;font-weight:bold;margin-bottom:20px}
+.cover .subtitle{font-size:20px;opacity:.9;margin-bottom:40px}
+.cover .divider{width:80px;height:4px;background:var(--accent);margin-bottom:40px}
+.cover .meta{display:flex;gap:40px;font-size:14px;opacity:.8}
+.cover-logo{width:120px;margin-bottom:40px;display:block}
+
+
+/* Chapter Header */
+.chapter-header{padding:40px 60px;background:var(--bg);border-left:5px solid var(--accent);margin:0}
+.chapter-header .chapter-tag{font-size:14px;color:var(--accent);font-weight:600;letter-spacing:2px}
+.chapter-header h2{font-size:var(--h2);color:var(--primary);margin-top:10px}
+
+/* Section Header */
+.section-header{padding:30px 60px;border-bottom:1px solid var(--border)}
+.section-header h3{font-size:20px;color:var(--text);display:flex;align-items:center;gap:15px}
+.section-header h3 .dot{width:8px;height:8px;background:var(--primary);border-radius:50%;flex-shrink:0}
+
+/* Body Text */
+.body-text{padding:30px 60px}
+.body-text p{font-size:var(--body);color:#4a5568;line-height:1.8;margin-bottom:15px}
+
+/* Tables */
+table,table.report-data{width:100%;border-collapse:collapse;margin:30px 0}
+thead tr,table.report-data thead tr{background:var(--primary);color:white}
+thead th,table.report-data thead th{padding:15px 20px;text-align:left;font-weight:600}
+tbody tr,table.report-data tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:nth-child(even),table.report-data tbody tr:nth-child(even){background:var(--bg)}
+td,table.report-data td{padding:15px 20px;color:var(--text)}
+
+/* Data Cards */
+.data-cards{display:flex;gap:20px;margin:30px 0;flex-wrap:wrap}
+.data-card{flex:1;min-width:200px;border-radius:12px;padding:30px}
+.data-card.gradient{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white}
+.data-card.bordered{background:white;border:1px solid var(--border)}
+.data-card .card-label{font-size:14px;opacity:.8;margin-bottom:10px}
+.data-card .card-value{font-size:32px;font-weight:bold}
+.data-card .card-note{font-size:14px;opacity:.8;margin-top:10px}
+.data-card.bordered .card-label,.data-card.bordered .card-note{color:var(--text-light)}
+.data-card.bordered .card-value{color:var(--primary)}
+
+/* Chart Container */
+.chart-box{background:white;padding:30px;border-radius:12px;border:1px solid var(--border);margin:30px 0}
+.chart-box h4{font-size:var(--h4);color:var(--primary);margin-bottom:20px}
+.chart-area{min-height:300px;background:linear-gradient(180deg,#f7fafc 0%,#edf2f7 100%);display:flex;align-items:center;justify-content:center;padding:30px 20px;border-radius:8px;color:#a0aec0;font-size:14px}
+
+/* Steps */
+.step-list{margin:30px 0}
+.step-item{display:flex;gap:20px;padding:20px;background:var(--bg);border-radius:8px;margin-bottom:15px}
+.step-num{width:40px;height:40px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0}
+.step-content strong{display:block;color:var(--text);margin-bottom:5px}
+.step-content span{font-size:14px;color:var(--text-light)}
+
+/* Checklist */
+.checklist{margin:20px 0}
+.checklist .check-item{display:flex;align-items:flex-start;margin-bottom:15px;gap:15px}
+.checklist .check-item .check{color:var(--accent);font-size:18px}
+.checklist .check-item span{color:var(--text)}
+
+/* Progress Bar */
+.progress-bar{margin:20px 0}
+.progress-bar .bar-label{display:flex;justify-content:space-between;margin-bottom:8px}
+.progress-bar .bar-label span:first-child{color:var(--text);font-size:14px}
+.progress-bar .bar-label span:last-child{color:var(--primary);font-size:14px;font-weight:600}
+.progress-bar .bar-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-bar .bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:4px}
+
+/* Footer */
+.footer{background:var(--primary);padding:30px 60px;color:white;font-size:14px}
+.footer .footer-grid{display:flex;justify-content:space-between;margin-bottom:20px}
+.footer .footer-grid strong{display:block;margin-bottom:10px}
+.footer .footer-grid div{opacity:.8;font-size:14px}
+.footer .footer-bottom{border-top:1px solid rgba(255,255,255,.2);padding-top:20px;display:flex;justify-content:space-between;font-size:12px;opacity:.6}
+
+/* Responsive */
+@media(max-width:1023px){.container{max-width:768px}.content{padding:30px 40px}.cover{padding:40px;height:320px}.cover h1{font-size:32px}.data-cards{flex-direction:column}}
+@media(max-width:768px){.container{width:100%}.content{padding:20px}.cover{padding:30px;height:280px}.cover h1{font-size:28px}h2{font-size:22px!important}.chart-area{min-height:200px}.top-nav{padding:0 20px}.toc{padding:0 20px;gap:20px}}
+</style>
+</head>
+<body>
+
+<!-- ====== Top Nav ====== -->
+<div class="top-nav">
+  <div class="nav-logo">曜势科技</div>
+  <div class="nav-links">
+    <a href="#cover">首页</a><a href="#toc">目录</a>
+    <a href="#ch1">行业概述</a><a href="#ch2">消费者洞察</a>
+    <a href="#ch3">案例分析</a><a href="#ch4">未来展望</a>
+  </div>
+</div>
+
+<!-- ====== Cover ====== -->
+<div class="cover" id="cover">
+  <img src="logo.png" class="cover-logo" alt="Logo">
+  <h1>深度商业调研报告</h1>
+  <p class="subtitle">基于AI对话 · 深度数据洞察</p>
+  <div class="divider"></div>
+  <div class="meta">
+    <span>报告日期：2026年6月</span><span>版本：V1.0</span>
+  </div>
+</div>
+
+
+
+<!-- CHAPTER 01: 报告一：深度市场调研报告 -->
+<div class="chapter-header" id="ch1">
+  <span class="chapter-tag">CHAPTER 01</span>
+  <h2>报告一：深度市场调研报告</h2>
+</div>
+<div class="section-header">
+  <h3><span class="dot"></span>一、市场规模分析</h3>
+</div>
+<div class="body-text">
+<p>当前市场总量：</p>
+<p>2026年中国宠物饰品市场规模预计将达到 187.6亿元 [行业测算，基于欧睿国际、艾媒咨询历史数据及增长模型推算]。该数据涵盖了宠物项圈/牵引绳（功能型饰品）、宠物服装鞋帽、宠物珠宝/发饰/领结（纯装饰型饰品）以及智能穿戴饰品（如带定位功能的装饰项圈）四大核心板块。过去几年，该市场经历了一波由“宠物家人化”趋势驱动的爆发式增长，目前正从高速爆发期向精细化、风格化发展期过渡。</p>
+<p>近3年市场规模变化趋势：</p>
+<p>细分市场拆解：</p>
+</div>
+<div class="content"><table class="report-data"><thead><tr><th>年份</th><th>市场规模(亿元)</th><th>同比增速</th><th>数据来源</th></tr></thead><tbody><tr><td>2023年</td><td>107.5</td><td>28.4%</td><td>中国宠物行业白皮书</td></tr><tr><td>2024年</td><td>132.6</td><td>23.3%</td><td>艾媒咨询宠物经济报告</td></tr><tr><td>2025年</td><td>158.9</td><td>19.8%</td><td>派读宠物行业大数据</td></tr><tr><td>2026年(估)</td><td>187.6</td><td>18.1%</td><td>行业测算，可人工复核</td></tr><tr><td>2027年(预测)</td><td>215.3</td><td>14.8%</td><td>行业测算，可人工复核</td></tr><tr><td>2028年(预测)</td><td>239.8</td><td>11.4%</td><td>行业测算，可人工复核</td></tr></tbody></table></div>
+<div class="content"><div class="chart-box">
+  <h4>📊 数据对比</h4>
+  <div class="chart-area">
+    <div style="display:flex;align-items:flex-end;gap:24px;height:260px;width:100%;max-width:600px">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">68.3</span><div style="width:100%;max-width:80px;height:240px;background:#1a365d;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">功能性牵引/项圈</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">56.2</span><div style="width:100%;max-width:80px;height:197px;background:#2c5282;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">宠物服装鞋帽</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">41.8</span><div style="width:100%;max-width:80px;height:146px;background:#ed8936;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">纯装饰饰品</span></div>
+</div>
+  </div>
+</div></div>
+<div class="section-header">
+  <h3><span class="dot"></span>二、核心驱动因素</h3>
+</div>
+<div class="body-text">
+<p>核心驱动因素表：</p>
+</div>
+<div class="content"><table class="report-data"><thead><tr><th>序号</th><th>驱动因素</th><th>影响程度</th><th>持续时间</th><th>具体说明（≥80字）</th></tr></thead><tbody><tr><td>1</td><td>宠物家人化与情感消费</td><td>高</td><td>长期</td><td>这是最根本的驱动因素。超过85%的宠主将宠物视为“家人”、“孩子”，愿意为其投入情感和金钱。饰品不再仅仅是“拴住宠物的工具”，而是宠主的自我表达、对宠物的爱意展示，甚至是实现自身未能完成愿望的载体（如给宠物打扮成自己童年梦想的样子）。这种情感驱动的消费，对价格敏感度低，对款式和故事性要求高。</td></tr><tr><td>2</td><td>Z世代宠主审美升级</td><td>高</td><td>长期</td><td>1995-2009年出生的Z世代已成为宠物消费的绝对主力（占比超50%）。他们成长于视觉信息爆炸的互联网时代，对颜值、设计感、调性有着天然的苛刻要求。他们不仅追求好看，还追求“上镜”，以满足在抖音、小红书、朋友圈等社交媒体上的分享欲。千篇一律的廉价化纤饰品完全无法满足他们，他们更愿为独立设计师、手工定制、联名款买单。</td></tr></tbody></table></div>
+<div class="section-header">
+  <h3><span class="dot"></span>三、竞争格局</h3>
+</div>
+<div class="body-text">
+<p>竞品总览表：</p>
+</div>
+<div class="content"><table class="report-data"><thead><tr><th>类型</th><th>品牌名</th><th>成立时间</th><th>融资/规模</th><th>价格带(元)</th><th>年营收(估，元)</th><th>核心优势</th><th>明显短板</th><th>目标人群</th></tr></thead><tbody><tr><td>头部</td><td>小佩宠物</td><td>2015年</td><td>D轮，估值30亿+</td><td>89-499</td><td>3-4亿</td><td>智能生态闭环，强研发，直营+分销渠道完善</td><td>设计偏科技冷淡风，装饰属性弱，价格偏高</td><td>一线城市中高产科技宠主</td></tr><tr><td>头部</td><td>RedDingo</td><td>2010年</td><td>外资，全球化</td><td>128-368</td><td>1-1.5亿</td><td>国际品牌调性，宠物安全认证齐全，耐用材质</td><td>款式保守偏简约，本土化运营不足</td><td>注重安全与品质的中产宠主</td></tr><tr><td>头部</td><td>拉夫威尔</td><td>2011年</td><td>外资，被收购</td><td>199-899</td><td>2-2.5亿</td><td>户外功能型饰品标杆，极端环境适配强</td><td>笨重不日常，装饰性近乎为零，价高</td><td>户外探险型宠主，大型犬主人</td></tr></tbody></table></div>
+<div class="section-header">
+  <h3><span class="dot"></span>四、目标人群画像</h3>
+</div>
+<div class="body-text">
+<p>用户分层表：</p>
+<p>每类人群详细画像：</p>
+<p>- 【都市时尚宠主】 （核</p>
+</div>
+<div class="content"><table class="report-data"><thead><tr><th>人群标签</th><th>年龄</th><th>城市</th><th>收入</th><th>消费频次</th><th>消费预算</th><th>核心痛点</th><th>现有方案缺陷</th><th>需求强度</th><th>人群规模</th></tr></thead><tbody><tr><td>都市时尚宠主</td><td>25-35</td><td>一二线</td><td>1.5W-4W</td><td>2-3月/次</td><td>150-500/件</td><td>要出片、要独特、不撞款</td><td>淘宝爆款烂大街，缺乏设计感</td><td>高</td><td>800万</td></tr><tr><td>实用主义中产宠主</td><td>30-45</td><td>新一线/二线</td><td>2W-6W</td><td>半年/次</td><td>200-800/件</td><td>安全、耐用、不伤宠物</td><td>低价品质量不可靠，进口品牌贵且风格单一</td><td>中</td><td>500万</td></tr><tr><td>萌宠社交达人</td><td>18-28</td><td>全国</td><td>3K-1W</td><td>1月/次</td><td>30-150/件</td><td>平价但要有新鲜感，追潮流</td><td>潮流饰品价格虚高，平价品太土</td><td>高</td><td>1200万</td></tr><tr><td>消费降级品质宠主</td><td>28-40</td><td>一二线</td><td>1W-2.5W</td><td>季/次</td><td>50-200/件</td><td>缩减了总开支，但对宠物下不去手</td><td>两极分化，便宜太差，好的太贵</td><td>中</td><td>600万</td></tr></tbody></table></div>
+<div class="section-header">
+  <h3><span class="dot"></span>五、商业机会</h3>
+</div>
+<div class="body-text">
+<p>未被满足的需求清单：</p>
+</div>
+<div class="content"><table class="report-data"><thead><tr><th>序号</th><th>需求描述</th><th>未被满足原因</th><th>目标人群</th><th>市场容量(估)</th><th>紧迫度</th><th>可行性</th></tr></thead><tbody><tr><td>1</td><td>具有东方美学设计语言的国风宠物饰品（项圈/领结/发簪）</td><td>目前多为手作或个人闲鱼定制，无标准尺码，无品牌运营，无爆款打造能力</td><td>都市时尚宠主、国风爱好者</td><td>7-10亿元</td><td>高</td><td>高</td></tr><tr><td>2</td><td>专为过敏体质宠物设计的低敏/安全系列饰品</td><td>材料成本高，用户教育门槛高，需要品牌背书。白牌没有意愿，头部品牌嫌市场小</td><td>实用主义中产宠主、部分消费降级宠主</td><td>4-6亿元</td><td>高</td><td>中</td></tr><tr><td>3</td><td>宠物饰品月度订阅盒/主题盲盒</td><td>需要极强的持续设计能力和供应链柔性。传统品牌SKU驱动，无法适应订阅制节奏</td><td>萌宠社交达人</td><td>3-5亿元</td><td>中</td><td>高</td></tr><tr><td>4</td><td>适配大型/特殊体型犬的时尚牵引系统</td><td>难度在于结构承重、舒适度与美学的平衡。现有功能品牌太丑，时尚品牌不耐用</td><td>大型犬主人、特殊犬种主人</td><td>8-12亿元</td><td>高</td><td>中</td></tr></tbody></table></div>
+
+<div class="footer">
+  <div class="footer-grid">
+    <div><strong>联系我们</strong><div>电话：138-0000-0000<br>邮箱：contact@kaiwu.ai<br>地址：杭州市西湖区</div></div>
+    <div><strong>关注我们</strong><div>微信公众号<br>抖音号：曜势科技</div></div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 曜势科技 版权所有</span>
+    <span>本报告仅供内部使用，未经授权不得外传</span>
+  </div>
+</div>
+
+<script>setTimeout(function(){if(typeof lucide!=="undefined")lucide.createIcons();},300);</script></body>
+</html>

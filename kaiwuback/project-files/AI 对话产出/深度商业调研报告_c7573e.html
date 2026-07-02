@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>差异性Skills · 品牌构建能力展示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0a0a0b;--ink-rgb:10,10,11;
+    --paper:#f1efea;--paper-rgb:241,239,234;
+    --paper-tint:#e8e5de;--ink-tint:#18181a;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display",Georgia,serif;
+    --serif-zh:"Noto Serif SC",serif;
+    --sans-zh:"Noto Sans SC",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased}
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+  body.low-power canvas.bg{display:none!important}
+
+  #deck{position:fixed;inset:0;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .h-hero{font-family:var(--serif-zh);font-weight:900;font-size:10vw;line-height:.96;letter-spacing:-.02em}
+  .h-xl{font-family:var(--serif-zh);font-weight:700;font-size:6.2vw;line-height:1.08;letter-spacing:-.01em}
+  .h-sub{font-family:var(--serif-zh);font-weight:500;font-size:3.1vw;line-height:1.25;opacity:.7}
+  .h-md{font-family:var(--serif-zh);font-weight:600;font-size:2.3vw;line-height:1.3}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.75vw;line-height:1.5;opacity:.86}
+  .meta-row{display:flex;gap:1.2em;align-items:baseline;flex-wrap:wrap;font-family:var(--mono);font-size:max(12px,.92vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82}
+  em{font-style:italic;font-family:var(--serif-en)}
+
+  .stat-card{display:flex;flex-direction:column;gap:.8vh;align-items:flex-start;padding-top:1.6vh;border-top:1px solid rgba(127,127,127,.3)}
+  .stat-label{font-family:var(--mono);font-size:max(10px,.78vw);letter-spacing:.24em;text-transform:uppercase;opacity:.55}
+  .stat-nb{font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;font-feature-settings:"tnum";margin-top:.4vh}
+  .stat-unit{font-family:var(--serif-zh);font-weight:500;font-size:.38em;opacity:.72;margin-left:.14em}
+  .stat-note{font-family:var(--sans-zh);font-weight:400;font-size:max(13px,1.05vw);line-height:1.5;opacity:.72;margin-top:.6vh}
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout-src{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2.4vh 2vw}
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);width:100%;border-radius:4px;margin:0;display:flex;flex-direction:column;min-width:0}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04)}
+  .frame-img>img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .img-cap{display:block;margin-top:.8vh;font-family:var(--mono);font-size:max(10px,.8vw);letter-spacing:.22em;text-transform:uppercase;opacity:.6}
+  .color-block{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:.4}
+
+  /* NAV */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+  body.low-power #hint{opacity:.72;color:var(--paper);mix-blend-mode:normal}
+  body.light-bg.low-power #hint{color:var(--ink)}
+
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.low-power #deck{transition:none!important}
+  body.low-power [data-anim]{opacity:1!important;transform:none!important}
+  @media(max-width:900px){.h-hero{font-size:14vw}.h-xl{font-size:9vw}.grid-2-7-5{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="hint">← → 翻页 · ESC 索引</div>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+
+<div id="deck">
+<section class="slide hero dark"><div class="chrome"><div>深度商业调研报告</div><div>01 / 17</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>MARKET RESEARCH REPORT</div><h1 class="h-hero" data-anim>市场调研报告：AI报告生成服务的需求诊断</h1><p class="lead" style="max-width:50vw" data-anim>第一幕：行业概览（建立认知背景——市场在哪？谁在消费？）</p><div class="meta-row" data-anim><span>2026-06-26</span><span>·</span><span>曜势科技</span><span>·</span><span>AI Analysis</span></div></div><div class="foot"><div>曜势科技 · 深度商业调研</div><div>— 2026-06-26 —</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>01 / 17</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 01</div><h2 class="h-xl" data-anim>核心发现</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>01 / 17</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>03 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>市场调研报告：AI报告生成服务的需求诊断与机遇洞察</h3><p class="body-zh" data-anim>&gt; 副标题——基于深度对话失败日志与用户行为数据分析</p></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>03</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>02 / 17</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 02</div><h2 class="h-xl" data-anim>第一幕：行业概览（建立认知背景——市场在</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>02 / 17</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>05 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>第一幕：行业概览（建立认知背景——市场在</h3><p class="body-zh" data-anim>智能交互与AIGC（人工智能生成内容）的爆发，催生了一个隐秘而高速增长的细分市场：决策辅助与知识服务自动化。本次调研通过分析一位用户在短时间内连续5次尝试生成“市场调研报告”并反复失败的极端案例，反向透视该市场的需求强度、用户画像及现存矛盾。对话数据显示，用户对“获取结构化信息”存在强烈且顽固的需求，但当前AI工具的交付确定性严重不足，形成了巨大的市场机会缺口。</p></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>05</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>03 / 17</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 03</div><h2 class="h-xl" data-anim>第二幕：消费行为研究（展开用户画像——消</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>03 / 17</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>07 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>第二幕：消费行为研究（展开用户画像——消</h3><p class="body-zh" data-anim>基于案例用户的行为轨迹，我们可以提炼出知识服务消费者的核心行为模式。该用户画像可假设为“时间稀缺型决策者”，其行为特征与广泛的知识付费用户高度重叠。以下分析将用户行为按需求场景和决策链路进行二分法解剖。</p></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>07</div></div></section><section class="slide light"><div class="chrome"><div>深度商业调研报告</div><div>08 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>用户行为数据对比</h3></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>08</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>09 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>用户偏好排序对比</h3><div style="display:flex;align-items:flex-end;gap:16px;height:160px;margin:2vh 0"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end"><span style="font-family:var(--serif-en);font-weight:700;font-size:13px">95.0</span><div style="width:100%;max-width:60px;height:140px;background:#D4A574;border-radius:2px 2px 0 0"></div><span style="font-size:10px;opacity:.6;text-align:center">生成速度</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end"><span style="font-family:var(--serif-en);font-weight:700;font-size:13px">88.0</span><div style="width:100%;max-width:60px;height:129px;background:#C49364;border-radius:2px 2px 0 0"></div><span style="font-size:10px;opacity:.6;text-align:center">结构完整性</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end"><span style="font-family:var(--serif-en);font-weight:700;font-size:13px">85.0</span><div style="width:100%;max-width:60px;height:125px;background:#E8C9A0;border-radius:2px 2px 0 0"></div><span style="font-size:10px;opacity:.6;text-align:center">结论可用性</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end"><span style="font-family:var(--serif-en);font-weight:700;font-size:13px">60.0</span><div style="width:100%;max-width:60px;height:88px;background:#B8956A;border-radius:2px 2px 0 0"></div><span style="font-size:10px;opacity:.6;text-align:center">数据权威性</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end"><span style="font-family:var(--serif-en);font-weight:700;font-size:13px">40.0</span><div style="width:100%;max-width:60px;height:58px;background:#A07850;border-radius:2px 2px 0 0"></div><span style="font-size:10px;opacity:.6;text-align:center">排版精美度</span></div></div><p class="body-zh" data-anim>上述图表清晰显示，对于“时间稀缺型决策者”，响应速度和结构化交付是核心价值，而对静态数据的绝对权威性容忍度更高。这是一个典型的“快咨询”消费模型。</p></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>09</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>04 / 17</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 04</div><h2 class="h-xl" data-anim>第三幕：体验诊断（诊断痛点——消费者为什</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>04 / 17</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>11 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>第三幕：体验诊断（诊断痛点——消费者为什</h3><p class="body-zh" data-anim>本次对话实为一次用户体验的灾难性复盘。其NPS（净推荐值）为负，满意度趋近于零，复购行为虽因需求刚性可能继续，但以用户挫败感为代价。我们将诊断粒度细化到对话的每个环节，识别出三大核心痛点。</p></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>11</div></div></section><section class="slide light"><div class="chrome"><div>深度商业调研报告</div><div>12 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>体验痛点排序</h3><div style="display:flex;flex-direction:column;gap:6px;margin:2vh 0"><div style="display:flex;align-items:center;gap:10px"><span style="width:70px;font-size:11px;opacity:.7;text-align:right;flex-shrink:0">: 交付确定性崩塌</span><div style="flex:1;height:16px;background:rgba(127,127,127,.1);border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#D4A574"></div></div><span style="font-size:11px;font-weight:600;width:40px">92.0</span></div><div style="display:flex;align-items:center;gap:10px"><span style="width:70px;font-size:11px;opacity:.7;text-align:right;flex-shrink:0">模糊指令的死循环</span><div style="flex:1;height:16px;background:rgba(127,127,127,.1);border-radius:2px;overflow:hidden"><div style="width:92%;height:100%;background:#C49364"></div></div><span style="font-size:11px;font-weight:600;width:40px">85.0</span></div><div style="display:flex;align-items:center;gap:10px"><span style="width:70px;font-size:11px;opacity:.7;text-align:right;flex-shrink:0">解决方案的缺位</span><div style="flex:1;height:16px;background:rgba(127,127,127,.1);border-radius:2px;overflow:hidden"><div style="width:84%;height:100%;background:#E8C9A0"></div></div><span style="font-size:11px;font-weight:600;width:40px">78.0</span></div></div><p class="body-zh" data-anim>- 痛点一：交付确定性崩塌（NPS: -100）</p><p class="body-zh" data-anim>&gt; 用户原声：“给我生成一份市场调研报告”、“市场调研报告”（重复5次无果）。</p><p class="body-zh" data-anim>&gt; 负面情绪：深度挫败、不被理解、被玩弄感。</p><p class="body-zh" data-anim>&gt; 核心矛盾：用户“交付确定性”的底线期望与“大模型概率性生成”固有缺陷之间的根本冲突。系统只给出了“生成”的意向，却未能完成“交付”的行动。</p><p class="body-zh" data-anim>- 痛点二：模糊指令的死循环（NPS: -80）</p><p class="body-zh" data-anim>&gt; 用户原声：[AI]：“您的指令过于宽泛...无法生成”。[用户]：随即重复同样模糊的指令。</p><p class="body-zh" data-anim>&gt; 负面情绪：困惑、无助、认知过载。</p><p class="body-zh" data-anim>&gt; 核心矛盾：高认知门槛的“提问工程”与用户“直觉式需求表达”之间的鸿沟。系统逼迫用户成为一个熟练的提示词工程师，而非专注于商业问题本身。</p><p class="body-zh" data-anim>- 痛点三：解决方案的缺位（NPS: -70）</p><p class="body-zh" data-anim>&gt; 用户原声：“⏹ 已停止生成”、“LLM call failed...Read timed out”。</p><p class="body-zh" data-anim>&gt; 负面情绪：焦虑、放弃、对技术能力产生质疑。</p><p class="body-zh" data-anim>&gt; 核心矛盾：用户面对技术故障的完全被动性与对“服务挽回”的自然期待。在失败后，系统没有提供任何降级方案、保存进度或引导用户至替代路径的机</p></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>12</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>05 / 17</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 05</div><h2 class="h-xl" data-anim>第四幕：未来启示（给出行动方案——品牌该</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>05 / 17</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>14 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>第四幕：未来启示（给出行动方案——品牌该</h3><p class="body-zh" data-anim>基于前文的行业潜力、用户行为和体验断层，我们为致力于“决策辅助与知识服务自动化”赛道的品牌，提出以下战略与产品攻坚策略。底层逻辑是：将不可靠的对话，转化为可靠的交付。</p></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>14</div></div></section><section class="slide light"><div class="chrome"><div>深度商业调研报告</div><div>15 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>资源分配建议</h3><div style="display:flex;align-items:center;gap:20px;justify-content:center;margin:2vh 0;flex-wrap:wrap"><div style="width:140px;height:140px;border-radius:50%;background:conic-gradient(#D4A574 0% 50%,#C49364 50% 75%,#E8C9A0 75% 90%,#B8956A 90% 100%)"></div><div style="flex:1;min-width:160px"><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px"><span style="font-size:10px;opacity:.7;display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:#D4A574"></span>交付确定性工程(核心攻坚) 50.0%</span><span style="font-size:10px;opacity:.7;display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:#C49364"></span>引导式交互设计 25.0%</span><span style="font-size:10px;opacity:.7;display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:#E8C9A0"></span>服务补救与运营 15.0%</span><span style="font-size:10px;opacity:.7;display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:#B8956A"></span>品牌与营销 10.0%</span></div></div></div></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>15</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>16 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>战略层：3个抓手</h3><p class="body-zh" data-anim>1.  定义新品类：从“AI报告生成器”到“决策快充站”。</p><p class="body-zh" data-anim>-   数据溯源：针对第二幕中用户对 生成速度 (95) 和 结构完整 (88) 的极高偏好，品牌定位应放弃与权威咨询公司比深度，转而强调“5分钟获取一个市场认知框架”的即时满足价值。</p><p class="body-zh" data-anim>2.  聚焦单一客群：服务“时间饥渴型决策者”。</p><p class="body-zh" data-anim>-   数据溯源：锁定第二幕中“高频脉冲式”使用的 用户类型A。所有营销内容和产品迭代方向，都应回归一个原点：为每天忙于救火、没有时间做研究的业务负责人，提供一个“外挂大脑”。</p><p class="body-zh" data-anim>3.  构建“引导式销售”渠道模型。</p><p class="body-zh" data-anim>-   数据溯源：针对第三幕中 “模糊指令的死循环 (85)” 痛点，营销入口不应是空白对话框，而应是一系列场景模板：“我想评估【我的新消费品牌】的商业计划可行性”，以此引导用户进入，直接击穿第一幕中 50% 以上的重试失败率。</p></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>16</div></div></section><section class="slide light"><div class="chrome"><div>深度商业调研报告</div><div>17 / 17</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>产品层：3个攻坚点</h3><p class="body-zh" data-anim>1.  攻坚“交付确定性”：设计两种模式，而非一个模型。</p><p class="body-zh" data-anim>-   数据溯源：直指第三幕痛点 “交付确定性崩塌 (92)”。产品必须增加一个非AI的确定性路径：当模糊指令到来时，立即切换至“引导问卷模式”，通过3-5个关键问题锁定需求，最终交付一份预设的高标准报告框架。从根本上保证100%的交付。</p><p class="body-zh" data-anim>2.  攻坚“服务补救”：植入预判式降级方案。</p><p class="body-zh" data-anim>-   数据溯源：针对第三幕 “解决方案的缺位 (78)” 。当系统检测到生成超时或错误，应立即触发“兜底条款”：保存用户的指令，并提供两个选择：“下载一份通用模板”或“接受邮件通知，生成后推送”。将事故转化为服务关怀。</p><p class="body-zh" data-anim>3.  攻坚“快速验证闭环”：在报告中内嵌下一步行动建议。</p><p class="body-zh" data-anim>-   数据溯源：呼应第一幕 “决策焦虑”人群 和第二幕对 “结论可用性 (85)” 的偏好。报告的结尾不应是数据总结，而是一个可操作的“下一步”，例如：“基于以上分析，建议您与XX部门召开一次决策会，讨论纪要可上传至此，我将为您生成后续执行计划。” 打通从“知”到“行”的最后一公里，锁定复购。</p></div><div class="foot"><div>数据来源：曜势科技 AI 分析 · 基于对话数据</div><div>17</div></div></section>
+</div>
+
+<div id="nav"></div>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+
+<script>
+// ======== WebGL Background ========
+const VS='attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}';
+const FS_DARK='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;float md=length(p-m);float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;vec2 p0=p;for(float i=1.0;i<4.0;i++){p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;}float r=length(p);float ang=atan(p.y,p.x);vec3 a=vec3(0.12,0.12,0.13);vec3 b=vec3(0.03,0.04,0.05);vec3 c=vec3(1.0,1.0,1.0);vec3 d=vec3(0.1,0.2,0.4);vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;col+=vec3(disp*0.015,disp*0.01,disp*0.02);float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);col+=hi*0.08;vec3 base=vec3(0.05,0.05,0.06);col=mix(base,col,0.85);gl_FragColor=vec4(col,1.0);}';
+const FS_LIGHT='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float noise(vec2 p){vec2 i=floor(p),f=fract(p);float a=hash(i),b=hash(i+vec2(1,0));float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));vec2 u=f*f*(3.0-2.0*f);return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;}float fbm(vec2 p){float v=0.0,a=0.5;mat2 m=mat2(0.80,0.60,-0.60,0.80);for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}return v;}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;vec2 md=p-m;float dl=length(md);p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));float f=fbm(p*2.2+r*1.5);vec3 silverDark=vec3(0.86,0.85,0.84);vec3 paper=vec3(0.955,0.945,0.925);vec3 col=mix(silverDark,paper,f);float ph=r.x*2.2+u_time*0.35;col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;float hl=smoothstep(0.48,0.92,f);col+=hl*0.06;gl_FragColor=vec4(col,1.0);}';
+
+(function(){
+  var mouse={x:0.5,y:0.5};
+  window.addEventListener('mousemove',function(e){mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+  function bootGL(id,fs){
+    var c=document.getElementById(id);
+    var gl=c.getContext('webgl',{alpha:false,antialias:true});
+    if(!gl)return function(){};
+    function mk(t,s){var sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh}
+    var p=gl.createProgram();
+    gl.attachShader(p,mk(gl.VERTEX_SHADER,VS));
+    gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));
+    gl.linkProgram(p);gl.useProgram(p);
+    var b=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+    var pos=gl.getAttribLocation(p,'position');
+    gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+    var lR=gl.getUniformLocation(p,'u_resolution');
+    var lT=gl.getUniformLocation(p,'u_time');
+    var lM=gl.getUniformLocation(p,'u_mouse');
+    function resize(){var d=Math.min(window.devicePixelRatio||1,2);c.width=innerWidth*d;c.height=innerHeight*d;gl.viewport(0,0,c.width,c.height)}
+    window.addEventListener('resize',resize);resize();
+    return function(t){gl.uniform2f(lR,c.width,c.height);gl.uniform1f(lT,t);gl.uniform2f(lM,mouse.x,1-mouse.y);gl.drawArrays(gl.TRIANGLES,0,6)}
+  }
+
+  var dD=null,dL=null,raf=0,t0=Date.now();
+  function start(){
+    if(!dD)dD=bootGL('bg-dark',FS_DARK);
+    if(!dL)dL=bootGL('bg-light',FS_LIGHT);
+    t0=Date.now();
+    function loop(){var t=(Date.now()-t0)/1000;dD(t);dL(t);raf=requestAnimationFrame(loop)}
+    raf=requestAnimationFrame(loop)
+  }
+  start();
+
+  // ======== Navigation ========
+  var deck=document.getElementById('deck');
+  var slides=deck.querySelectorAll('.slide');
+  var total=slides.length;
+  deck.style.width=(total*100)+'vw';
+  var nav=document.getElementById('nav');
+  var idx=0,lock=false;
+
+  slides.forEach(function(s,i){
+    var b=document.createElement('button');
+    b.className='dot';b.dataset.i=i;
+    b.setAttribute('aria-label','Page '+(i+1));
+    b.addEventListener('click',function(){go(i)});
+    nav.appendChild(b)
+  });
+
+  function go(n){
+    if(lock)return;
+    idx=Math.max(0,Math.min(total-1,n));
+    window.__currentSlideIndex=idx;
+    deck.style.transform='translateX('+(-idx*100)+'vw)';
+    var dots=nav.querySelectorAll('.dot');
+    dots.forEach(function(d,i){d.classList.toggle('active',i===idx)});
+    var el=slides[idx];
+    var th=el.classList.contains('light')?'light':'dark';
+    document.body.classList.toggle('light-bg',th==='light');
+    lock=true;setTimeout(function(){lock=false},700)
+  }
+
+  // Keyboard
+  window.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      e.preventDefault();
+      if(window.__toggleOverview)window.__toggleOverview();
+      return
+    }
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+      e.preventDefault();
+      go(idx+1)
+    }
+    if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp'){
+      e.preventDefault();
+      go(idx-1)
+    }
+    if(e.key==='Home'){e.preventDefault();go(0)}
+    if(e.key==='End'){e.preventDefault();go(total-1)}
+  });
+
+  // Wheel
+  var wAcc=0,wTO=null;
+  window.addEventListener('wheel',function(e){
+    wAcc+=e.deltaY+e.deltaX;
+    if(Math.abs(wAcc)>50){go(idx+(wAcc>0?1:-1));wAcc=0}
+    clearTimeout(wTO);wTO=setTimeout(function(){wAcc=0},150)
+  },{passive:true});
+
+  // Touch
+  var tx=0,ty=0;
+  window.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+  window.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-tx;
+    var dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(idx+(dx<0?1:-1))
+  },{passive:true});
+
+  // ESC Overview
+  var ov=document.createElement('div');
+  ov.id='overview';
+  ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(10,10,11,.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+  document.body.appendChild(ov);
+  var ovOn=false;
+  function toggleOverview(){
+    ovOn=!ovOn;
+    if(!ovOn){ov.style.display='none';return}
+    ov.innerHTML='';
+    var grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+    slides.forEach(function(s,i){
+      var card=document.createElement('div');
+      card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(241,239,234,.8)':'rgba(241,239,234,.15)')
+      card.onclick=function(){toggleOverview();go(i)};
+      var wrap=document.createElement('div');
+      wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'#f1efea':'#0a0a0b');
+      var clone=s.cloneNode(true);
+      clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+      wrap.appendChild(clone);
+      var label=document.createElement('div');
+      label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;color:#f1efea;opacity:.7';
+      label.textContent=(i+1)+' / '+total;
+      card.appendChild(wrap);card.appendChild(label);grid.appendChild(card)
+    });
+    ov.appendChild(grid);ov.style.display='block'
+  }
+  window.__toggleOverview=toggleOverview;
+
+  go(0)
+})();
+</script>
+
+<script type="module">
+try{
+  var m=await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+  var animate=m.animate,stagger=m.stagger;
+  document.body.classList.add('motion-ready');
+  var EASE=[.22,1,.36,1];
+  var slides=document.querySelectorAll('.slide');
+
+  window.__playSlide=function(i){
+    var slide=slides[i];if(!slide)return;
+    slide.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='';el.style.transform=''});
+    var all=[].slice.call(slide.querySelectorAll('[data-anim]'));
+    if(!all.length)return;
+    var recipe=slide.dataset.animate||(slide.classList.contains('hero')?'hero':'cascade');
+    if(recipe==='hero')animate(all,{opacity:[0,1],y:[14,0]},{duration:.9,delay:stagger(.16,{start:.2}),easing:EASE});
+    else animate(all,{opacity:[0,1],y:[16,0]},{duration:.75,delay:stagger(.1,{start:.15}),easing:EASE})
+  };
+
+  // Hook into go() to trigger playSlide
+  var origGo=void 0;
+  // We override the go function by patching - use a MutationObserver-like approach
+  // Actually just hook into the keydown/wheel by calling playSlide after go
+  var _deck=document.getElementById('deck');
+  var observer=new MutationObserver(function(mutations){
+    mutations.forEach(function(mut){
+      if(mut.attributeName==='style'||mut.type==='attributes'){
+        var idx=window.__currentSlideIndex;
+        if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+      }
+    })
+  });
+  // Simpler: just trigger on navigation
+  var navDots=document.getElementById('nav');
+  if(navDots){
+    var dotObserver=new MutationObserver(function(){
+      var idx=window.__currentSlideIndex;
+      if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+    });
+    dotObserver.observe(navDots,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})
+  }
+  // Play first slide
+  setTimeout(function(){window.__playSlide(0)},100)
+}catch(e){
+  console.warn('[motion] CDN failed, disabling animations');
+  document.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='1';el.style.transform='none'})
+}
+</script>
+</body>
+</html>

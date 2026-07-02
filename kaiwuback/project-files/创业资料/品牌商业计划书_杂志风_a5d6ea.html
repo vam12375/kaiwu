@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>差异性Skills · 品牌构建能力展示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0a0a0b;--ink-rgb:10,10,11;
+    --paper:#f1efea;--paper-rgb:241,239,234;
+    --paper-tint:#e8e5de;--ink-tint:#18181a;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display",Georgia,serif;
+    --serif-zh:"Noto Serif SC",serif;
+    --sans-zh:"Noto Sans SC",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased}
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+  body.low-power canvas.bg{display:none!important}
+
+  #deck{position:fixed;inset:0;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .h-hero{font-family:var(--serif-zh);font-weight:900;font-size:10vw;line-height:.96;letter-spacing:-.02em}
+  .h-xl{font-family:var(--serif-zh);font-weight:700;font-size:6.2vw;line-height:1.08;letter-spacing:-.01em}
+  .h-sub{font-family:var(--serif-zh);font-weight:500;font-size:3.1vw;line-height:1.25;opacity:.7}
+  .h-md{font-family:var(--serif-zh);font-weight:600;font-size:2.3vw;line-height:1.3}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.75vw;line-height:1.5;opacity:.86}
+  .meta-row{display:flex;gap:1.2em;align-items:baseline;flex-wrap:wrap;font-family:var(--mono);font-size:max(12px,.92vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82}
+  em{font-style:italic;font-family:var(--serif-en)}
+
+  .stat-card{display:flex;flex-direction:column;gap:.8vh;align-items:flex-start;padding-top:1.6vh;border-top:1px solid rgba(127,127,127,.3)}
+  .stat-label{font-family:var(--mono);font-size:max(10px,.78vw);letter-spacing:.24em;text-transform:uppercase;opacity:.55}
+  .stat-nb{font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;font-feature-settings:"tnum";margin-top:.4vh}
+  .stat-unit{font-family:var(--serif-zh);font-weight:500;font-size:.38em;opacity:.72;margin-left:.14em}
+  .stat-note{font-family:var(--sans-zh);font-weight:400;font-size:max(13px,1.05vw);line-height:1.5;opacity:.72;margin-top:.6vh}
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout-src{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2.4vh 2vw}
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);width:100%;border-radius:4px;margin:0;display:flex;flex-direction:column;min-width:0}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04)}
+  .frame-img>img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .img-cap{display:block;margin-top:.8vh;font-family:var(--mono);font-size:max(10px,.8vw);letter-spacing:.22em;text-transform:uppercase;opacity:.6}
+  .color-block{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:.4}
+
+  /* NAV */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+  body.low-power #hint{opacity:.72;color:var(--paper);mix-blend-mode:normal}
+  body.light-bg.low-power #hint{color:var(--ink)}
+
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.low-power #deck{transition:none!important}
+  body.low-power [data-anim]{opacity:1!important;transform:none!important}
+  @media(max-width:900px){.h-hero{font-size:14vw}.h-xl{font-size:9vw}.grid-2-7-5{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="hint">← → 翻页 · ESC 索引</div>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+
+<div id="deck">
+<section class="slide hero dark"><div class="chrome"><div>品牌手册</div><div>01 / 11</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>BRAND MANUAL</div><h1 class="h-hero" data-anim>品牌手册</h1><p class="lead" style="max-width:50vw" data-anim>2026-06-26 · 曜势科技</p></div><div class="foot"><div>品牌手册 · YaoShi Tech</div><div>— 2026-06-26 —</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>02 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>&gt; 2026-06-26 · 曜势科技</p><p class="body-zh" data-anim>好的，收到。基于您“场地即产品”的创新定位，我们直接进入“龙虾军团”**第二阶段：商业模式构建**。</p><p class="body-zh" data-anim>本阶段的核心任务，是基于上一轮的杭州市场语境（未选定细分赛道，但已锁定策展型、主理人品牌、社区商业三大趋势），为您设计的“社群化商业空间运营商”这个新物种，进行商业模式的深度解构，回答好那三个核心问题。</p><p class="body-zh" data-anim>---</p><p class="body-zh" data-anim>您的生意是一个平台，服务两类核心人群，缺一不可。</p><div class="meta-row" data-anim>人群分层 · 特征 · 年消费/投入预算 · 核心痛点</div><div class="meta-row" data-anim>:--- · :--- · :--- · :---</div><div class="meta-row" data-anim>**核心人群A：新生代内容创造者（租户）** · • 主理人/独立设计师/小众社群运营者<br>• 有过单次快闪经验，寻求稳定但灵活的线下据点<br>• 强线上IP属性，缺乏线下运营能力 · **租金+运营**：20-80万/年 · ① 不懂繁琐的装修审批、消防<br>② 长租约押金重，现金流压力大<br>③ 单打独斗，无社群支持，感觉孤立</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>02</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>03 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>**次要人群A：成熟品牌创新实验部（租户）** · • 新消费品牌/传统品牌年轻化团队<br>• 有固定营销预算，需要一个“不犯错”的线下测试场<br>• 需求明确：新品发布/用户调研/内容生产 · **项目预算**：15-50万/次（1-3个月） · ① 传统商场流程冗长，合作门槛高<br>② 报告数据粗放，难以量化线下效果<br>③ 希望与特定社群产生化学反应，但不知从何下手</div><div class="meta-row" data-anim>**核心人群B：追求意义感的新中产（消费者）** · • 25-40岁，定居杭州，注重精神消费与在地文化<br>• 他们消费的不仅是商品，更是“发现感”和“社群归属感”<br>• 对同质化的购物中心感到厌倦 · **空间内消费**：100-300元/次<br>**社群付费**：1000-5000元/年 · ① 不知道周末去哪，“好无聊”<br>② 想认识同好，拓展社交圈<br>③ 需要一个能激发灵感的“第三空间”</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>03</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>04 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>---</p><div class="meta-row" data-anim>用户痛点 · 现有方案缺陷 · 我们的解决方案 · 差异化优势</div><div class="meta-row" data-anim>:--- · :--- · :--- · :---</div><div class="meta-row" data-anim>**租户A：租赁门槛高，运营复杂** · • **底商/商场**：3年起租，高押金，自行装修，运营孤岛<br>• **联合办公**：氛围不对，客群不匹配 · **“菜单式”模块化空间**：“空间产品”就像订阅软件。提供**基础舱**（水电硬装）+**增值选配**（如“陈列模块”、“灯光氛围包”、“快闪店合规包”）。租期可按“周/月/季”订阅。 · **从“租面积”到“包运营”**：我们不仅是二房东，更是“线下开店操作系统”。租户拎包入驻，专注内容。</div><div class="meta-row" data-anim>**租户B：线下数据黑盒，试错成本高** · • **咨询公司**：出报告，不落地，代价高昂<br>• **自建Pop-up团队**：一次搭建成本极高，无复用性 · **“联合实验”合作模式**：为成熟品牌提供“实验舱”，我们提供标准化的**“人-货-场”数据回流**（动线热力、停留时长、交互数据、社群反馈报告）。合作模式可对赌：低固定租金+销售额分成。 · **从“卖空间”到“卖数据洞察”**：品牌获得的不仅是场地，而是一次精准的用户调研和内容生产事件。</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>04</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>05 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>**消费者B：商业空间同质化，无归属感** · • **购物中心**：千篇一律的连锁品牌，活动生硬<br>• **独立小店**：品质参差不齐，单次打卡，无社群连接 · **“策展式”社群日历**：空间内容由“主理人轮值”+“社群投票”决定。每周都是新主题，每月一次“邻里共创节”。消费者既是观众，也可以成为下一期市集的摊主。 · **从“逛商场”到“回社区”**：这里是他们的精神自留地，一个由兴趣图谱构成的有温度的线下社群中心。</div><p class="body-zh" data-anim>---</p><p class="body-zh" data-anim>**收入来源表**：</p><div class="meta-row" data-anim>收入来源 · 占比 · 定价逻辑 · 毛利率</div><div class="meta-row" data-anim>:--- · :--- · :--- · :---</div><div class="meta-row" data-anim>**主营收入：空间订阅费** · 60% · **基础舱租赁**：按周/月定价，为市场同地段70%租金，但提供150%的拎包入住服务溢价。<br>**增值选配费**：全套道具、灯光模块等，按次收取。 · 60%-70%（扣除物业能耗改造折旧）</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>05</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>06 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>**附加收入：内容服务费** · 30% · **品牌实验舱套餐**：“场地+数据报告+社群宣发”打包一口价，10万/月起。<br>**社群活动门票/分成**：与主理人联合企划的工作坊、展览门票收入分成（佣金20-30%）。 · 80%+（纯服务与资源整合）</div><div class="meta-row" data-anim>**未来收入：数据与供应链金融** · 10% · **数据订阅**：为无法入驻的品牌提供“杭州青年消费趋势报告”。<br>**供应链撮合**：为空间内跑通模式的新品牌，对接我们的战略合作工厂和渠道方，抽取交易佣金。 · [行业测算] 90%+</div><p class="body-zh" data-anim>**成本结构**：</p><p class="body-zh" data-anim>*   **固定成本 (60-70%)**：物业获取（租金/联营保底）、模块化硬装折旧、核心运营团队薪资。</p><p class="body-zh" data-anim>*   **可变成本 (20-30%)**：单场活动物料、社群运营成本、市场营销费用。</p><p class="body-zh" data-anim>*   **获客成本 (10%)**：通过内容（主理人访谈、空间事件）自然引流，重点BD预算花在标杆主理人和品牌上。</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>06</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>07 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>**盈利公式**：</p><p class="body-zh" data-anim>`GMV = 客单价 × 转化率 × 流量 × 复购率`</p><p class="body-zh" data-anim>*   **空间订阅GMV** = （B端客单价-月租1.5万） × （招商转化率-5%） × （咨询流量-200个/月，来自头雁效应） × （B端复购/续租率-70%）</p><p class="body-zh" data-anim>*   **核心驱动**：一个标杆主理人（头雁）的成功，会为他背后的社群带来10个意向入驻者（雁群），极大降低我们的招商成本和C端流量成本。</p><p class="body-zh" data-anim>---</p><p class="body-zh" data-anim>我们不拿大场，先在一个**200-300㎡的高潜力社区或非标空间**，用5个极具张力的产品来做模式验证。</p><p class="body-zh" data-anim>**产品代号：【回响社区·LAB 0.1】**</p><div class="meta-row" data-anim>SKU（空间产品） · 目标人群 · 解决什么痛点 · 预估定价</div><div class="meta-row" data-anim>:--- · :--- · :--- · :---</div><div class="meta-row" data-anim>**1. 灵感舱 (30㎡)** · 独立设计师/插画师 · “需要一个既能陈列作品又能与粉丝见面的小会客厅，但不想处理工商税务。” · 3000元/周</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>07</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>08 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>| **2. 赏味格 (15㎡)** | 精品咖啡/烘焙主理人 | “想开一家测试店，验证新配方和新模式，但开家标准店的投入太吓人。” | 5000元</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>08</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>09 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>09</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>10 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>10</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>11 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>11</div></div></section><div id="nav"></div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();setTimeout(function(){if(typeof lucide!=='undefined')lucide.createIcons();},600);</script>
+
+<script>
+// ======== WebGL Background ========
+const VS='attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}';
+const FS_DARK='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;float md=length(p-m);float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;vec2 p0=p;for(float i=1.0;i<4.0;i++){p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;}float r=length(p);float ang=atan(p.y,p.x);vec3 a=vec3(0.12,0.12,0.13);vec3 b=vec3(0.03,0.04,0.05);vec3 c=vec3(1.0,1.0,1.0);vec3 d=vec3(0.1,0.2,0.4);vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;col+=vec3(disp*0.015,disp*0.01,disp*0.02);float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);col+=hi*0.08;vec3 base=vec3(0.05,0.05,0.06);col=mix(base,col,0.85);gl_FragColor=vec4(col,1.0);}';
+const FS_LIGHT='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float noise(vec2 p){vec2 i=floor(p),f=fract(p);float a=hash(i),b=hash(i+vec2(1,0));float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));vec2 u=f*f*(3.0-2.0*f);return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;}float fbm(vec2 p){float v=0.0,a=0.5;mat2 m=mat2(0.80,0.60,-0.60,0.80);for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}return v;}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;vec2 md=p-m;float dl=length(md);p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));float f=fbm(p*2.2+r*1.5);vec3 silverDark=vec3(0.86,0.85,0.84);vec3 paper=vec3(0.955,0.945,0.925);vec3 col=mix(silverDark,paper,f);float ph=r.x*2.2+u_time*0.35;col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;float hl=smoothstep(0.48,0.92,f);col+=hl*0.06;gl_FragColor=vec4(col,1.0);}';
+
+(function(){
+  var mouse={x:0.5,y:0.5};
+  window.addEventListener('mousemove',function(e){mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+  function bootGL(id,fs){
+    var c=document.getElementById(id);
+    var gl=c.getContext('webgl',{alpha:false,antialias:true});
+    if(!gl)return function(){};
+    function mk(t,s){var sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh}
+    var p=gl.createProgram();
+    gl.attachShader(p,mk(gl.VERTEX_SHADER,VS));
+    gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));
+    gl.linkProgram(p);gl.useProgram(p);
+    var b=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+    var pos=gl.getAttribLocation(p,'position');
+    gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+    var lR=gl.getUniformLocation(p,'u_resolution');
+    var lT=gl.getUniformLocation(p,'u_time');
+    var lM=gl.getUniformLocation(p,'u_mouse');
+    function resize(){var d=Math.min(window.devicePixelRatio||1,2);c.width=innerWidth*d;c.height=innerHeight*d;gl.viewport(0,0,c.width,c.height)}
+    window.addEventListener('resize',resize);resize();
+    return function(t){gl.uniform2f(lR,c.width,c.height);gl.uniform1f(lT,t);gl.uniform2f(lM,mouse.x,1-mouse.y);gl.drawArrays(gl.TRIANGLES,0,6)}
+  }
+
+  var dD=null,dL=null,raf=0,t0=Date.now();
+  function start(){
+    if(!dD)dD=bootGL('bg-dark',FS_DARK);
+    if(!dL)dL=bootGL('bg-light',FS_LIGHT);
+    t0=Date.now();
+    function loop(){var t=(Date.now()-t0)/1000;dD(t);dL(t);raf=requestAnimationFrame(loop)}
+    raf=requestAnimationFrame(loop)
+  }
+  start();
+
+  // ======== Navigation ========
+  var deck=document.getElementById('deck');
+  var slides=deck.querySelectorAll('.slide');
+  var total=slides.length;
+  deck.style.width=(total*100)+'vw';
+  var nav=document.getElementById('nav');
+  var idx=0,lock=false;
+
+  slides.forEach(function(s,i){
+    var b=document.createElement('button');
+    b.className='dot';b.dataset.i=i;
+    b.setAttribute('aria-label','Page '+(i+1));
+    b.addEventListener('click',function(){go(i)});
+    nav.appendChild(b)
+  });
+
+  function go(n){
+    if(lock)return;
+    idx=Math.max(0,Math.min(total-1,n));
+    window.__currentSlideIndex=idx;
+    deck.style.transform='translateX('+(-idx*100)+'vw)';
+    var dots=nav.querySelectorAll('.dot');
+    dots.forEach(function(d,i){d.classList.toggle('active',i===idx)});
+    var el=slides[idx];
+    var th=el.classList.contains('light')?'light':'dark';
+    document.body.classList.toggle('light-bg',th==='light');
+    lock=true;setTimeout(function(){lock=false},700)
+  }
+
+  // Keyboard
+  window.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      e.preventDefault();
+      if(window.__toggleOverview)window.__toggleOverview();
+      return
+    }
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+      e.preventDefault();
+      go(idx+1)
+    }
+    if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp'){
+      e.preventDefault();
+      go(idx-1)
+    }
+    if(e.key==='Home'){e.preventDefault();go(0)}
+    if(e.key==='End'){e.preventDefault();go(total-1)}
+  });
+
+  // Wheel
+  var wAcc=0,wTO=null;
+  window.addEventListener('wheel',function(e){
+    wAcc+=e.deltaY+e.deltaX;
+    if(Math.abs(wAcc)>50){go(idx+(wAcc>0?1:-1));wAcc=0}
+    clearTimeout(wTO);wTO=setTimeout(function(){wAcc=0},150)
+  },{passive:true});
+
+  // Touch
+  var tx=0,ty=0;
+  window.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+  window.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-tx;
+    var dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(idx+(dx<0?1:-1))
+  },{passive:true});
+
+  // ESC Overview
+  var ov=document.createElement('div');
+  ov.id='overview';
+  ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(10,10,11,.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+  document.body.appendChild(ov);
+  var ovOn=false;
+  function toggleOverview(){
+    ovOn=!ovOn;
+    if(!ovOn){ov.style.display='none';return}
+    ov.innerHTML='';
+    var grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+    slides.forEach(function(s,i){
+      var card=document.createElement('div');
+      card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(241,239,234,.8)':'rgba(241,239,234,.15)')
+      card.onclick=function(){toggleOverview();go(i)};
+      var wrap=document.createElement('div');
+      wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'#f1efea':'#0a0a0b');
+      var clone=s.cloneNode(true);
+      clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+      wrap.appendChild(clone);
+      var label=document.createElement('div');
+      label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;color:#f1efea;opacity:.7';
+      label.textContent=(i+1)+' / '+total;
+      card.appendChild(wrap);card.appendChild(label);grid.appendChild(card)
+    });
+    ov.appendChild(grid);ov.style.display='block'
+  }
+  window.__toggleOverview=toggleOverview;
+
+  go(0)
+})();
+</script>
+
+<script type="module">
+try{
+  var m=await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+  var animate=m.animate,stagger=m.stagger;
+  document.body.classList.add('motion-ready');
+  var EASE=[.22,1,.36,1];
+  var slides=document.querySelectorAll('.slide');
+
+  window.__playSlide=function(i){
+    var slide=slides[i];if(!slide)return;
+    slide.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='';el.style.transform=''});
+    var all=[].slice.call(slide.querySelectorAll('[data-anim]'));
+    if(!all.length)return;
+    var recipe=slide.dataset.animate||(slide.classList.contains('hero')?'hero':'cascade');
+    if(recipe==='hero')animate(all,{opacity:[0,1],y:[14,0]},{duration:.9,delay:stagger(.16,{start:.2}),easing:EASE});
+    else animate(all,{opacity:[0,1],y:[16,0]},{duration:.75,delay:stagger(.1,{start:.15}),easing:EASE})
+  };
+
+  // Hook into go() to trigger playSlide
+  var origGo=void 0;
+  // We override the go function by patching - use a MutationObserver-like approach
+  // Actually just hook into the keydown/wheel by calling playSlide after go
+  var _deck=document.getElementById('deck');
+  var observer=new MutationObserver(function(mutations){
+    mutations.forEach(function(mut){
+      if(mut.attributeName==='style'||mut.type==='attributes'){
+        var idx=window.__currentSlideIndex;
+        if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+      }
+    })
+  });
+  // Simpler: just trigger on navigation
+  var navDots=document.getElementById('nav');
+  if(navDots){
+    var dotObserver=new MutationObserver(function(){
+      var idx=window.__currentSlideIndex;
+      if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+    });
+    dotObserver.observe(navDots,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})
+  }
+  // Play first slide
+  setTimeout(function(){window.__playSlide(0)},100)
+}catch(e){
+  console.warn('[motion] CDN failed, disabling animations');
+  document.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='1';el.style.transform='none'})
+}
+</script>
+</body>
+</html>

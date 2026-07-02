@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>差异性Skills · 品牌构建能力展示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0a0a0b;--ink-rgb:10,10,11;
+    --paper:#f1efea;--paper-rgb:241,239,234;
+    --paper-tint:#e8e5de;--ink-tint:#18181a;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display",Georgia,serif;
+    --serif-zh:"Noto Serif SC",serif;
+    --sans-zh:"Noto Sans SC",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased}
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+  body.low-power canvas.bg{display:none!important}
+
+  #deck{position:fixed;inset:0;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .h-hero{font-family:var(--serif-zh);font-weight:900;font-size:10vw;line-height:.96;letter-spacing:-.02em}
+  .h-xl{font-family:var(--serif-zh);font-weight:700;font-size:6.2vw;line-height:1.08;letter-spacing:-.01em}
+  .h-sub{font-family:var(--serif-zh);font-weight:500;font-size:3.1vw;line-height:1.25;opacity:.7}
+  .h-md{font-family:var(--serif-zh);font-weight:600;font-size:2.3vw;line-height:1.3}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.75vw;line-height:1.5;opacity:.86}
+  .meta-row{display:flex;gap:1.2em;align-items:baseline;flex-wrap:wrap;font-family:var(--mono);font-size:max(12px,.92vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82}
+  em{font-style:italic;font-family:var(--serif-en)}
+
+  .stat-card{display:flex;flex-direction:column;gap:.8vh;align-items:flex-start;padding-top:1.6vh;border-top:1px solid rgba(127,127,127,.3)}
+  .stat-label{font-family:var(--mono);font-size:max(10px,.78vw);letter-spacing:.24em;text-transform:uppercase;opacity:.55}
+  .stat-nb{font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;font-feature-settings:"tnum";margin-top:.4vh}
+  .stat-unit{font-family:var(--serif-zh);font-weight:500;font-size:.38em;opacity:.72;margin-left:.14em}
+  .stat-note{font-family:var(--sans-zh);font-weight:400;font-size:max(13px,1.05vw);line-height:1.5;opacity:.72;margin-top:.6vh}
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout-src{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2.4vh 2vw}
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);width:100%;border-radius:4px;margin:0;display:flex;flex-direction:column;min-width:0}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04)}
+  .frame-img>img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .img-cap{display:block;margin-top:.8vh;font-family:var(--mono);font-size:max(10px,.8vw);letter-spacing:.22em;text-transform:uppercase;opacity:.6}
+  .color-block{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:.4}
+
+  /* NAV */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+  body.low-power #hint{opacity:.72;color:var(--paper);mix-blend-mode:normal}
+  body.light-bg.low-power #hint{color:var(--ink)}
+
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.low-power #deck{transition:none!important}
+  body.low-power [data-anim]{opacity:1!important;transform:none!important}
+  @media(max-width:900px){.h-hero{font-size:14vw}.h-xl{font-size:9vw}.grid-2-7-5{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="hint">← → 翻页 · ESC 索引</div>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+
+<div id="deck">
+<section class="slide hero dark"><div class="chrome"><div>品牌手册</div><div>01 / 11</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>BRAND MANUAL</div><h1 class="h-hero" data-anim>品牌手册</h1><p class="lead" style="max-width:50vw" data-anim>2026-06-26 · 曜势科技</p></div><div class="foot"><div>品牌手册 · YaoShi Tech</div><div>— 2026-06-26 —</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>02 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>&gt; 2026-06-26 · 曜势科技</p><p class="body-zh" data-anim>好的，军师收到。现在是2026年6月25日，一份关于网球服市场的完整商业计划书已就绪。我们将基于前序市场调研，构建商业模式与品牌体系。</p><p class="body-zh" data-anim>---</p><p class="body-zh" data-anim>**上游输入**：2026年6月网球服市场调研报告</p><p class="body-zh" data-anim>**战略核心**：抓住“专业功能日常化”与“亚洲版型优化”的市场断层，创立一个中等价位、兼具高性能与高颜值的网球生活方式品牌。</p><p class="body-zh" data-anim>---</p><p class="body-zh" data-anim>**一句话概括**：为亚洲女性打造**“一衣两穿”的专业级网球时装**，让每一件装备都能无缝衔接激烈对抗与精致日常。</p><p class="body-zh" data-anim>**解决的核心问题**：</p><p class="body-zh" data-anim>*   **引用商业机会**：“市场存在‘专业+颜值’中端品牌断层” 和 “功能性日常穿搭需求未被满足”。我们解决的正是消费者在廉价平替与昂贵国际大牌之间的两难选择，提供既有国际大牌性能，又有亚洲设计审美的第三种选择。</p><div class="meta-row" data-anim>维度 · 内容 · 市场调研数据来源</div><div class="meta-row" data-anim>------ · ------ · -------------</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>02</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>03 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>**核心人群** · **“新锐网球名媛”**：25-35岁一线及新一线城市女性，年收入25万+，是小红书、Instagram的重度用户。 · 引用“网球风穿搭在社媒走红，成为都市中产新生活方式符号”。</div><div class="meta-row" data-anim>**用户痛点** · 1. **版型不适**：国际品牌不合身，显得腿短腰长。<br>2. **场景割裂**：专业球服设计过于运动，不方便直接穿去社交。 · 引用“亚洲版型深度优化”与“一衣两穿”产品空白。</div><div class="meta-row" data-anim>**付费意愿** · 愿意为**解决特定痛点**和**提升审美价值**支付溢价，单件上衣预算300-600元，连衣裙预算600-1200元。 · 引用“中等价位专业+颜值品牌断层”和用户消费预算行业测算。</div><div class="meta-row" data-anim>收入来源 · 占比 · 定价逻辑 · 毛利率</div><div class="meta-row" data-anim>--------- · ------ · --------- · --------</div><div class="meta-row" data-anim>**核心网球服饰** (Bra、裙裤、连衣裙) · 70% · **成本导向+价值锚定**：锚定Lululemon的60%-70%价格，提供120%的性能与颜值。 · 65%-70%</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>03</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>04 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>**生活方式延伸品** (外套、卫衣、通勤裤) · 20% · **竞品对标**：定价略低于Maia Active等设计师运动品牌，强调网球元素独特性。 · 60%-65%</div><div class="meta-row" data-anim>**配件与社群服务** (发带、球袜、线下网球训练营) · 10% · **生态定价**：配件作为引流入口，社群服务按次/会员付费，高频打低频。 · 50%-75%</div><p class="body-zh" data-anim>*   **定价策略**：采用“中端高位”定价，以高性能面料(如自带冰感的尼龙66纱线)和独特的“一片式”亚洲剪裁作为溢价支撑。</p><p class="body-zh" data-anim>*   **盈亏平衡**：预计启动后**第13个月**达到单月盈亏平衡点，基于客单价750元，月销3000单测算。([行业测算])</p><div class="meta-row" data-anim>渠道 · 定位 · 启动难度 · 预期贡献</div><div class="meta-row" data-anim>------ · ------ · --------- · ---------</div><div class="meta-row" data-anim>**DTC官方小程序/APP** · **品牌心智与复购主阵地**。承载会员体系、社群活动报名、限量款发售。 · 中 · 40%</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>04</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>05 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>**天猫旗舰店** · **公域流量成交核心**。通过网球穿搭、郑钦文同款等关键词截获搜索流量。 · 低 · 35%</div><div class="meta-row" data-anim>**小红书商城** · **内容种草收割一体**。与KOC/KOL合作，笔记挂链，一站式完成从种草到购买。 · 低 · 15%</div><div class="meta-row" data-anim>**线下“网球俱乐部”快闪店** · **体验与关系构建场**。选址城市核心球场旁，提供试穿、改衣、社群赛活动。 · 高 · 10%</div><div class="meta-row" data-anim>竞品 · 产品卖点 · 价格策略 · 营销策略</div><div class="meta-row" data-anim>------ · --------- · --------- · ---------</div><div class="meta-row" data-anim>**NikeCourt** · 大牌背书，明星款 · 高 (700-1500元) · 顶级球星代言+赛事赞助</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>05</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>06 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>**Lululemon** · 面料舒适，中产符号 · 高 (450-1000元) · 社群大使+生活方式营销</div><div class="meta-row" data-anim>**Halara** · 极致性价比，网红款 · 低 (100-300元) · TikTok/小红书素人铺量</div><div class="meta-row" data-anim>**中产网球新军** · 我们：**亚洲版型+专业功能+日常美学** · 中高 (300-1200元) · **实战社群+内容美学**</div><p class="body-zh" data-anim>**差异化建议**：</p><p class="body-zh" data-anim>1.  **版型突破**：主打“裤长缩短2cm，腰臀比优化”的亚洲限定版型。</p><p class="body-zh" data-anim>2.  **设计跨界**：推出“优雅回击”系列，将职业装元素(如荡领、不规则下摆)融入网球裙设计。</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>06</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>07 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>3.  **社群深耕**：不找大明星，而是签100位“城市网球主理人”，通过每周组织业余赛建立强情感连接。</p><div class="meta-row" data-anim>资源类型 · 具体内容 · 获取方式</div><div class="meta-row" data-anim>--------- · --------- · ---------</div><div class="meta-row" data-anim>**核心资源** · **面料研发伙伴**：与东丽等顶级纱线供应商建立联合开发关系，锁定独家面料。 · 战略合作，小单快反初期成本较高。</div><div class="meta-row" data-anim> · **版型数据库**：基于数千名亚洲女性体型数据，构建独家的亚洲版型数学模型。 · 首批种子用户共创+KOL量体数据采集。</div><div class="meta-row" data-anim> · **内容与社群资产**：高质量网球穿搭内容库和活跃的城市俱乐部群。 · 自建内容团队+签约摄影师/主理人。</div><div class="meta-row" data-anim>**成本结构** · **主要成本**：面料采购(25%)、代工生产(20%)。<br>**固定成本**：设计研发团队薪酬(15%)。<br>**营销成本**：线上投流+内容创作(20%)。 · 初期严格控制SKU，聚焦核心爆款，降低库存风险。</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>07</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>08 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>---</p><p class="body-zh" data-anim>*采用逻辑：**功效导向 + 情感共鸣 + 中外结合**，旨在创造兼具优雅感与力量感的品牌联想。*</p><div class="meta-row" data-anim>编号 · 品牌名 · 命名逻辑 · 含义</div><div class="meta-row" data-anim>------ · -------- · --------- · ------</div><p class="body-zh" data-anim>| 1 | **AcePoint** | 功效/中外结合 | **Ace**: 网球致胜分；**Point**: 得分点、时尚的切题点。寓意精准、一击即中，</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>08</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>09 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>09</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>10 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>10</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>11 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>11</div></div></section><div id="nav"></div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();setTimeout(function(){if(typeof lucide!=='undefined')lucide.createIcons();},600);</script>
+
+<script>
+// ======== WebGL Background ========
+const VS='attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}';
+const FS_DARK='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;float md=length(p-m);float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;vec2 p0=p;for(float i=1.0;i<4.0;i++){p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;}float r=length(p);float ang=atan(p.y,p.x);vec3 a=vec3(0.12,0.12,0.13);vec3 b=vec3(0.03,0.04,0.05);vec3 c=vec3(1.0,1.0,1.0);vec3 d=vec3(0.1,0.2,0.4);vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;col+=vec3(disp*0.015,disp*0.01,disp*0.02);float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);col+=hi*0.08;vec3 base=vec3(0.05,0.05,0.06);col=mix(base,col,0.85);gl_FragColor=vec4(col,1.0);}';
+const FS_LIGHT='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float noise(vec2 p){vec2 i=floor(p),f=fract(p);float a=hash(i),b=hash(i+vec2(1,0));float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));vec2 u=f*f*(3.0-2.0*f);return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;}float fbm(vec2 p){float v=0.0,a=0.5;mat2 m=mat2(0.80,0.60,-0.60,0.80);for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}return v;}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;vec2 md=p-m;float dl=length(md);p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));float f=fbm(p*2.2+r*1.5);vec3 silverDark=vec3(0.86,0.85,0.84);vec3 paper=vec3(0.955,0.945,0.925);vec3 col=mix(silverDark,paper,f);float ph=r.x*2.2+u_time*0.35;col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;float hl=smoothstep(0.48,0.92,f);col+=hl*0.06;gl_FragColor=vec4(col,1.0);}';
+
+(function(){
+  var mouse={x:0.5,y:0.5};
+  window.addEventListener('mousemove',function(e){mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+  function bootGL(id,fs){
+    var c=document.getElementById(id);
+    var gl=c.getContext('webgl',{alpha:false,antialias:true});
+    if(!gl)return function(){};
+    function mk(t,s){var sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh}
+    var p=gl.createProgram();
+    gl.attachShader(p,mk(gl.VERTEX_SHADER,VS));
+    gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));
+    gl.linkProgram(p);gl.useProgram(p);
+    var b=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+    var pos=gl.getAttribLocation(p,'position');
+    gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+    var lR=gl.getUniformLocation(p,'u_resolution');
+    var lT=gl.getUniformLocation(p,'u_time');
+    var lM=gl.getUniformLocation(p,'u_mouse');
+    function resize(){var d=Math.min(window.devicePixelRatio||1,2);c.width=innerWidth*d;c.height=innerHeight*d;gl.viewport(0,0,c.width,c.height)}
+    window.addEventListener('resize',resize);resize();
+    return function(t){gl.uniform2f(lR,c.width,c.height);gl.uniform1f(lT,t);gl.uniform2f(lM,mouse.x,1-mouse.y);gl.drawArrays(gl.TRIANGLES,0,6)}
+  }
+
+  var dD=null,dL=null,raf=0,t0=Date.now();
+  function start(){
+    if(!dD)dD=bootGL('bg-dark',FS_DARK);
+    if(!dL)dL=bootGL('bg-light',FS_LIGHT);
+    t0=Date.now();
+    function loop(){var t=(Date.now()-t0)/1000;dD(t);dL(t);raf=requestAnimationFrame(loop)}
+    raf=requestAnimationFrame(loop)
+  }
+  start();
+
+  // ======== Navigation ========
+  var deck=document.getElementById('deck');
+  var slides=deck.querySelectorAll('.slide');
+  var total=slides.length;
+  deck.style.width=(total*100)+'vw';
+  var nav=document.getElementById('nav');
+  var idx=0,lock=false;
+
+  slides.forEach(function(s,i){
+    var b=document.createElement('button');
+    b.className='dot';b.dataset.i=i;
+    b.setAttribute('aria-label','Page '+(i+1));
+    b.addEventListener('click',function(){go(i)});
+    nav.appendChild(b)
+  });
+
+  function go(n){
+    if(lock)return;
+    idx=Math.max(0,Math.min(total-1,n));
+    window.__currentSlideIndex=idx;
+    deck.style.transform='translateX('+(-idx*100)+'vw)';
+    var dots=nav.querySelectorAll('.dot');
+    dots.forEach(function(d,i){d.classList.toggle('active',i===idx)});
+    var el=slides[idx];
+    var th=el.classList.contains('light')?'light':'dark';
+    document.body.classList.toggle('light-bg',th==='light');
+    lock=true;setTimeout(function(){lock=false},700)
+  }
+
+  // Keyboard
+  window.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      e.preventDefault();
+      if(window.__toggleOverview)window.__toggleOverview();
+      return
+    }
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+      e.preventDefault();
+      go(idx+1)
+    }
+    if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp'){
+      e.preventDefault();
+      go(idx-1)
+    }
+    if(e.key==='Home'){e.preventDefault();go(0)}
+    if(e.key==='End'){e.preventDefault();go(total-1)}
+  });
+
+  // Wheel
+  var wAcc=0,wTO=null;
+  window.addEventListener('wheel',function(e){
+    wAcc+=e.deltaY+e.deltaX;
+    if(Math.abs(wAcc)>50){go(idx+(wAcc>0?1:-1));wAcc=0}
+    clearTimeout(wTO);wTO=setTimeout(function(){wAcc=0},150)
+  },{passive:true});
+
+  // Touch
+  var tx=0,ty=0;
+  window.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+  window.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-tx;
+    var dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(idx+(dx<0?1:-1))
+  },{passive:true});
+
+  // ESC Overview
+  var ov=document.createElement('div');
+  ov.id='overview';
+  ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(10,10,11,.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+  document.body.appendChild(ov);
+  var ovOn=false;
+  function toggleOverview(){
+    ovOn=!ovOn;
+    if(!ovOn){ov.style.display='none';return}
+    ov.innerHTML='';
+    var grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+    slides.forEach(function(s,i){
+      var card=document.createElement('div');
+      card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(241,239,234,.8)':'rgba(241,239,234,.15)')
+      card.onclick=function(){toggleOverview();go(i)};
+      var wrap=document.createElement('div');
+      wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'#f1efea':'#0a0a0b');
+      var clone=s.cloneNode(true);
+      clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+      wrap.appendChild(clone);
+      var label=document.createElement('div');
+      label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;color:#f1efea;opacity:.7';
+      label.textContent=(i+1)+' / '+total;
+      card.appendChild(wrap);card.appendChild(label);grid.appendChild(card)
+    });
+    ov.appendChild(grid);ov.style.display='block'
+  }
+  window.__toggleOverview=toggleOverview;
+
+  go(0)
+})();
+</script>
+
+<script type="module">
+try{
+  var m=await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+  var animate=m.animate,stagger=m.stagger;
+  document.body.classList.add('motion-ready');
+  var EASE=[.22,1,.36,1];
+  var slides=document.querySelectorAll('.slide');
+
+  window.__playSlide=function(i){
+    var slide=slides[i];if(!slide)return;
+    slide.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='';el.style.transform=''});
+    var all=[].slice.call(slide.querySelectorAll('[data-anim]'));
+    if(!all.length)return;
+    var recipe=slide.dataset.animate||(slide.classList.contains('hero')?'hero':'cascade');
+    if(recipe==='hero')animate(all,{opacity:[0,1],y:[14,0]},{duration:.9,delay:stagger(.16,{start:.2}),easing:EASE});
+    else animate(all,{opacity:[0,1],y:[16,0]},{duration:.75,delay:stagger(.1,{start:.15}),easing:EASE})
+  };
+
+  // Hook into go() to trigger playSlide
+  var origGo=void 0;
+  // We override the go function by patching - use a MutationObserver-like approach
+  // Actually just hook into the keydown/wheel by calling playSlide after go
+  var _deck=document.getElementById('deck');
+  var observer=new MutationObserver(function(mutations){
+    mutations.forEach(function(mut){
+      if(mut.attributeName==='style'||mut.type==='attributes'){
+        var idx=window.__currentSlideIndex;
+        if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+      }
+    })
+  });
+  // Simpler: just trigger on navigation
+  var navDots=document.getElementById('nav');
+  if(navDots){
+    var dotObserver=new MutationObserver(function(){
+      var idx=window.__currentSlideIndex;
+      if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+    });
+    dotObserver.observe(navDots,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})
+  }
+  // Play first slide
+  setTimeout(function(){window.__playSlide(0)},100)
+}catch(e){
+  console.warn('[motion] CDN failed, disabling animations');
+  document.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='1';el.style.transform='none'})
+}
+</script>
+</body>
+</html>

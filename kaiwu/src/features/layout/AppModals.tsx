@@ -1,0 +1,331 @@
+﻿import { Search } from 'lucide-react';
+
+import { installedSkills, projectFolders, projectLibraryFiles, skillMarketItems, skillOptions } from '../../data';
+
+type AppModalsProps = Record<string, any>;
+
+export function AppModals(props: AppModalsProps) {
+  const {
+    fileIndex,
+    libraryModal,
+    openProjectFile,
+    previewImageIndex,
+    projectImages,
+    projectModal,
+    realProjectFiles,
+    rechargeModalOpen,
+    rechargeView,
+    selectedFileIndex,
+    selectedFolderIndex,
+    selectedSkillItemIndex,
+    setFileIndex,
+    setLibraryModal,
+    setPreviewImageIndex,
+    setProjectModal,
+    setRechargeModalOpen,
+    setRechargeView,
+    setReferenceImageIndexes,
+    setSkillIndex,
+    setSkillModal,
+    setSkillModalData,
+    skillIndex,
+    skillModal,
+    skillModalData,
+  } = props;
+
+  return (
+    <>
+            {/* Image Preview Modal */}
+            {previewImageIndex !== null && (
+              <div className="modal-backdrop" onClick={() => setPreviewImageIndex(null)}>
+                <section className="image-preview-modal" onClick={(event) => event.stopPropagation()}>
+                  <div className="preview-large generated-image" />
+                  <div className="preview-actions">
+                    <button className="secondary-action" onClick={() => setPreviewImageIndex(null)} type="button">关闭</button>
+                    <button className="primary-action" onClick={() => { setReferenceImageIndexes((items: number[]) => [...items, previewImageIndex]); setPreviewImageIndex(null); }} type="button">导入到输入框作为参考图</button>
+                  </div>
+                </section>
+              </div>
+            )}
+      
+            {/* Skill Modal */}
+            {skillModal && (
+              <div className="modal-backdrop" onClick={() => setSkillModal(null)}>
+                <section className="project-modal" onClick={(event) => event.stopPropagation()}>
+                  <header className="modal-header">
+                    <div>
+                      <div className="modal-kicker">技能库</div>
+                      <h2>{skillModal === 'custom' ? '添加自定义技能' : skillModal === 'detail' ? skillMarketItems[selectedSkillItemIndex].name : skillModal === 'install' ? '安装技能' : '管理技能'}</h2>
+                    </div>
+                    <button className="modal-close" onClick={() => setSkillModal(null)} type="button">×</button>
+                  </header>
+                  {skillModal === 'custom' && (
+                    <div className="project-modal-body">
+                      <div className="form-field"><span>技能名称</span><input placeholder="例如：合同审阅助手" /></div>
+                      <div className="form-field"><span>分类</span><select><option>办公提效</option><option>研究分析</option><option>内容创意</option><option>开发自动化</option></select></div>
+                      <div className="form-field"><span>调用说明</span><textarea placeholder="描述这个技能什么时候被调用、输入什么、输出什么..." /></div>
+                      <div className="form-field"><span>连接方式</span><input placeholder="MCP / API / 本地脚本 / 浏览器动作" /></div>
+                      <div className="modal-actions"><button className="secondary-action" onClick={() => setSkillModal(null)} type="button">取消</button><button className="primary-action" type="button">保存技能</button></div>
+                    </div>
+                  )}
+                  {skillModal === 'detail' && installedSkills.includes(skillMarketItems[selectedSkillItemIndex].name) && (
+                    <div className="project-modal-body">
+                      <div className="skill-summary-card">
+                        <div className={`skill-summary-icon tone-${skillMarketItems[selectedSkillItemIndex].tone}`}>✦</div>
+                        <div>
+                          <h3>{skillMarketItems[selectedSkillItemIndex].name}</h3>
+                          <p>{skillMarketItems[selectedSkillItemIndex].desc}</p>
+                          <span>{skillMarketItems[selectedSkillItemIndex].category} · 已安装</span>
+                        </div>
+                      </div>
+                      <div className="skill-raw-box">
+                        <div className="skill-raw-title">Skill 文本内容</div>
+                        <textarea
+                          readOnly
+                          value={`name: ${skillMarketItems[selectedSkillItemIndex].name}\n\ndescription: ${skillMarketItems[selectedSkillItemIndex].doc ?? skillMarketItems[selectedSkillItemIndex].desc}\n\ndescription_zh: 服务创业者和知识工作者，围绕具体任务提供结构化处理能力。\n\nversion: 1.0.0\n\ncategory: ${skillMarketItems[selectedSkillItemIndex].category}\n\nallowed-tools: Read, Search, ProjectFiles\n\ndisplay_name: ${skillMarketItems[selectedSkillItemIndex].name}`}
+                        />
+                      </div>
+                      <div className="modal-actions"><button className="secondary-action" onClick={() => setSkillModal(null)} type="button">关闭</button><button className="primary-action" onClick={() => setSkillModal('manage')} type="button">管理技能</button></div>
+                    </div>
+                  )}
+                  {skillModal === 'install' && (
+                    <div className="project-modal-body">
+                      <p className="modal-desc">安装后，开物可以在对话中根据任务自动调用「{skillMarketItems[selectedSkillItemIndex].name}」。</p>
+                      <div className="file-detail-grid"><span>技能分类</span><strong>{skillMarketItems[selectedSkillItemIndex].category}</strong><span>默认启用</span><strong>是</strong><span>所需权限</span><strong>读取对话、读取已选择文件</strong><span>安装范围</span><strong>当前工作区</strong></div>
+                      <div className="modal-actions"><button className="secondary-action" onClick={() => setSkillModal(null)} type="button">取消</button><button className="primary-action" type="button">确认安装</button></div>
+                    </div>
+                  )}
+                  {skillModal === 'manage' && (
+                    <div className="project-modal-body">
+                      <div className="setting-item"><div><strong>默认启用</strong><small>允许模型在合适任务中自动调用</small></div><button className="switch on" type="button"><span /></button></div>
+                      <div className="modal-subtle-actions"><button type="button">重命名</button><button type="button">卸载技能</button></div>
+                      <div className="modal-actions"><button className="secondary-action" onClick={() => setSkillModal(null)} type="button">取消</button><button className="primary-action" type="button">保存设置</button></div>
+                    </div>
+                  )}
+                  {skillModal === 'external' && skillModalData && (
+                    <div className="project-modal-body" style={{maxHeight:'60vh',overflow:'auto'}}>
+                      <div className="skill-summary-card">
+                        <div className="skill-summary-icon tone-indigo">◆</div>
+                        <div><h3>{skillModalData.name}</h3><p>{skillModalData.description}</p><span>方法论 · 已安装</span></div>
+                      </div>
+                      <div className="skill-raw-box">
+                        <div className="skill-raw-title">技能完整内容</div>
+                        <textarea readOnly value={skillModalData.full_content} style={{minHeight:'300px'}} />
+                      </div>
+                      <div className="modal-actions"><button className="secondary-action" onClick={() => { setSkillModal(null); setSkillModalData(null); }} type="button">关闭</button></div>
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+      
+            {/* Project Modal */}
+            {projectModal && (
+              <div className="modal-backdrop" onClick={() => setProjectModal(null)}>
+                <section className="project-modal" onClick={(event) => event.stopPropagation()}>
+                  <header className="modal-header">
+                    <div>
+                      <div className="modal-kicker">项目库</div>
+                      <h2>{projectModal === 'new-folder' ? '新建文件夹' : projectModal === 'upload' ? '上传文件' : projectModal === 'folder-detail' ? projectFolders[selectedFolderIndex].name : projectLibraryFiles[selectedFileIndex].name}</h2>
+                    </div>
+                    <button className="modal-close" onClick={() => setProjectModal(null)} type="button">×</button>
+                  </header>
+                  {projectModal === 'new-folder' && (
+                    <div className="project-modal-body">
+                      <div className="form-field">
+                        <span>文件夹名称</span>
+                        <input placeholder="例如：融资材料" />
+                      </div>
+                      <div className="form-field">
+                        <span>用途说明</span>
+                        <textarea placeholder="描述这个文件夹将用于存放什么资料..." />
+                      </div>
+                      <div className="modal-actions">
+                        <button className="secondary-action" onClick={() => setProjectModal(null)} type="button">取消</button>
+                        <button className="primary-action" type="button">创建文件夹</button>
+                      </div>
+                    </div>
+                  )}
+                  {projectModal === 'upload' && (
+                    <div className="project-modal-body">
+                      <div className="upload-drop">
+                        <strong>拖拽文件到这里</strong>
+                        <span>或点击选择本地文件</span>
+                      </div>
+                      <div className="upload-options">
+                        <button type="button">JPG</button>
+                        <button type="button">MD</button>
+                        <button type="button">PDF</button>
+                        <button type="button">XLSX</button>
+                      </div>
+                      <div className="form-field">
+                        <span>保存到文件夹</span>
+                        <select>
+                          <option>创业资料</option>
+                          <option>AI 对话产出</option>
+                          <option>产品设计</option>
+                          <option>营销素材</option>
+                        </select>
+                      </div>
+                      <div className="modal-actions">
+                        <button className="secondary-action" onClick={() => setProjectModal(null)} type="button">取消</button>
+                        <button className="primary-action" type="button">开始上传</button>
+                      </div>
+                    </div>
+                  )}
+                  {projectModal === 'folder-detail' && (
+                    <div className="project-modal-body">
+                      <p className="modal-desc">{projectFolders[selectedFolderIndex].desc}</p>
+                      {projectFolders[selectedFolderIndex].name === '图片库' ? (
+                        projectImages.length > 0 ? (
+                          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
+                            {projectImages.map((img: { name: string; url: string; modified: string }) => (
+                              <div key={img.name} style={{position:'relative',borderRadius:'8px',overflow:'visible',border:'1px solid #e2e8f0'}}>
+                                <a href={img.url} target="_blank" style={{display:'block'}}>
+                                  <img src={img.url} alt={img.name} style={{width:'100%',aspectRatio:'1',objectFit:'cover',display:'block'}} />
+                                </a>
+                                <button className="md-svg-save-btn" onClick={() => { window.open(`http://localhost:5001/api/download-image?url=${encodeURIComponent(img.url)}`, '_blank'); }} title="下载图片">⬇</button>
+                                <div style={{padding:'4px 8px',fontSize:'10px',color:'#64748b',textAlign:'center',background:'#fff'}}>{img.modified}</div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : <p style={{color:'#94a3b8',textAlign:'center',padding:'20px'}}>暂无图片，生成Logo后自动存入</p>
+                      ) : (
+                        (() => {
+                          const folderName = projectFolders[selectedFolderIndex].name;
+                          const folderFiles = realProjectFiles.filter((f: { folder: string }) => f.folder === folderName);
+                          if (folderFiles.length === 0 && projectLibraryFiles.some(f => f.folder === folderName)) {
+                            return (
+                              <div className="mini-file-list">
+                                {projectLibraryFiles.filter(f => f.folder === folderName).map((file, i) => (
+                                  <button key={i} className="mini-file-row" type="button">
+                                    <span className={`file-type tone-${file.tone}`}>{file.type}</span>
+                                    <strong>{file.name}</strong>
+                                    <small>{file.updated}</small>
+                                  </button>
+                                ))}
+                              </div>
+                            );
+                          }
+                          return folderFiles.length > 0 ? (
+                            <div className="mini-file-list">
+                              {folderFiles.map((file: { name: string; type: string; modified: string; folder: string; url: string }, i: number) => (
+                                <button key={i} className="mini-file-row" onClick={() => openProjectFile(file)} type="button">
+                                  <span style={{display:'inline-grid',placeItems:'center',borderRadius:'9px',color:'#334155',fontSize:'11px',fontWeight:700,background:'rgba(15,23,42,0.06)',height:'28px',padding:'0 8px'}}>{file.type}</span>
+                                  <strong>{file.name}</strong>
+                                  <small>{file.modified}</small>
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <p style={{color:'#94a3b8',textAlign:'center',padding:'20px'}}>暂无文件，生成内容后自动存入</p>
+                          );
+                        })()
+                      )}
+                      <div className="modal-subtle-actions">
+                        <button type="button">重命名文件夹</button>
+                      </div>
+                    </div>
+                  )}
+                  {projectModal === 'file-detail' && (
+                    <div className="project-modal-body">
+                      <div className="file-detail-grid">
+                        <span>文件类型</span><strong>{projectLibraryFiles[selectedFileIndex].type}</strong>
+                        <span>所在文件夹</span><strong>{projectLibraryFiles[selectedFileIndex].folder}</strong>
+                        <span>来源</span><strong>{projectLibraryFiles[selectedFileIndex].source}</strong>
+                        <span>更新时间</span><strong>{projectLibraryFiles[selectedFileIndex].updated}</strong>
+                      </div>
+                      <div className="modal-actions">
+                        <button className="secondary-action" type="button">重命名</button>
+                        <button className="secondary-action" type="button">移动到文件夹</button>
+                        <button className="primary-action" type="button">打开文件</button>
+                      </div>
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+      
+            {/* Recharge Modal */}
+            {rechargeModalOpen && (
+              <div className="modal-backdrop" onClick={() => setRechargeModalOpen(false)}>
+                <section className="project-modal recharge-modal" onClick={(event) => event.stopPropagation()}>
+                  <header className="modal-header">
+                    <div><h2>积分充值</h2><p>购买积分用于对话、生图、视频、编程和项目产物生成。</p></div>
+                    <button className="modal-close" onClick={() => setRechargeModalOpen(false)} type="button">×</button>
+                  </header>
+                  <div className="recharge-tabs"><button className={rechargeView === 'credits' ? 'active' : ''} onClick={() => setRechargeView('credits')} type="button">充值积分</button><button className={rechargeView === 'plans' ? 'active' : ''} onClick={() => setRechargeView('plans')} type="button">套餐升级</button></div>
+                  {rechargeView === 'credits' ? <><div className="recharge-options three"><button className="recharge-card" type="button"><span>轻量补充</span><strong>¥ 19</strong><small>2,000 积分 · 适合对话、文档生成</small></button><button className="recharge-card active" type="button"><span>标准补充</span><strong>¥ 49</strong><small>6,000 积分 · 适合调研、生图和方案生成</small></button><button className="recharge-card" type="button"><span>高频补充</span><strong>¥ 99</strong><small>15,000 积分 · 适合视频、编程和批量产物生成</small></button></div><div className="recharge-plan-tip"><div><strong>需要更稳定的月度额度？</strong><span>升级创业套餐，获得每月固定积分、项目库扩容和更高并发。</span></div><button onClick={() => setRechargeView('plans')} type="button">查看套餐</button></div></> : <div className="recharge-options plan-options"><button className="recharge-card plan-card" type="button"><span>Starter 创业起步版</span><strong>¥ 39/月</strong><small>每月 8,000 积分 · 3 个创业项目 · 基础项目库容量 · 适合想法验证和轻量调研</small></button><button className="recharge-card plan-card active" type="button"><span>Pro 创业加速版</span><strong>¥ 99/月</strong><small>每月 25,000 积分 · 20 个创业项目 · 项目库扩容 · 生图/视频/编程优先队列</small></button></div>}
+                  <div className="modal-actions"><button className="secondary-action" onClick={() => setRechargeModalOpen(false)} type="button">取消</button><button className="primary-action" type="button">{rechargeView === 'credits' ? '确认充值' : '确认升级'}</button></div>
+                </section>
+              </div>
+            )}
+      
+            {/* Library Modal (file/skill picker) */}
+            {libraryModal && (
+              <div className="modal-backdrop" onClick={() => setLibraryModal(null)}>
+                <section className="library-modal" onClick={(event) => event.stopPropagation()}>
+                  <header className="modal-header">
+                    <div>
+                      <div className="modal-kicker">{libraryModal === 'file' ? '项目库' : '技能库'}</div>
+                      <h2>{libraryModal === 'file' ? '从项目库中选择文件' : '从技能库中生成图片张数'}</h2>
+                    </div>
+                    <button className="modal-close" onClick={() => setLibraryModal(null)} type="button">
+                      ×
+                    </button>
+                  </header>
+      
+                  <div className="modal-search">
+                    <Search size={16} />
+                    <span>{libraryModal === 'file' ? '搜索文档、表格、访谈记录...' : '搜索技能、工作流、专家能力...'}</span>
+                  </div>
+      
+                  <div className="modal-content">
+                    <aside className="modal-categories">
+                      <button className="category-item active" type="button">最近使用</button>
+                      <button className="category-item" type="button">全部</button>
+                      <button className="category-item" type="button">收藏</button>
+                      <button className="category-item" type="button">团队共享</button>
+                    </aside>
+      
+                    <div className="modal-list">
+                      <div className="modal-list-title">AI 对话产出</div>
+                      {(libraryModal === 'file' ? realProjectFiles.filter((f: { folder: string }) => f.folder === 'AI 对话产出') : skillOptions) .map((item: any, index: number) => (
+                        <button
+                          key={item.name}
+                          className={
+                            libraryModal === 'file'
+                              ? fileIndex === index
+                                ? 'modal-row selected'
+                                : 'modal-row'
+                              : skillIndex === index
+                                ? 'modal-row selected'
+                                : 'modal-row'
+                          }
+                          onClick={() => {
+                            if (libraryModal === 'file') {
+                              setFileIndex(index);
+                            } else {
+                              setSkillIndex(index);
+                            }
+                            setLibraryModal(null);
+                          }}
+                          type="button"
+                        >
+                          <span className="row-icon">{libraryModal === 'file' ? (item.type === 'HTML' ? '🌐' : '📄') : '✦'}</span>
+                          <span className="row-main">
+                            <strong>{item.name}</strong>
+                            <small>{item.folder} · {item.modified}</small>
+                          </span>
+                          <span className="row-meta">{item.type}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              </div>
+            )}
+    </>
+  );
+}
+

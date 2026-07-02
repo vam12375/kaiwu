@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新老年兴趣教育商业模式计划书</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1a365d; --primary-rgb: 26,54,93;
+  --secondary: #2c5282; --secondary-rgb: 44,82,130;
+  --accent: #ed8936; --accent-rgb: 237,137,54;
+  --bg: #f7fafc; --bg-rgb: 247,250,252;
+  --text: #2d3748; --text-rgb: 45,55,72;
+  --text-light: #718096;
+  --border: #e2e8f0;
+  --success: #38a169; --danger: #e53e3e;
+  --h1: 36px; --h2: 28px; --h3: 22px; --h4: 18px;
+  --body: 16px; --note: 14px;
+  --sans: "Noto Sans SC", sans-serif;
+  --serif: "Noto Serif SC", serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--text);background:var(--bg);line-height:1.8;-webkit-font-smoothing:antialiased;margin:0}
+.container{max-width:1200px;margin:0 auto}
+.content{padding:40px 60px}
+h1{line-height:1.2}h2{line-height:1.4}h3{line-height:1.4}h4{line-height:1.4}
+.body-text p{line-height:1.8}.note{line-height:1.5;font-size:var(--note)}
+
+/* Top Nav */
+.top-nav{position:sticky;top:0;z-index:100;height:60px;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 60px}
+.top-nav .nav-logo{font-size:18px;font-weight:700;color:var(--primary)}
+.top-nav .nav-links{display:flex;gap:32px;font-size:14px}
+.top-nav .nav-links a{color:var(--text-light);text-decoration:none}
+.top-nav .nav-links a:hover{color:var(--primary)}
+
+/* Cover */
+.cover{background:linear-gradient(135deg,#1a365d 0%,#2c5282 100%);height:400px;padding:60px;color:white;display:flex;flex-direction:column;justify-content:center}
+.cover h1{font-size:42px;font-weight:bold;margin-bottom:20px}
+.cover .subtitle{font-size:20px;opacity:.9;margin-bottom:40px}
+.cover .divider{width:80px;height:4px;background:var(--accent);margin-bottom:40px}
+.cover .meta{display:flex;gap:40px;font-size:14px;opacity:.8}
+.cover-logo{width:120px;margin-bottom:40px;display:block}
+
+
+/* Chapter Header */
+.chapter-header{padding:40px 60px;background:var(--bg);border-left:5px solid var(--accent);margin:0}
+.chapter-header .chapter-tag{font-size:14px;color:var(--accent);font-weight:600;letter-spacing:2px}
+.chapter-header h2{font-size:var(--h2);color:var(--primary);margin-top:10px}
+
+/* Section Header */
+.section-header{padding:30px 60px;border-bottom:1px solid var(--border)}
+.section-header h3{font-size:20px;color:var(--text);display:flex;align-items:center;gap:15px}
+.section-header h3 .dot{width:8px;height:8px;background:var(--primary);border-radius:50%;flex-shrink:0}
+
+/* Body Text */
+.body-text{padding:30px 60px}
+.body-text p{font-size:var(--body);color:#4a5568;line-height:1.8;margin-bottom:15px}
+
+/* Tables */
+table,table.report-data{width:100%;border-collapse:collapse;margin:30px 0}
+thead tr,table.report-data thead tr{background:var(--primary);color:white}
+thead th,table.report-data thead th{padding:15px 20px;text-align:left;font-weight:600}
+tbody tr,table.report-data tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:nth-child(even),table.report-data tbody tr:nth-child(even){background:var(--bg)}
+td,table.report-data td{padding:15px 20px;color:var(--text)}
+
+/* Data Cards */
+.data-cards{display:flex;gap:20px;margin:30px 0;flex-wrap:wrap}
+.data-card{flex:1;min-width:200px;border-radius:12px;padding:30px}
+.data-card.gradient{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white}
+.data-card.bordered{background:white;border:1px solid var(--border)}
+.data-card .card-label{font-size:14px;opacity:.8;margin-bottom:10px}
+.data-card .card-value{font-size:32px;font-weight:bold}
+.data-card .card-note{font-size:14px;opacity:.8;margin-top:10px}
+.data-card.bordered .card-label,.data-card.bordered .card-note{color:var(--text-light)}
+.data-card.bordered .card-value{color:var(--primary)}
+
+/* Chart Container */
+.chart-box{background:white;padding:30px;border-radius:12px;border:1px solid var(--border);margin:30px 0}
+.chart-box h4{font-size:var(--h4);color:var(--primary);margin-bottom:20px}
+.chart-area{min-height:300px;background:linear-gradient(180deg,#f7fafc 0%,#edf2f7 100%);display:flex;align-items:center;justify-content:center;padding:30px 20px;border-radius:8px;color:#a0aec0;font-size:14px}
+
+/* Steps */
+.step-list{margin:30px 0}
+.step-item{display:flex;gap:20px;padding:20px;background:var(--bg);border-radius:8px;margin-bottom:15px}
+.step-num{width:40px;height:40px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0}
+.step-content strong{display:block;color:var(--text);margin-bottom:5px}
+.step-content span{font-size:14px;color:var(--text-light)}
+
+/* Checklist */
+.checklist{margin:20px 0}
+.checklist .check-item{display:flex;align-items:flex-start;margin-bottom:15px;gap:15px}
+.checklist .check-item .check{color:var(--accent);font-size:18px}
+.checklist .check-item span{color:var(--text)}
+
+/* Progress Bar */
+.progress-bar{margin:20px 0}
+.progress-bar .bar-label{display:flex;justify-content:space-between;margin-bottom:8px}
+.progress-bar .bar-label span:first-child{color:var(--text);font-size:14px}
+.progress-bar .bar-label span:last-child{color:var(--primary);font-size:14px;font-weight:600}
+.progress-bar .bar-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-bar .bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:4px}
+
+/* Footer */
+.footer{background:var(--primary);padding:30px 60px;color:white;font-size:14px}
+.footer .footer-grid{display:flex;justify-content:space-between;margin-bottom:20px}
+.footer .footer-grid strong{display:block;margin-bottom:10px}
+.footer .footer-grid div{opacity:.8;font-size:14px}
+.footer .footer-bottom{border-top:1px solid rgba(255,255,255,.2);padding-top:20px;display:flex;justify-content:space-between;font-size:12px;opacity:.6}
+
+/* Responsive */
+@media(max-width:1023px){.container{max-width:768px}.content{padding:30px 40px}.cover{padding:40px;height:320px}.cover h1{font-size:32px}.data-cards{flex-direction:column}}
+@media(max-width:768px){.container{width:100%}.content{padding:20px}.cover{padding:30px;height:280px}.cover h1{font-size:28px}h2{font-size:22px!important}.chart-area{min-height:200px}.top-nav{padding:0 20px}.toc{padding:0 20px;gap:20px}}
+</style>
+</head>
+<body>
+
+<!-- ====== Top Nav ====== -->
+<div class="top-nav">
+  <div class="nav-logo">曜势科技</div>
+  <div class="nav-links">
+    <a href="#cover">首页</a><a href="#toc">目录</a>
+    <a href="#ch1">行业概述</a><a href="#ch2">消费者洞察</a>
+    <a href="#ch3">案例分析</a><a href="#ch4">未来展望</a>
+  </div>
+</div>
+
+<!-- ====== Cover ====== -->
+<div class="cover" id="cover">
+  <img src="logo.png" class="cover-logo" alt="Logo">
+  <h1>新老年兴趣教育商业模式计划书</h1>
+  <p class="subtitle">基于AI对话 · 深度数据洞察</p>
+  <div class="divider"></div>
+  <div class="meta">
+    <span>报告日期：2026年6月</span><span>版本：V1.0</span>
+  </div>
+</div>
+
+
+
+<!-- CHAPTER 01: 核心发现 -->
+<div class="chapter-header" id="ch1">
+  <span class="chapter-tag">CHAPTER 01</span>
+  <h2>核心发现</h2>
+</div>
+<div class="section-header">
+  <h3><span class="dot"></span>新老年兴趣教育商业模式计划书</h3>
+</div>
+<div class="body-text">
+<p>编制日期：2026年6月25日</p>
+<p>版本：V1.0</p>
+<p>上游输入：本文件所有市场数据与用户洞察均承接自《新老年兴趣教育市场深度调研报告》（第一阶段产出），数据缺失处已标注推算依据。</p>
+</div>
+<div class="section-header">
+  <h3><span class="dot"></span>核心价值主张</h3>
+</div>
+<div class="body-text">
+<p>一个句话定位：为“新老人”提供以兴趣为纽带的高质量社交与价值重建平台，让他们从“养老”进化为“享老”。</p>
+<p>价值曲线对比分析</p>
+<p>以下图表展示了本项目相较于传统老年大学及普通线上知识付费的核心竞争力差异（满分10分）：</p>
+<p>（行业测算，基于第一阶段调研报告的“新老人需求分层”数据推导）</p>
+<p>本项目摒弃了传统模式的“知识灌输”逻辑，转而聚焦“社交驱动”和“价值产出”。在课程趣味性、社交深度及学员成果的可展示性（如摄影展、朗诵会）上构建绝对长板，策略性地弱化过于复杂的纯数字技术交互，以契合银发人群的操作习惯。</p>
+</div>
+<div class="content"><div class="chart-box">
+  <h4>📊 数据对比</h4>
+  <div class="chart-area">
+    <div style="display:flex;align-items:flex-end;gap:24px;height:260px;width:100%;max-width:600px">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">9.0</span><div style="width:100%;max-width:80px;height:216px;background:#1a365d;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">课程有趣程度</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">9.0</span><div style="width:100%;max-width:80px;height:216px;background:#2c5282;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">社交互动频率</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">10.0</span><div style="width:100%;max-width:80px;height:240px;background:#ed8936;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">课程成果展示性</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">3.0</span><div style="width:100%;max-width:80px;height:72px;background:#38a169;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">数字技术便利性</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">5.0</span><div style="width:100%;max-width:80px;height:120px;background:#e53e3e;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">价格亲民度</span></div>
+</div>
+  </div>
+</div></div>
+<div class="section-header">
+  <h3><span class="dot"></span>目标用户画像</h3>
+</div>
+<div class="body-text">
+<p>基于前期调研，我们将核心用户分层定义如下：</p>
+<p>用户共性标签：智能手机高频使用者、短视频内容活跃消费者、具备一定文化素养、对“隔代抚养”有明确边界感、追求“为自己而活”的晚年生活。</p>
+</div>
+<div class="content"><table class="report-data"><thead><tr><th>分层</th><th>年龄段</th><th>城市级别</th><th>月均可支配收入</th><th>典型消费场景</th><th>核心痛点（对话原文）</th></tr></thead><tbody><tr><td>**核心层**</td><td>62-68岁</td><td>新一线/二线</td><td>5000-8000元</td><td>高端旅修、VIP兴趣俱乐部、精品小班课</td><td>“不想成为子女负担，寻求独立精神世界”</td></tr><tr><td>**价值层**</td><td>55-62岁</td><td>一线/新一线</td><td>8000元以上</td><td>海外游学、个人IP孵化私教、高端康养研学</td><td>“退休后社会角色中断，需要重建身份认同”</td></tr><tr><td>**扩展层**</td><td>68-75岁</td><td>三线/四线</td><td>3500-5000元</td><td>线上录播课、社区线下兴趣小组、平价周边游</td><td>“精神孤独，高质量社交圈缺失”</td></tr></tbody></table></div>
+<div class="section-header">
+  <h3><span class="dot"></span>盈利模式</h3>
+</div>
+<div class="body-text">
+<p>我们采用“漏斗式”收入结构，从低客单价的线上引流产品延伸至高客单价的线下服务与会员体系：</p>
+<p>（占比数据引自第一阶段对话产出，衍生品为基于行业常识的合理补充）</p>
+<p>- 线下主题游学/旅修（毛利约35%）：高客单价产品，是利润核心来源。以“摄影采风团”、“禅修静养营”等形式交付，重服务、重体验。</p>
+<p>- 线上兴趣课程（毛利70%以上）：以“视频教程+社群打卡+直播答疑”的训练营模式运营。作为流量入口和用户筛选器，为高客单产品蓄水。</p>
+<p>- 兴趣俱乐部会员费（毛利80%以上）：按年付费，提供线下活动月历、专属社群、合作商家折扣等权益，旨在沉淀高净值私域流量，构建长期信任。</p>
+<p>- 衍生品销售（毛利约50%）：基于课程场景推荐适老化的数码摄影器材、园艺工具、文房套装等，作为利润补充。</p>
+</div>
+<div class="content"><div class="chart-box">
+  <h4>📊 横向对比</h4>
+  <div class="chart-area">
+    <div style="width:100%;max-width:600px">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span style="width:90px;font-size:13px;color:#2d3748;text-align:right;flex-shrink:0">线下主题游学/旅修</span><div style="flex:1;height:22px;background:#f7fafc;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#1a365d;border-radius:4px"></div></div><span style="font-size:13px;font-weight:600;color:#2d3748;width:50px">50.0</span></div><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span style="width:90px;font-size:13px;color:#2d3748;text-align:right;flex-shrink:0">线上兴趣课程（录播/直播）</span><div style="flex:1;height:22px;background:#f7fafc;border-radius:4px;overflow:hidden"><div style="width:60%;height:100%;background:#2c5282;border-radius:4px"></div></div><span style="font-size:13px;font-weight:600;color:#2d3748;width:50px">30.0</span></div><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span style="width:90px;font-size:13px;color:#2d3748;text-align:right;flex-shrink:0">兴趣俱乐部会员费</span><div style="flex:1;height:22px;background:#f7fafc;border-radius:4px;overflow:hidden"><div style="width:30%;height:100%;background:#ed8936;border-radius:4px"></div></div><span style="font-size:13px;font-weight:600;color:#2d3748;width:50px">15.0</span></div><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span style="width:90px;font-size:13px;color:#2d3748;text-align:right;flex-shrink:0">适老数码/文创衍生品</span><div style="flex:1;height:22px;background:#f7fafc;border-radius:4px;overflow:hidden"><div style="width:10%;height:100%;background:#38a169;border-radius:4px"></div></div><span style="font-size:13px;font-weight:600;color:#2d3748;width:50px">5.0</span></div>
+</div>
+  </div>
+</div></div>
+<div class="section-header">
+  <h3><span class="dot"></span>定价策略</h3>
+</div>
+<div class="body-text">
+<p>定价逻辑基于“身份认同”与“社交货币”价值，而非单纯的课时费。我们提供的不仅是课程，更是进入一个高质量圈子的门票。</p>
+</div>
+<div class="section-header">
+  <h3><span class="dot"></span>渠道策略</h3>
+</div>
+<div class="body-text">
+<p>建立“线上公域种草 - 私域社群培育 - 线下活动转化”的三级火箭渠道模型。</p>
+<p>（数据为基于行业惯例测算，推测私域转化是本模式效率最高的渠道）</p>
+<p>- 私域社群裂变（45%）：核心渠道。通过老学员的摄影作品、朗诵作品在朋友圈、社群的传播，带来精准新用户。</p>
+<p>- 短视频/直播公域引流（30%）：在抖音、视频号布局“银发网红”IP，内容以“高雅兴趣生活方式”为主，吸引目标人群关注并引导至私域。</p>
+<p>- 线下合作渠道（20%）：与高端社区物业、银行私人银行部、保险公司的VIP客户部门合作，为其老年客户提供专属兴趣沙龙，实现精准获客。</p>
+<p>- 其他（5%）：口碑转介绍、搜索引擎优化等。</p>
+</div>
+<div class="content"><div class="chart-box">
+  <h4>📊 占比分布</h4>
+  <div class="chart-area">
+    <div style="width:180px;height:180px;border-radius:50%;background:conic-gradient(#1a365d 0% 45%,#2c5282 45% 75%,#ed8936 75% 95%,#38a169 95% 100%);flex-shrink:0"></div>
+    <div style="min-width:160px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:12px;height:12px;border-radius:3px;background:#1a365d;flex-shrink:0"></span><span style="font-size:13px;color:#2d3748">私域社群裂变 <strong>45.0%</strong></span></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:12px;height:12px;border-radius:3px;background:#2c5282;flex-shrink:0"></span><span style="font-size:13px;color:#2d3748">短视频/直播公域引流 <strong>30.0%</strong></span></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:12px;height:12px;border-radius:3px;background:#ed8936;flex-shrink:0"></span><span style="font-size:13px;color:#2d3748">线下合作渠道 <strong>20.0%</strong></span></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:12px;height:12px;border-radius:3px;background:#38a169;flex-shrink:0"></span><span style="font-size:13px;color:#2d3748">其他 <strong>5.0%</strong></span></div></div>
+  </div>
+</div></div>
+<div class="section-header">
+  <h3><span class="dot"></span>成本结构</h3>
+</div>
+<div class="body-text">
+<p>项目初期（第一年）的成本结构预估如下，呈现轻资产、重人力与营销的特点：</p>
+</div>
+<div class="section-header">
+  <h3><span class="dot"></span>盈亏平衡分析</h3>
+</div>
+<div class="body-text">
+<p>项目启动后，关键里程碑与财务表现预测如下：</p>
+<p>（数据为基于行业常识的模拟测算，单位：万元/月）</p>
+<p>- 第1-3月（启动准备期）：打磨MVP课程，搭建私域基础。月度净投入约30万，主要用于内容研发和少量测试投放。</p>
+<p>- 第4-7月（用户积累期）：线上训练营产品线跑通，单月营收可达15-20万，月亏损收窄至15万。</p>
+<p>- 第8-11月（模式验证期）：首批线下游学产品成功交付，高毛利收入开始贡献，月亏损进一步收窄至5万以内。</p>
+<p>- 第12个月（盈亏平衡点）：累计服务线上学员超1000人，线下游学学员超200人，实现单月盈亏平衡。</p>
+<p>- 第二年及以后：口碑效应显现，获客成本降低，年度会员续费稳定，进入稳定盈利通道。</p>
+</div>
+<div class="content"><div class="chart-box">
+  <h4>📊 数据对比</h4>
+  <div class="chart-area">
+    <div style="display:flex;align-items:flex-end;gap:24px;height:260px;width:100%;max-width:600px">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">-30.0</span><div style="width:100%;max-width:80px;height:20px;background:#1a365d;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">启动准备期（月亏损）</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">-15.0</span><div style="width:100%;max-width:80px;height:20px;background:#2c5282;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">用户积累期（月亏损）</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">-5.0</span><div style="width:100%;max-width:80px;height:20px;background:#ed8936;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">模式验证期（月亏损）</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">0.0</span><div style="width:100%;max-width:80px;height:20px;background:#38a169;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">盈亏平衡点（第12个月）</span></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;min-width:60px"><span style="font-weight:700;font-size:15px;color:#2d3748">20.0</span><div style="width:100%;max-width:80px;height:240px;background:#e53e3e;border-radius:4px 4px 0 0"></div><span style="font-size:12px;color:#718096;text-align:center">稳定增长期（月盈利）</span></div>
+</div>
+  </div>
+</div></div>
+<div class="section-header">
+  <h3><span class="dot"></span>品牌命名方案</h3>
+</div>
+<div class="section-header">
+  <h3><span class="dot"></span>品牌理念与价值观</h3>
+</div>
+<div class="body-text">
+<p>- 核心理念：以趣聚人，以美育人，共创丰盛人生下半场。</p>
+<p>- 三条价值观：</p>
+<p>1.  学员至上，社交为核：我们一切产品设计的出发点是促进人与人的深度连接，而非单向知识灌输。</p>
+<p>2.  内容向美，体面享老：杜绝“大妈式”的喧闹，所有课程与活动必须符合高审美标准，有尊严、有格调。</p>
+<p>3.  共创共建，价值回归：鼓励学员从“参与者”变为“共建者”，优秀学员可成为助教、分社主理人，实现个人价值再创造。</p>
+<p>- 行为准则：对用户说真话，不贩卖健康焦虑；课程设计必须有“产出”，让进步被看见；永远把用户安全（身心）放在利润之前。</p>
+</div>
+
+<div class="footer">
+  <div class="footer-grid">
+    <div><strong>联系我们</strong><div>电话：138-0000-0000<br>邮箱：contact@kaiwu.ai<br>地址：杭州市西湖区</div></div>
+    <div><strong>关注我们</strong><div>微信公众号<br>抖音号：曜势科技</div></div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 曜势科技 版权所有</span>
+    <span>本报告仅供内部使用，未经授权不得外传</span>
+  </div>
+</div>
+
+<script>setTimeout(function(){if(typeof lucide!=="undefined")lucide.createIcons();},300);</script></body>
+</html>

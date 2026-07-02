@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>差异性Skills · 品牌构建能力展示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0a0a0b;--ink-rgb:10,10,11;
+    --paper:#f1efea;--paper-rgb:241,239,234;
+    --paper-tint:#e8e5de;--ink-tint:#18181a;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display",Georgia,serif;
+    --serif-zh:"Noto Serif SC",serif;
+    --sans-zh:"Noto Sans SC",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased}
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+  body.low-power canvas.bg{display:none!important}
+
+  #deck{position:fixed;inset:0;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .h-hero{font-family:var(--serif-zh);font-weight:900;font-size:10vw;line-height:.96;letter-spacing:-.02em}
+  .h-xl{font-family:var(--serif-zh);font-weight:700;font-size:6.2vw;line-height:1.08;letter-spacing:-.01em}
+  .h-sub{font-family:var(--serif-zh);font-weight:500;font-size:3.1vw;line-height:1.25;opacity:.7}
+  .h-md{font-family:var(--serif-zh);font-weight:600;font-size:2.3vw;line-height:1.3}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.75vw;line-height:1.5;opacity:.86}
+  .meta-row{display:flex;gap:1.2em;align-items:baseline;flex-wrap:wrap;font-family:var(--mono);font-size:max(12px,.92vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82}
+  em{font-style:italic;font-family:var(--serif-en)}
+
+  .stat-card{display:flex;flex-direction:column;gap:.8vh;align-items:flex-start;padding-top:1.6vh;border-top:1px solid rgba(127,127,127,.3)}
+  .stat-label{font-family:var(--mono);font-size:max(10px,.78vw);letter-spacing:.24em;text-transform:uppercase;opacity:.55}
+  .stat-nb{font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;font-feature-settings:"tnum";margin-top:.4vh}
+  .stat-unit{font-family:var(--serif-zh);font-weight:500;font-size:.38em;opacity:.72;margin-left:.14em}
+  .stat-note{font-family:var(--sans-zh);font-weight:400;font-size:max(13px,1.05vw);line-height:1.5;opacity:.72;margin-top:.6vh}
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout-src{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2.4vh 2vw}
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);width:100%;border-radius:4px;margin:0;display:flex;flex-direction:column;min-width:0}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04)}
+  .frame-img>img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .img-cap{display:block;margin-top:.8vh;font-family:var(--mono);font-size:max(10px,.8vw);letter-spacing:.22em;text-transform:uppercase;opacity:.6}
+  .color-block{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:.4}
+
+  /* NAV */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+  body.low-power #hint{opacity:.72;color:var(--paper);mix-blend-mode:normal}
+  body.light-bg.low-power #hint{color:var(--ink)}
+
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.low-power #deck{transition:none!important}
+  body.low-power [data-anim]{opacity:1!important;transform:none!important}
+  @media(max-width:900px){.h-hero{font-size:14vw}.h-xl{font-size:9vw}.grid-2-7-5{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="hint">← → 翻页 · ESC 索引</div>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+
+<div id="deck">
+<section class="slide hero dark"><div class="chrome"><div>品牌手册</div><div>01 / 11</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>BRAND MANUAL</div><h1 class="h-hero" data-anim>品牌手册</h1><p class="lead" style="max-width:50vw" data-anim>2026-06-26 · 曜势科技</p></div><div class="foot"><div>品牌手册 · YaoShi Tech</div><div>— 2026-06-26 —</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>02 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>&gt; 2026-06-26 · 曜势科技</p><p class="body-zh" data-anim>好的，龙虾军团指挥官。基于您“以记忆封存工艺为壁垒的宠物纪念银饰定制+轻量化人宠同款”的双线战略，以下是严格遵循您提供的调研数据（Node1）及品牌命名法则，为您构建的第二阶段商业方案。</p><p class="body-zh" data-anim>---</p><p class="body-zh" data-anim>**上游输入：Node1 宠物银饰市场调研 | 时间：2026年6月25日**</p><p class="body-zh" data-anim>**解决什么问题？**</p><p class="body-zh" data-anim>为将宠物视为家人的核心用户，解决“爱宠离世后情感寄托缺失”的深层次痛点，同时满足日常“人宠情感外显”的社交需求。</p><p class="body-zh" data-anim>**一句话概括：**</p><p class="body-zh" data-anim>以专利级记忆封存工艺为壁垒，打造“封存挚爱”的专属纪念银饰，并以高设计感人宠同款系列，让陪伴永恒。</p><div class="meta-row" data-anim>维度 · 内容 · Node1数据来源/测算</div><div class="meta-row" data-anim>------ · ------ · ------------------</div><div class="meta-row" data-anim>**核心人群** · 25-40岁城市高知女性，单身/已婚未育，视宠物为“毛孩子” · 引用Node1“宠物家人化”驱动因素；[行业测算] 此类人群占宠物主消费32%</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>02</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>03 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>**用户痛点** · 1. 宠物离世后无体面、永恒的纪念载体；2. 市面人宠饰品粗糙，不能满足“精致亲子”穿搭；3. 担心饰品材质致敏 · 引用Node1市场空白1、2及“低敏材质认知普及”驱动因素</div><div class="meta-row" data-anim>**付费意愿** · 纪念定制：客单价800-3000元；日常同款：客单价300-800元 · [行业测算] 结合Node1宠物“轻奢化”趋势</div><div class="meta-row" data-anim>收入来源 · 占比 · 定价逻辑 · 毛利率</div><div class="meta-row" data-anim>--------- · ------ · --------- · --------</div><div class="meta-row" data-anim>**记忆封存定制** · 60% · 成本导向（银料+工艺+采集包）+情感溢价，对标金牌/纪念币 · 75%+</div><div class="meta-row" data-anim>**轻量化人宠同款** · 30% · 竞争导向（低于轻奢珠宝，高于普通饰品），绑定组合优惠 · 65%</div><div class="meta-row" data-anim>**周边及配件** (链绳、刻字、纪念盒) · 10% · 便利性溢价 · 80%</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>03</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>04 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>**定价策略**：成本是市面普通银饰的1.5倍，单价是其2-3倍。盈亏平衡预测：因工艺研发与私域建设前期投入，预计启动后第8个月达到单月盈亏平衡。</p><div class="meta-row" data-anim>渠道 · 定位 · 启动难度 · 预期贡献</div><div class="meta-row" data-anim>------ · ------ · --------- · ---------</div><div class="meta-row" data-anim>**微信私域** (小程序+社群) · 情感连接、故事征集、定制服务中枢 · 中 · 50% GMV</div><div class="meta-row" data-anim>**小红书/抖音** · 情感故事种草、“封存工艺”视觉冲击、人宠同款穿搭 · 高 · 30% GMV</div><div class="meta-row" data-anim>**垂类合作网络** · 宠物殡葬/火化机构、宠物医院、宠物摄影 · 难 · 15% GMV</div><div class="meta-row" data-anim>**线下主题快闪** · “记忆博物馆”限时店，提供爪印采集服务 · 高 · 5% GMV</div><p class="body-zh" data-anim>（引用并细化Node1“市场供给极度稀缺”及“产品粗糙”结论）</p><div class="meta-row" data-anim>竞品类型 · 代表 · 产品卖点 · 价格策略</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>04</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>05 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>--------- · ------ · --------- · ---------</div><div class="meta-row" data-anim>**业余手工坊** · 淘宝/闲鱼定制 · 可嵌入毛发、压印爪印 · 低价 (100-400元)</div><div class="meta-row" data-anim>**宠物饰品潮牌** · PETS ROCK, Yippaw · 潮流IP图案、项圈吊牌 · 中价 (200-600元)</div><div class="meta-row" data-anim>**传统银饰品牌** · 周某福、银时代 · 标准化生肖、铃铛项坠 · 中高价 (400-1000元)</div><p class="body-zh" data-anim>**差异化建议（5维突破）**：</p><p class="body-zh" data-anim>1.  **技术壁垒**：打造“冰晶凝铸”或“永生封存”专利工艺，彻底解决树脂老化问题。</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>05</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>06 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>2.  **设计叙事**：不做简单缩仿，人宠同款采用“形态共鸣，材质同源”设计，如“锁与钥匙”“满月与犬牙”概念。</p><p class="body-zh" data-anim>3.  **服务体验**：提供“记忆采集包”，包含无菌采样器、信息卡、哀思信笺，将纪念仪式化。</p><p class="body-zh" data-anim>4.  **情感溢价**：不卖银料克重，销售“永恒的陪伴价值”，每个产品附带专属情感编号和封存证书。</p><p class="body-zh" data-anim>5.  **场景入殓**：与宠物殡葬前端深度绑定，成为体面告别仪式的一环。</p><div class="meta-row" data-anim>资源类型 · 具体内容 · 获取方式</div><div class="meta-row" data-anim>--------- · --------- · ---------</div><div class="meta-row" data-anim>**核心工艺** · 无机玻璃体与银的高温融合封存技术 · 联合珠宝学院/材料实验室共同研发</div><div class="meta-row" data-anim>**供应链** · 925银料直采、CNC精雕工厂、资深银匠 · 广东番禺银饰产业带深度合作</div><div class="meta-row" data-anim>**情感流量** · 大量真实、动人的宠物纪念故事 · 私域运营+小红书情感类内容共创</div><div class="meta-row" data-anim>**渠道网络** · 一线城市头部宠物殡葬/医院合作 · BD拓展，提供专属服务分成模式</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>06</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>07 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>---</p><p class="body-zh" data-anim>筛选**情感共鸣、愿景、关联效果**等最匹配逻辑，产出5-10个方案。</p><div class="meta-row" data-anim>编号 · 品牌名 · 命名逻辑 · 含义阐释</div><div class="meta-row" data-anim>------ · -------- · --------- · ---------</div><div class="meta-row" data-anim>1 · **银为记** · 谐音双关+情感共鸣 · 因为银饰，所以铭记；谐音“引为记”，取自“以此为引，永以为记”，古典而深情。</div><div class="meta-row" data-anim>2 · **掌印银迹** · 量词+事物+效果 · 宠物的“掌印”是独一无二的记号，用银（银迹）留存，直观传达定制纪念概念。</div><div class="meta-row" data-anim>3 · **刻忆** · 简洁动词+情感 · 直接点明“雕刻记忆”，短促有力，易于口语传播和品牌符号化。</div><div class="meta-row" data-anim>4 · **毛孩子印记** · 目标用户+效果 · 精准击破目标人群的常用称谓（毛孩子），引发原生共鸣，记忆点极强。</div><div class="meta-row" data-anim>5 · **银念** · 叠词/单字叠加+情感 · “银”为材质，“念”为情感，意为以银承载思念。发音温润，意蕴留白，符合新中式美学。</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>07</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>08 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>6 · **PawMemo** · 中外结合+效果 · Paw（爪）+ Memo（纪念），国际化感，适合作为独立设计款的副标或DTC官网域名。</div><div class="meta-row" data-anim>7 · **相伴此生银** · 情感愿景+工艺 · 在银的永恒特质上叠加一生相伴的承诺，适合作为高端定制线的系列名。</div><p class="body-zh" data-anim>| 8 | **银·迹** | 工艺+关联效果 | 极简风，“迹”既可</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>08</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>09 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>09</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>10 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>10</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>11 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>11</div></div></section><div id="nav"></div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();setTimeout(function(){if(typeof lucide!=='undefined')lucide.createIcons();},600);</script>
+
+<script>
+// ======== WebGL Background ========
+const VS='attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}';
+const FS_DARK='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;float md=length(p-m);float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;vec2 p0=p;for(float i=1.0;i<4.0;i++){p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;}float r=length(p);float ang=atan(p.y,p.x);vec3 a=vec3(0.12,0.12,0.13);vec3 b=vec3(0.03,0.04,0.05);vec3 c=vec3(1.0,1.0,1.0);vec3 d=vec3(0.1,0.2,0.4);vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;col+=vec3(disp*0.015,disp*0.01,disp*0.02);float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);col+=hi*0.08;vec3 base=vec3(0.05,0.05,0.06);col=mix(base,col,0.85);gl_FragColor=vec4(col,1.0);}';
+const FS_LIGHT='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float noise(vec2 p){vec2 i=floor(p),f=fract(p);float a=hash(i),b=hash(i+vec2(1,0));float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));vec2 u=f*f*(3.0-2.0*f);return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;}float fbm(vec2 p){float v=0.0,a=0.5;mat2 m=mat2(0.80,0.60,-0.60,0.80);for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}return v;}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;vec2 md=p-m;float dl=length(md);p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));float f=fbm(p*2.2+r*1.5);vec3 silverDark=vec3(0.86,0.85,0.84);vec3 paper=vec3(0.955,0.945,0.925);vec3 col=mix(silverDark,paper,f);float ph=r.x*2.2+u_time*0.35;col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;float hl=smoothstep(0.48,0.92,f);col+=hl*0.06;gl_FragColor=vec4(col,1.0);}';
+
+(function(){
+  var mouse={x:0.5,y:0.5};
+  window.addEventListener('mousemove',function(e){mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+  function bootGL(id,fs){
+    var c=document.getElementById(id);
+    var gl=c.getContext('webgl',{alpha:false,antialias:true});
+    if(!gl)return function(){};
+    function mk(t,s){var sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh}
+    var p=gl.createProgram();
+    gl.attachShader(p,mk(gl.VERTEX_SHADER,VS));
+    gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));
+    gl.linkProgram(p);gl.useProgram(p);
+    var b=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+    var pos=gl.getAttribLocation(p,'position');
+    gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+    var lR=gl.getUniformLocation(p,'u_resolution');
+    var lT=gl.getUniformLocation(p,'u_time');
+    var lM=gl.getUniformLocation(p,'u_mouse');
+    function resize(){var d=Math.min(window.devicePixelRatio||1,2);c.width=innerWidth*d;c.height=innerHeight*d;gl.viewport(0,0,c.width,c.height)}
+    window.addEventListener('resize',resize);resize();
+    return function(t){gl.uniform2f(lR,c.width,c.height);gl.uniform1f(lT,t);gl.uniform2f(lM,mouse.x,1-mouse.y);gl.drawArrays(gl.TRIANGLES,0,6)}
+  }
+
+  var dD=null,dL=null,raf=0,t0=Date.now();
+  function start(){
+    if(!dD)dD=bootGL('bg-dark',FS_DARK);
+    if(!dL)dL=bootGL('bg-light',FS_LIGHT);
+    t0=Date.now();
+    function loop(){var t=(Date.now()-t0)/1000;dD(t);dL(t);raf=requestAnimationFrame(loop)}
+    raf=requestAnimationFrame(loop)
+  }
+  start();
+
+  // ======== Navigation ========
+  var deck=document.getElementById('deck');
+  var slides=deck.querySelectorAll('.slide');
+  var total=slides.length;
+  deck.style.width=(total*100)+'vw';
+  var nav=document.getElementById('nav');
+  var idx=0,lock=false;
+
+  slides.forEach(function(s,i){
+    var b=document.createElement('button');
+    b.className='dot';b.dataset.i=i;
+    b.setAttribute('aria-label','Page '+(i+1));
+    b.addEventListener('click',function(){go(i)});
+    nav.appendChild(b)
+  });
+
+  function go(n){
+    if(lock)return;
+    idx=Math.max(0,Math.min(total-1,n));
+    window.__currentSlideIndex=idx;
+    deck.style.transform='translateX('+(-idx*100)+'vw)';
+    var dots=nav.querySelectorAll('.dot');
+    dots.forEach(function(d,i){d.classList.toggle('active',i===idx)});
+    var el=slides[idx];
+    var th=el.classList.contains('light')?'light':'dark';
+    document.body.classList.toggle('light-bg',th==='light');
+    lock=true;setTimeout(function(){lock=false},700)
+  }
+
+  // Keyboard
+  window.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      e.preventDefault();
+      if(window.__toggleOverview)window.__toggleOverview();
+      return
+    }
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+      e.preventDefault();
+      go(idx+1)
+    }
+    if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp'){
+      e.preventDefault();
+      go(idx-1)
+    }
+    if(e.key==='Home'){e.preventDefault();go(0)}
+    if(e.key==='End'){e.preventDefault();go(total-1)}
+  });
+
+  // Wheel
+  var wAcc=0,wTO=null;
+  window.addEventListener('wheel',function(e){
+    wAcc+=e.deltaY+e.deltaX;
+    if(Math.abs(wAcc)>50){go(idx+(wAcc>0?1:-1));wAcc=0}
+    clearTimeout(wTO);wTO=setTimeout(function(){wAcc=0},150)
+  },{passive:true});
+
+  // Touch
+  var tx=0,ty=0;
+  window.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+  window.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-tx;
+    var dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(idx+(dx<0?1:-1))
+  },{passive:true});
+
+  // ESC Overview
+  var ov=document.createElement('div');
+  ov.id='overview';
+  ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(10,10,11,.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+  document.body.appendChild(ov);
+  var ovOn=false;
+  function toggleOverview(){
+    ovOn=!ovOn;
+    if(!ovOn){ov.style.display='none';return}
+    ov.innerHTML='';
+    var grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+    slides.forEach(function(s,i){
+      var card=document.createElement('div');
+      card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(241,239,234,.8)':'rgba(241,239,234,.15)')
+      card.onclick=function(){toggleOverview();go(i)};
+      var wrap=document.createElement('div');
+      wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'#f1efea':'#0a0a0b');
+      var clone=s.cloneNode(true);
+      clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+      wrap.appendChild(clone);
+      var label=document.createElement('div');
+      label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;color:#f1efea;opacity:.7';
+      label.textContent=(i+1)+' / '+total;
+      card.appendChild(wrap);card.appendChild(label);grid.appendChild(card)
+    });
+    ov.appendChild(grid);ov.style.display='block'
+  }
+  window.__toggleOverview=toggleOverview;
+
+  go(0)
+})();
+</script>
+
+<script type="module">
+try{
+  var m=await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+  var animate=m.animate,stagger=m.stagger;
+  document.body.classList.add('motion-ready');
+  var EASE=[.22,1,.36,1];
+  var slides=document.querySelectorAll('.slide');
+
+  window.__playSlide=function(i){
+    var slide=slides[i];if(!slide)return;
+    slide.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='';el.style.transform=''});
+    var all=[].slice.call(slide.querySelectorAll('[data-anim]'));
+    if(!all.length)return;
+    var recipe=slide.dataset.animate||(slide.classList.contains('hero')?'hero':'cascade');
+    if(recipe==='hero')animate(all,{opacity:[0,1],y:[14,0]},{duration:.9,delay:stagger(.16,{start:.2}),easing:EASE});
+    else animate(all,{opacity:[0,1],y:[16,0]},{duration:.75,delay:stagger(.1,{start:.15}),easing:EASE})
+  };
+
+  // Hook into go() to trigger playSlide
+  var origGo=void 0;
+  // We override the go function by patching - use a MutationObserver-like approach
+  // Actually just hook into the keydown/wheel by calling playSlide after go
+  var _deck=document.getElementById('deck');
+  var observer=new MutationObserver(function(mutations){
+    mutations.forEach(function(mut){
+      if(mut.attributeName==='style'||mut.type==='attributes'){
+        var idx=window.__currentSlideIndex;
+        if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+      }
+    })
+  });
+  // Simpler: just trigger on navigation
+  var navDots=document.getElementById('nav');
+  if(navDots){
+    var dotObserver=new MutationObserver(function(){
+      var idx=window.__currentSlideIndex;
+      if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+    });
+    dotObserver.observe(navDots,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})
+  }
+  // Play first slide
+  setTimeout(function(){window.__playSlide(0)},100)
+}catch(e){
+  console.warn('[motion] CDN failed, disabling animations');
+  document.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='1';el.style.transform='none'})
+}
+</script>
+</body>
+</html>

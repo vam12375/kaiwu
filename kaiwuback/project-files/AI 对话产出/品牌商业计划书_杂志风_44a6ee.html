@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>差异性Skills · 品牌构建能力展示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0a0a0b;--ink-rgb:10,10,11;
+    --paper:#f1efea;--paper-rgb:241,239,234;
+    --paper-tint:#e8e5de;--ink-tint:#18181a;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display",Georgia,serif;
+    --serif-zh:"Noto Serif SC",serif;
+    --sans-zh:"Noto Sans SC",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased}
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+  body.low-power canvas.bg{display:none!important}
+
+  #deck{position:fixed;inset:0;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .h-hero{font-family:var(--serif-zh);font-weight:900;font-size:10vw;line-height:.96;letter-spacing:-.02em}
+  .h-xl{font-family:var(--serif-zh);font-weight:700;font-size:6.2vw;line-height:1.08;letter-spacing:-.01em}
+  .h-sub{font-family:var(--serif-zh);font-weight:500;font-size:3.1vw;line-height:1.25;opacity:.7}
+  .h-md{font-family:var(--serif-zh);font-weight:600;font-size:2.3vw;line-height:1.3}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.75vw;line-height:1.5;opacity:.86}
+  .meta-row{display:flex;gap:1.2em;align-items:baseline;flex-wrap:wrap;font-family:var(--mono);font-size:max(12px,.92vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82}
+  em{font-style:italic;font-family:var(--serif-en)}
+
+  .stat-card{display:flex;flex-direction:column;gap:.8vh;align-items:flex-start;padding-top:1.6vh;border-top:1px solid rgba(127,127,127,.3)}
+  .stat-label{font-family:var(--mono);font-size:max(10px,.78vw);letter-spacing:.24em;text-transform:uppercase;opacity:.55}
+  .stat-nb{font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;font-feature-settings:"tnum";margin-top:.4vh}
+  .stat-unit{font-family:var(--serif-zh);font-weight:500;font-size:.38em;opacity:.72;margin-left:.14em}
+  .stat-note{font-family:var(--sans-zh);font-weight:400;font-size:max(13px,1.05vw);line-height:1.5;opacity:.72;margin-top:.6vh}
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout-src{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2.4vh 2vw}
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);width:100%;border-radius:4px;margin:0;display:flex;flex-direction:column;min-width:0}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04)}
+  .frame-img>img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .img-cap{display:block;margin-top:.8vh;font-family:var(--mono);font-size:max(10px,.8vw);letter-spacing:.22em;text-transform:uppercase;opacity:.6}
+  .color-block{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:.4}
+
+  /* NAV */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+  body.low-power #hint{opacity:.72;color:var(--paper);mix-blend-mode:normal}
+  body.light-bg.low-power #hint{color:var(--ink)}
+
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.low-power #deck{transition:none!important}
+  body.low-power [data-anim]{opacity:1!important;transform:none!important}
+  @media(max-width:900px){.h-hero{font-size:14vw}.h-xl{font-size:9vw}.grid-2-7-5{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="hint">← → 翻页 · ESC 索引</div>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+
+<div id="deck">
+<section class="slide hero dark"><div class="chrome"><div>品牌手册</div><div>01 / 11</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>BRAND MANUAL</div><h1 class="h-hero" data-anim>品牌手册</h1><p class="lead" style="max-width:50vw" data-anim>2026-06-26 · 曜势科技</p></div><div class="foot"><div>品牌手册 · YaoShi Tech</div><div>— 2026-06-26 —</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>02 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>&gt; 2026-06-26 · 曜势科技</p><p class="body-zh" data-anim>**基于调研数据提炼的品牌精神**：以“空间即服务”重构创造力场域，赋能新经济个体在效率与认同中自由生长。</p><div class="meta-row" data-anim>人群分层 · 年龄 · 城市 · 月收入</div><div class="meta-row" data-anim>--------- · ------ · ------ · --------</div><div class="meta-row" data-anim>核心人群 · 28-38岁 · 杭州（滨江/余杭/萧山） · 企业年营收500万-1500万</div><div class="meta-row" data-anim>次要人群 · 25-35岁 · 杭州主城区 · 年营收200-500万</div><div class="meta-row" data-anim>潜在人群 · 32-45岁 · 杭州及周边城市 · 年营收1000万+</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>02</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>03 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>- **消费场景Top3**：</p><p class="body-zh" data-anim>1. 直播工作室（100-200㎡）：需要层高≥3.5m、三相电、独立上下水、隔音、高速网络，追求“拎包开播”。</p><p class="body-zh" data-anim>2. 电商样品间（80-150㎡）：需陈列区+洽谈区+简易摄影棚，要求空间通透、近供应链市场。</p><p class="body-zh" data-anim>3. 灵活办公（50-100㎡）：10-20人规模，需共享会议室、茶歇区，偏好产业园区内，看重行业社群。</p><p class="body-zh" data-anim>- **决策全链路**：</p><p class="body-zh" data-anim>发现（抖音同城/中介朋友圈/圈子口碑）→ 搜索（点评类平台/行业社群/中介）→ 比较（配套服务清单/装修标准/租期弹性）→ 下单（短租试水→长租锁定），关键触点为线上实景看房、免租期政策、入驻企业名录。</p><p class="body-zh" data-anim>**品牌命名**：VYV（纬域） / 译名“微屿” / 待选“灵址Link Z”</p><p class="body-zh" data-anim>*推荐方案：VYV 纬域，取“经纬之域，创变发生”之意，契合数字经济企业流动、连接的特质。*</p><p class="body-zh" data-anim>**核心价值主张**：基于Node1租户“效率优先、圈子认同、风险控制”三大痛点，结合[待品牌策略约束]品牌精神，提炼为：**“不止是空间，是你可以拎包开播的生意加速器。”**</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>03</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>04 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>**产品体系**：「多场景轻奢空间」胶囊系列，将传统租赁拆分为4条产品线：</p><div class="meta-row" data-anim>产品线 · 场景 · SKU数 · 设计关键词</div><div class="meta-row" data-anim>-------- · ------ · ------- · -----------</div><div class="meta-row" data-anim>直播胶囊 · 带货直播 / 店播 · 3-4种户型 · 机能优雅、声光硬装</div><div class="meta-row" data-anim>创作胶囊 · 短视频/设计/写作 · 4-6种工位组合 · 极简质感、自然光感</div><div class="meta-row" data-anim>商洽胶囊 · 商务会议/展厅/沙龙 · 3-5个空间模块 · 山系美学（原木+绿植）、可变换</div><div class="meta-row" data-anim>配套胶囊 · 全场景服务 · 6-10项 · 点睛单品：咖啡吧、摄影棚、仓储柜</div><p class="body-zh" data-anim>*数据支撑*：Node1显示杭州直播电商对100-300㎡精装场地需求年增18%，滨江/未来科技城TOD项目入市，竞品多为传统写字楼或无品牌散租，VYV以“拎包入驻+行业社群”切入空白带。</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>04</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>05 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>维度 · 内容 · Node1数据来源</div><div class="meta-row" data-anim>------ · ------ · -------------</div><div class="meta-row" data-anim>品牌定位 · 新经济个体专属轻奢办公空间品牌 · 引用直播电商场地需求年增18%</div><div class="meta-row" data-anim>人群锚点 · 85后电商创业者，预算3-5万/月，追求效率与圈子 · 引用典型租户画像</div><div class="meta-row" data-anim>差异化 · “拎包开工”硬装+产业社群+短租弹性，打破传统长租毛坯模式 · 引用租户风险控制心理（短租、免租期）</div><p class="body-zh" data-anim>**收入结构**：</p><div class="meta-row" data-anim>收入来源 · 占比 · 毛利率 · 增长驱动</div><div class="meta-row" data-anim>--------- · ------ · -------- · ---------</div><div class="meta-row" data-anim>空间租金（长/短租） · 60% · 35% · 线上种草+直播看房+快闪体验</div><div class="meta-row" data-anim>增值服务（设备租赁、活动承办） · 20% · 50% · 场景化打包订阅</div><div class="meta-row" data-anim>会员订阅（工位、会议室、社群） · 15% · 80% · 复购锁定、跨场地通享</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>05</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>06 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>品牌联名（家居/茶饮/直播设备） · 5% · 45% · 破圈获客、提升调性</div><p class="body-zh" data-anim>**成本结构**：</p><div class="meta-row" data-anim>环节 · 方案 · 成本占比 · 关键指标</div><div class="meta-row" data-anim>------ · ------ · --------- · ---------</div><div class="meta-row" data-anim>场地获取 · 长租毛坯改造或园区合作分成，单项目面积1500-3000㎡ · 40% · 签约免租期≥3月</div><div class="meta-row" data-anim>精装配套 · 标准化模块化装修，单方成本600-800元 · 25% · 翻新周期3年</div><div class="meta-row" data-anim>运营与物管 · 智慧管理系统+共享管家，人房比1:800㎡ · 20% · 出租率≥85%</div><div class="meta-row" data-anim>获客营销 · 抖音/小红书内容+达人探店+中介佣金 · 15% · CAC≤月租金的30%</div><p class="body-zh" data-anim>**核心增长公式**：GMV = 可出租面积 × 出租率 × 平均租金 × （1 + 增值服务购买率）</p><p class="body-zh" data-anim>**短视频矩阵**：小红书(40%) / 抖音(35%) / 微信私域(15%) / B站/视频号(10%)，内容以“爆改老仓库”“直播工作室一日”等为主。</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>06</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>07 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><div class="meta-row" data-anim>年份 · 营收目标 · 关键动作 · 净利润率</div><div class="meta-row" data-anim>------ · --------- · --------- · ---------</div><div class="meta-row" data-anim>2026 · 200-400万 · 杭州首店（未来科技城/九堡）+小红书种草+社群试运营 · -10%~0%</div><div class="meta-row" data-anim>2027 · 1000-2000万 · 拓店3-5处+SKU扩至30户型+上线会员跨店通行+企业服务 · 8%-12%</div><div class="meta-row" data-anim>2028 · 3000-5000万 · 跨城测试（广州/深圳）+空间产品输出+供应链金融合作 · 15%-20%</div><p class="body-zh" data-anim>（营收目标基于Node1杭州市场317亿规模×0.01%-0.02%品牌初期份额测算）</p><p class="body-zh" data-anim>**风险预案**：</p><p class="body-zh" data-anim>- 供应链（场地获取）：合作3家以上园区/旧改方，备选物业不低于1处；</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>07</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>08 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌商业计划书</h2><p class="body-zh" data-anim>- 库存（空置风险）：采用预售+短租混合，推出“7天试租”降低决策门槛；</p><p class="body-zh" data-anim>- 流量：多平台内容矩阵+行业KOC合作，避免单一渠道依赖；</p><p class="body-zh" data-anim>- 竞争：品牌化情感连接+产业社群壁垒，避免单纯价格</p></div><div class="foot"><div>曜势科技 · AI生成</div><div>08</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>09 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>09</div></div></section><section class="slide light"><div class="chrome"><div>品牌手册</div><div>10 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>10</div></div></section><section class="slide dark"><div class="chrome"><div>品牌手册</div><div>11 / 11</div></div><div class="frame" style="gap:3vh;padding-bottom:2vh;display:flex;flex-direction:column;justify-content:center"><h2 class="h-sub" data-anim style="font-size:3.8vw">品牌综合实力</h2><p class="body-zh" data-anim>本品牌手册基于Node2商业方案自动生成，涵盖目标用户画像、品牌定位策略、盈利模式设计与行动路径规划四大维度。所有数据来源于Node1市场调研与Node2商业分析。</p><div class="meta-row" data-anim>数据来源：曜势科技AI综合研判</div></div><div class="foot"><div>曜势科技 · AI生成</div><div>11</div></div></section><div id="nav"></div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();setTimeout(function(){if(typeof lucide!=='undefined')lucide.createIcons();},600);</script>
+
+<script>
+// ======== WebGL Background ========
+const VS='attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}';
+const FS_DARK='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;float md=length(p-m);float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;vec2 p0=p;for(float i=1.0;i<4.0;i++){p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;}float r=length(p);float ang=atan(p.y,p.x);vec3 a=vec3(0.12,0.12,0.13);vec3 b=vec3(0.03,0.04,0.05);vec3 c=vec3(1.0,1.0,1.0);vec3 d=vec3(0.1,0.2,0.4);vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;col+=vec3(disp*0.015,disp*0.01,disp*0.02);float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);col+=hi*0.08;vec3 base=vec3(0.05,0.05,0.06);col=mix(base,col,0.85);gl_FragColor=vec4(col,1.0);}';
+const FS_LIGHT='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float noise(vec2 p){vec2 i=floor(p),f=fract(p);float a=hash(i),b=hash(i+vec2(1,0));float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));vec2 u=f*f*(3.0-2.0*f);return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;}float fbm(vec2 p){float v=0.0,a=0.5;mat2 m=mat2(0.80,0.60,-0.60,0.80);for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}return v;}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;vec2 md=p-m;float dl=length(md);p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));float f=fbm(p*2.2+r*1.5);vec3 silverDark=vec3(0.86,0.85,0.84);vec3 paper=vec3(0.955,0.945,0.925);vec3 col=mix(silverDark,paper,f);float ph=r.x*2.2+u_time*0.35;col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;float hl=smoothstep(0.48,0.92,f);col+=hl*0.06;gl_FragColor=vec4(col,1.0);}';
+
+(function(){
+  var mouse={x:0.5,y:0.5};
+  window.addEventListener('mousemove',function(e){mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+  function bootGL(id,fs){
+    var c=document.getElementById(id);
+    var gl=c.getContext('webgl',{alpha:false,antialias:true});
+    if(!gl)return function(){};
+    function mk(t,s){var sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh}
+    var p=gl.createProgram();
+    gl.attachShader(p,mk(gl.VERTEX_SHADER,VS));
+    gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));
+    gl.linkProgram(p);gl.useProgram(p);
+    var b=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+    var pos=gl.getAttribLocation(p,'position');
+    gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+    var lR=gl.getUniformLocation(p,'u_resolution');
+    var lT=gl.getUniformLocation(p,'u_time');
+    var lM=gl.getUniformLocation(p,'u_mouse');
+    function resize(){var d=Math.min(window.devicePixelRatio||1,2);c.width=innerWidth*d;c.height=innerHeight*d;gl.viewport(0,0,c.width,c.height)}
+    window.addEventListener('resize',resize);resize();
+    return function(t){gl.uniform2f(lR,c.width,c.height);gl.uniform1f(lT,t);gl.uniform2f(lM,mouse.x,1-mouse.y);gl.drawArrays(gl.TRIANGLES,0,6)}
+  }
+
+  var dD=null,dL=null,raf=0,t0=Date.now();
+  function start(){
+    if(!dD)dD=bootGL('bg-dark',FS_DARK);
+    if(!dL)dL=bootGL('bg-light',FS_LIGHT);
+    t0=Date.now();
+    function loop(){var t=(Date.now()-t0)/1000;dD(t);dL(t);raf=requestAnimationFrame(loop)}
+    raf=requestAnimationFrame(loop)
+  }
+  start();
+
+  // ======== Navigation ========
+  var deck=document.getElementById('deck');
+  var slides=deck.querySelectorAll('.slide');
+  var total=slides.length;
+  deck.style.width=(total*100)+'vw';
+  var nav=document.getElementById('nav');
+  var idx=0,lock=false;
+
+  slides.forEach(function(s,i){
+    var b=document.createElement('button');
+    b.className='dot';b.dataset.i=i;
+    b.setAttribute('aria-label','Page '+(i+1));
+    b.addEventListener('click',function(){go(i)});
+    nav.appendChild(b)
+  });
+
+  function go(n){
+    if(lock)return;
+    idx=Math.max(0,Math.min(total-1,n));
+    window.__currentSlideIndex=idx;
+    deck.style.transform='translateX('+(-idx*100)+'vw)';
+    var dots=nav.querySelectorAll('.dot');
+    dots.forEach(function(d,i){d.classList.toggle('active',i===idx)});
+    var el=slides[idx];
+    var th=el.classList.contains('light')?'light':'dark';
+    document.body.classList.toggle('light-bg',th==='light');
+    lock=true;setTimeout(function(){lock=false},700)
+  }
+
+  // Keyboard
+  window.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      e.preventDefault();
+      if(window.__toggleOverview)window.__toggleOverview();
+      return
+    }
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+      e.preventDefault();
+      go(idx+1)
+    }
+    if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp'){
+      e.preventDefault();
+      go(idx-1)
+    }
+    if(e.key==='Home'){e.preventDefault();go(0)}
+    if(e.key==='End'){e.preventDefault();go(total-1)}
+  });
+
+  // Wheel
+  var wAcc=0,wTO=null;
+  window.addEventListener('wheel',function(e){
+    wAcc+=e.deltaY+e.deltaX;
+    if(Math.abs(wAcc)>50){go(idx+(wAcc>0?1:-1));wAcc=0}
+    clearTimeout(wTO);wTO=setTimeout(function(){wAcc=0},150)
+  },{passive:true});
+
+  // Touch
+  var tx=0,ty=0;
+  window.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+  window.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-tx;
+    var dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(idx+(dx<0?1:-1))
+  },{passive:true});
+
+  // ESC Overview
+  var ov=document.createElement('div');
+  ov.id='overview';
+  ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(10,10,11,.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+  document.body.appendChild(ov);
+  var ovOn=false;
+  function toggleOverview(){
+    ovOn=!ovOn;
+    if(!ovOn){ov.style.display='none';return}
+    ov.innerHTML='';
+    var grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+    slides.forEach(function(s,i){
+      var card=document.createElement('div');
+      card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(241,239,234,.8)':'rgba(241,239,234,.15)')
+      card.onclick=function(){toggleOverview();go(i)};
+      var wrap=document.createElement('div');
+      wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'#f1efea':'#0a0a0b');
+      var clone=s.cloneNode(true);
+      clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+      wrap.appendChild(clone);
+      var label=document.createElement('div');
+      label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;color:#f1efea;opacity:.7';
+      label.textContent=(i+1)+' / '+total;
+      card.appendChild(wrap);card.appendChild(label);grid.appendChild(card)
+    });
+    ov.appendChild(grid);ov.style.display='block'
+  }
+  window.__toggleOverview=toggleOverview;
+
+  go(0)
+})();
+</script>
+
+<script type="module">
+try{
+  var m=await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+  var animate=m.animate,stagger=m.stagger;
+  document.body.classList.add('motion-ready');
+  var EASE=[.22,1,.36,1];
+  var slides=document.querySelectorAll('.slide');
+
+  window.__playSlide=function(i){
+    var slide=slides[i];if(!slide)return;
+    slide.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='';el.style.transform=''});
+    var all=[].slice.call(slide.querySelectorAll('[data-anim]'));
+    if(!all.length)return;
+    var recipe=slide.dataset.animate||(slide.classList.contains('hero')?'hero':'cascade');
+    if(recipe==='hero')animate(all,{opacity:[0,1],y:[14,0]},{duration:.9,delay:stagger(.16,{start:.2}),easing:EASE});
+    else animate(all,{opacity:[0,1],y:[16,0]},{duration:.75,delay:stagger(.1,{start:.15}),easing:EASE})
+  };
+
+  // Hook into go() to trigger playSlide
+  var origGo=void 0;
+  // We override the go function by patching - use a MutationObserver-like approach
+  // Actually just hook into the keydown/wheel by calling playSlide after go
+  var _deck=document.getElementById('deck');
+  var observer=new MutationObserver(function(mutations){
+    mutations.forEach(function(mut){
+      if(mut.attributeName==='style'||mut.type==='attributes'){
+        var idx=window.__currentSlideIndex;
+        if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+      }
+    })
+  });
+  // Simpler: just trigger on navigation
+  var navDots=document.getElementById('nav');
+  if(navDots){
+    var dotObserver=new MutationObserver(function(){
+      var idx=window.__currentSlideIndex;
+      if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+    });
+    dotObserver.observe(navDots,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})
+  }
+  // Play first slide
+  setTimeout(function(){window.__playSlide(0)},100)
+}catch(e){
+  console.warn('[motion] CDN failed, disabling animations');
+  document.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='1';el.style.transform='none'})
+}
+</script>
+</body>
+</html>

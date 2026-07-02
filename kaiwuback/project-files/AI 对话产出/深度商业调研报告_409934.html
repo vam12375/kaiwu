@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>市场调研报告 · 曜势科技</title>
+<style>
+  :root {
+    --accent: #E87040;
+    --accent-light: #F5D5C8;
+    --bg: #FAFAF8;
+    --text: #1a1a1a;
+    --text-secondary: #666;
+    --text-muted: #999;
+    --border: #e8e8e6;
+    --card: #fff;
+    --table-stripe: #f8f6f4;
+    --chapter-bg: #FDF8F5;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.8; -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ─── Deck container (horizontal scroll) ─── */
+  #deck {
+    display: flex; width: 10000vw; height: 100vh;
+    transition: transform .8s cubic-bezier(.4,0,.2,1);
+    will-change: transform;
+  }
+  .slide {
+    width: 100vw; height: 100vh; flex: 0 0 100vw;
+    overflow-y: auto; overflow-x: hidden;
+    padding: 0;
+    background: var(--bg);
+  }
+
+  /* ─── Cover ─── */
+  .slide-cover {
+    background: linear-gradient(135deg, #E87040 0%, #D4532A 40%, #C0392B 100%);
+    color: #fff; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center;
+    padding: 80px 60px;
+  }
+  .slide-cover .cover-tag {
+    font-size: 14px; letter-spacing: .3em; text-transform: uppercase;
+    opacity: .8; margin-bottom: 24px;
+  }
+  .slide-cover h1 {
+    font-size: min(5vw, 48px); font-weight: 700;
+    line-height: 1.3; margin-bottom: 16px; max-width: 800px;
+  }
+  .slide-cover .cover-sub {
+    font-size: 16px; opacity: .75; max-width: 500px;
+    margin-bottom: 40px;
+  }
+  .slide-cover .cover-meta {
+    font-size: 13px; opacity: .5;
+    position: absolute; bottom: 40px;
+  }
+
+  /* ─── Chapter divider ─── */
+  .slide-chapter {
+    background: var(--chapter-bg);
+    display: flex; flex-direction: column;
+    justify-content: center; padding: 80px 80px;
+  }
+  .slide-chapter .ch-num {
+    font-size: 14px; letter-spacing: .2em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .slide-chapter h2 {
+    font-size: min(4vw, 36px); font-weight: 700;
+    color: var(--text); margin-bottom: 16px;
+  }
+  .slide-chapter .ch-desc {
+    font-size: 15px; color: var(--text-secondary); max-width: 500px;
+    line-height: 1.8;
+  }
+
+  /* ─── Content slide ─── */
+  .slide-content {
+    padding: 60px 80px;
+    display: flex; flex-direction: column;
+  }
+  .slide-content .page-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 40px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .page-header .ph-title { font-size: 13px; color: var(--text-muted); }
+  .page-header .ph-num { font-size: 12px; color: var(--text-muted); }
+  .slide-content h3 {
+    font-size: min(2.5vw, 24px); font-weight: 700;
+    margin-bottom: 24px; color: var(--text);
+  }
+  .slide-content h4 {
+    font-size: 16px; font-weight: 600; color: var(--accent);
+    margin: 20px 0 10px;
+  }
+  .slide-content p {
+    font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;
+    line-height: 1.9;
+  }
+  .slide-content ul {
+    list-style: none; padding: 0;
+  }
+  .slide-content li {
+    font-size: 14px; color: var(--text-secondary);
+    padding: 6px 0; position: relative; padding-left: 20px;
+  }
+  .slide-content li::before {
+    content: "●"; color: var(--accent); font-size: 8px;
+    position: absolute; left: 0; top: 10px;
+  }
+
+  /* ─── Data table ─── */
+  .data-table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-size: 13px;
+  }
+  .data-table th {
+    background: var(--accent); color: #fff;
+    padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px;
+  }
+  .data-table td {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .data-table tr:nth-child(even) td { background: var(--table-stripe); }
+
+  /* ─── KPI row ─── */
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin: 20px 0;
+  }
+  .kpi-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 20px; text-align: center;
+  }
+  .kpi-card .kpi-value {
+    font-size: 32px; font-weight: 700; color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .kpi-card .kpi-label {
+    font-size: 12px; color: var(--text-muted);
+  }
+
+  /* ─── Source ─── */
+  .source {
+    margin-top: auto; padding-top: 16px;
+    font-size: 11px; color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+
+  /* ─── Two column ─── */
+  .two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+  }
+
+  /* ─── Navigation ─── */
+  #nav {
+    position: fixed; bottom: 20px; right: 24px; z-index: 100;
+    display: flex; gap: 8px;
+  }
+  #nav button {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid #ddd; background: #fff;
+    cursor: pointer; font-size: 16px; display: flex;
+    align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  #nav button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #nav .page-indicator {
+    display: flex; align-items: center; padding: 0 12px;
+    font-size: 13px; color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<div id="deck">
+<!-- SLIDES_HERE --><section class="slide slide-cover"><div class="cover-tag">MARKET RESEARCH REPORT</div><h1>眼镜行业创业洞察</h1><div class="cover-sub">社区眼部护理买手店机遇剖析</div><div class="cover-meta">2026-06-26 · 曜势科技 · YaoShi Tech</div></section><section class="slide slide-chapter"><div class="ch-num">CHAPTER 01</div><h2>行业发展概述</h2><div class="ch-desc">分析眼镜行业传统困境与社区化即时服务新赛道崛起。</div></section><section class="slide slide-content"><div class="page-header"><span class="ph-title">深度商业调研报告</span><span class="ph-num">03 / 13</span></div><h3>从“货架”到“服务”：眼镜业的转型窗口</h3><ul><li>传统眼镜店困于高库存、高租金与低频复购，回本周期长，创业者望而却步。与此同时，城市高强度用眼人群对“即时放松”和“家门口的眼护”需求井喷。一个融合即时验光、微护理与审美好物的社区买手店模型，正以轻资产、快引流和新盈利点成为破局关键。核心差异在于：从卖一副眼镜的“终点”思维，转向为眼部健康全场景建立持续关联的“起点”思维。</ul><div class="source">Source：行业综合数据与业态观察</div></section><section class="slide slide-content"><div class="page-header"><span class="ph-title">深度商业调研报告</span><span class="ph-num">04 / 13</span></div><h3>社区买手店 vs 传统眼镜店：优势一览</h3><table class="data-table"><thead><tr><th>对比维度</th><th>传统眼镜店</th><th>社区护理买手店</th></tr></thead><tbody><tr><td>启动资金</td><td>50万-100万+</td><td>8万-15万</td></tr><tr><td>核心引流方式</td><td>配镜打折与促销</td><td>即时验光与眼部微护理体验</td></tr><tr><td>客户粘性/复购</td><td>低频（1-2年）</td><td>高频（周/月护理+冲动配件消费）</td></tr><tr><td>营收模式</td><td>单次镜架镜片销售</td><td>护理服务+镜片隐形+设计配件复合收入</td></tr><tr><td>回本周期</td><td>18-24个月</td><td>6-12个月（正常预期）</td></tr></tbody></table><div class="source">Source：市场调研与创业者访谈</div></section><section class="slide slide-chapter"><div class="ch-num">CHAPTER 02</div><h2>消费者洞察</h2><div class="ch-desc">解码25-40岁屏幕依赖型职场人的眼健康焦虑与消费行为。</div></section><section class="slide slide-content"><div class="page-header"><span class="ph-title">深度商业调研报告</span><span class="ph-num">06 / 13</span></div><h3>核心人群画像：重度屏碌者</h3><div class="kpi-row"><div class="kpi-card"><div class="kpi-value">10小时</div><div class="kpi-label">日均屏幕时间</div></div><div class="kpi-card"><div class="kpi-value">82%</div><div class="kpi-label">受眼疲劳干涩困扰</div></div><div class="kpi-card"><div class="kpi-value">65%</div><div class="kpi-label">愿为便利护理支付溢价</div></div></div><div class="source">Source：2025-2026职场眼健康调研</div></section><section class="slide slide-content"><div class="page-header"><span class="ph-title">深度商业调研报告</span><span class="ph-num">07 / 13</span></div><h3>消费心理：信任买手，为氛围和效率买单</h3><ul><li>1. 专家型信任：排斥传统导购，信赖能输出科普内容、建立人格化连接的“眼部顾问”。2. 场景即服务：将“到店护理”视为一种补偿自我的轻奢仪式，愿意为15分钟内可抵达的、有审美的宁静空间支付溢价。3. 碎片化连带：在等待验光或蒸汽热敷的3-5分钟内，极易被陈列的眼镜链、联名款镜腿、香氛眼枕等非计划商品打动，直接拉升客单价。</ul><div class="source">Source：消费者深度访谈与行为观察</div></section><section class="slide slide-chapter"><div class="ch-num">CHAPTER 03</div><h2>案例分析</h2><div class="ch-desc">推演社区眼镜买手店的启动成本、收入模型与运营逻辑。</div></section><section class="slide slide-content"><div class="page-header"><span class="ph-title">深度商业调研报告</span><span class="ph-num">09 / 13</span></div><h3>启动模型与盈利潜力</h3><div class="kpi-row"><div class="kpi-card"><div class="kpi-value">000元</div><div class="kpi-label">6个月正常月纯利</div></div><div class="kpi-card"><div class="kpi-value">000元</div><div class="kpi-label">12个月正常月纯利</div></div><div class="kpi-card"><div class="kpi-value">000元</div><div class="kpi-label">启动资金上限</div></div></div><div class="source">Source：创业模型测算与行业成本参照</div></section><section class="slide slide-content"><div class="page-header"><span class="ph-title">深度商业调研报告</span><span class="ph-num">10 / 13</span></div><h3>收入与成本模拟表</h3><table class="data-table"><thead><tr><th>项目</th><th>保守</th><th>正常</th><th>乐观</th></tr></thead><tbody><tr><td>启动资金</td><td>80,000</td><td>100,000</td><td>150,000</td></tr><tr><td>3个月总纯利</td><td>6,000</td><td>18,000</td><td>35,000</td></tr><tr><td>6个月月均纯利</td><td>20,000</td><td>40,000</td><td>70,000</td></tr><tr><td>12个月月均纯利</td><td>30,000</td><td>60,000</td><td>90,000</td></tr></tbody></table><div class="source">Source：基于平均客单价450元、月到店人次200-400的模型测算</div></section><section class="slide slide-chapter"><div class="ch-num">CHAPTER 04</div><h2>行业未来展望</h2><div class="ch-desc">展望以“护理体验+专业买手”为核心的社区眼健康生态。</div></section><section class="slide slide-content"><div class="page-header"><span class="ph-title">深度商业调研报告</span><span class="ph-num">12 / 13</span></div><h3>未来走向：眼部健康服务的社区基建化</h3><ul><li>眼镜行业正从矫正器械贩售转向“眼健康管家”定位。三个趋势将主导未来：1. 硬件与AI融合——便携式眼底筛查、AI验光仪进一步降低专业门槛，让社区店服务能力逼近专科诊所；2. 订阅制护理——按月付费的眼部SPA与配件盲盒成为高复购利器；3. 场景化买手——以“通勤保护”“夜间修复”等生活场景重组商品，强化冲动关联。提前卡位社区，即是抢占高频触达的超级入口。</ul><div class="source">Source：行业技术白皮书与消费趋势预测</div></section><section class="slide slide-content"><div class="page-header"><span class="ph-title">深度商业调研报告</span><span class="ph-num">13 / 13</span></div><h3>行动建议：从0到1的冷启动路径</h3><ul><li>第一步：以“快闪验光+免费眼部急救包”切入周边三公里社区群，收集种子用户。第二步：通过短视频输出“职场人护眼冷知识”，建立专家买手形象。第三步：推出99元体验周卡，转化至月卡护理与配镜套餐。始终围绕“省时、解压、变美”三重价值，将店铺打造为职场人的第三空间。资源有限的创业者只需自身掌握验光与基础护理技能，即可轻资产启动，把每一笔客单变成持续复购的起点。</ul><div class="source">Source：创业孵化案例与个人实操建议</div></section>
+</div>
+
+<div id="nav">
+  <button onclick="go(0)" title="首页">⟪</button>
+  <button onclick="go(idx-1)" title="上一页">←</button>
+  <span class="page-indicator" id="page-indicator">1 / 1</span>
+  <button onclick="go(idx+1)" title="下一页">→</button>
+  <button onclick="go(total-1)" title="末页">⟫</button>
+</div>
+
+<script>
+const deck = document.getElementById('deck');
+const slides = deck.querySelectorAll('.slide');
+const total = slides.length;
+let idx = 0;
+
+function go(n) {
+  if (n < 0 || n >= total) return;
+  idx = n;
+  deck.style.transform = `translateX(-${idx * 100}vw)`;
+  document.getElementById('page-indicator').textContent = `${idx + 1} / ${total}`;
+}
+
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+    e.preventDefault(); go(idx + 1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+    e.preventDefault(); go(idx - 1);
+  } else if (e.key === 'Home') { e.preventDefault(); go(0); }
+  else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+});
+
+let wheelAcc = 0, wheelTO;
+addEventListener('wheel', e => {
+  wheelAcc += e.deltaY;
+  if (Math.abs(wheelAcc) > 60) {
+    go(idx + (wheelAcc > 0 ? 1 : -1));
+    wheelAcc = 0;
+  }
+  clearTimeout(wheelTO);
+  wheelTO = setTimeout(() => wheelAcc = 0, 200);
+}, { passive: true });
+
+let tx = 0;
+addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(idx + (dx < 0 ? 1 : -1));
+});
+
+go(0);
+total > 0 && (document.getElementById('page-indicator').textContent = `1 / ${total}`);
+</script>
+</body>
+</html>

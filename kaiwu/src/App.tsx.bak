@@ -1,0 +1,789 @@
+/**
+ * 曜势科技 App 根组件
+ * 职责：Context 提供 + 页面路由 + Home 页（对话引擎 + 首页）
+ * 其他页面已抽取到 src/pages/
+ */
+import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ArrowUp, Bot, Bookmark, Brain, ChevronDown, ChevronLeft,
+  ChevronRight, Copy, Cpu, FileStack, HelpCircle, Mic,
+  Plus, Search, Settings2, UserRound,
+} from 'lucide-react';
+
+import type { Direction, PickerType, LibraryModalType } from './types';
+import {
+  sidebarItems, directions, quickSkillsByDirection,
+  modelOptions, heroLines, heroText,
+} from './data';
+import { renderMarkdown } from './utils';
+import { AppProvider, useAppContext } from './context/AppContext';
+import { SkillsPage } from './pages/SkillsPage';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { CodingPage } from './pages/CodingPage';
+
+// =============================================================================
+// Home Page Component (conversation + hero + composer)
+// =============================================================================
+
+function FileLibraryPopover({ onSelect, onClose }: { onSelect: (url: string) => void; onClose: () => void }) {
+  const [files, setFiles] = useState<any[]>([]);
+  useEffect(() => {
+    fetch('http://localhost:5001/api/project-files')
+      .then(r => r.json()).then(setFiles).catch(() => setFiles([]));
+    const handler = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.picker-popover') && !(e.target as HTMLElement).closest('.toolbar-select')) {
+        onClose();
+      }
+    };
+    setTimeout(() => document.addEventListener('click', handler), 0);
+    return () => document.removeEventListener('click', handler);
+  }, []);
+  return (
+    <div className="picker-popover" style={{width:'320px',maxHeight:'320px',overflowY:'auto',padding:'8px'}}>
+      {files.length === 0 && <div style={{padding:'12px',color:'#94a3b8',fontSize:'13px',textAlign:'center'}}>暂无历史文件</div>}
+      {files.map((f, i) => (
+        <button key={i} className="model-menu-row" onClick={() => onSelect(f.url)} type="button" style={{display:'flex',alignItems:'center',gap:'8px',width:'100%',textAlign:'left'}}>
+          <span style={{fontSize:'12px',color:'#64748b'}}>{f.type}</span>
+          <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'13px'}}>{f.name}</span>
+          <span style={{fontSize:'11px',color:'#94a3b8'}}>{f.folder}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+
+function HomePage() {
+  const ctx = useAppContext();
+  const {
+    activeDirection, setActiveDirection,
+    conversationOpen, setConversationOpen,
+    messages, setMessages, isLoading, setIsLoading,
+    workflowPhase, setWorkflowPhase,
+    nodeStatus, setNodeStatus,
+    conversationTitle, setConversationTitle,
+    currentConvId, setCurrentConvId,
+    convHistory, setConvHistory,
+    activeNodeId, setActiveNodeId,
+    modelIndex, setModelIndex,
+    inputText, setInputText,
+    uploadedFiles, setUploadedFiles,
+    isImageMode, setIsImageMode,
+    convIdRef, abortRef, followupNodeRef, convCacheRef,
+    suggestedQuestionsRef, homeTextareaRef, convTextareaRef,
+    isComposingRef, sseConvIdRef, handleSendRef,
+  } = ctx;
+
+  // ── Home-local state ──
+  const [typedHeroText, setTypedHeroText] = useState('');
+  const [fileIndex, setFileIndex] = useState<number | null>(null);
+  const [skillIndex, setSkillIndex] = useState<number | null>(null);
+  const [openPicker, setOpenPicker] = useState<PickerType>(null);
+  const [libraryModal, setLibraryModal] = useState<LibraryModalType>(null);
+  const [imageRatio, setImageRatio] = useState<string>('1:1');
+  const [imageCount, setImageCount] = useState<number>(1);
+  const [ratioOpen, setRatioOpen] = useState(false);
+  const [countOpen, setCountOpen] = useState(false);
+  const [suggestedQuestions, _setSuggestedQuestions] = useState<string[]>([]);
+  const setSuggestedQuestions = (val: string[]) => { suggestedQuestionsRef.current = val; _setSuggestedQuestions(val); };
+
+  const quickSkills = quickSkillsByDirection[activeDirection];
+
+  // ── Effects ──
+  useEffect(() => {
+    const el = document.getElementById('doubao-messages');
+    if (!el) return;
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) return;
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    if (isNearBottom) el.scrollTop = el.scrollHeight;
+  }, [messages]);
+
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.picker-popover') && !(e.target as HTMLElement).closest('.toolbar-select')) {
+        setOpenPicker(null); setRatioOpen(false); setCountOpen(false);
+      }
+    };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, []);
+
+  useEffect(() => {
+    fetch('http://localhost:5001/api/uploaded-files')
+      .then(r => r.json()).then(d => d.files && setUploadedFiles(d.files)).catch(()=>{});
+  }, []);
+
+  useEffect(() => {
+    let index = 0; let deleting = false; let timeoutId: number | undefined;
+    const tick = () => {
+      if (!deleting) {
+        index += 1; setTypedHeroText(heroText.slice(0, index));
+        if (index === heroText.length) { deleting = true; timeoutId = window.setTimeout(tick, 1600); return; }
+        timeoutId = window.setTimeout(tick, heroText[index - 1] === '\n' ? 260 : 58); return;
+      }
+      index -= 1; setTypedHeroText(heroText.slice(0, index));
+      if (index === 0) { deleting = false; timeoutId = window.setTimeout(tick, 480); return; }
+      timeoutId = window.setTimeout(tick, 24);
+    };
+    timeoutId = window.setTimeout(tick, 520);
+    return () => { window.clearTimeout(timeoutId); };
+  }, []);
+
+  // ── Handlers ──
+  const removeUploadedFile = (name: string) => {
+    fetch(`http://localhost:5001/api/uploaded-files/${encodeURIComponent(name)}`, {method:'DELETE'})
+      .then(r => r.json()).then(() => setUploadedFiles(prev => prev.filter(f => f.name !== name))).catch(()=>{});
+  };
+
+  const stopGeneration = () => {
+    if (abortRef.current) { abortRef.current.abort(); abortRef.current = null; }
+    setIsLoading(false); setWorkflowPhase('idle'); setNodeStatus(null);
+  };
+
+  const loadConversation = (id: number) => {
+    if (currentConvId && (messages.length > 0 || isLoading)) {
+      convCacheRef.current.set(currentConvId, {
+        messages: [...messages], isLoading, workflowPhase,
+        nodeStatus: nodeStatus ? {...nodeStatus} : null, conversationTitle,
+      });
+    }
+    const cached = convCacheRef.current.get(id);
+    if (cached && cached.isLoading) {
+      setMessages(cached.messages); setIsLoading(cached.isLoading);
+      setWorkflowPhase(cached.workflowPhase); setNodeStatus(cached.nodeStatus);
+      setConversationOpen(true); setConversationTitle(cached.conversationTitle);
+      setCurrentConvId(id); convIdRef.current = id; setIsImageMode(false);
+      setSuggestedQuestions(cached.suggestedQuestions || []);
+      return;
+    }
+    fetch(`http://localhost:5001/api/conversations/${id}`).then((r) => r.json()).then((conv) => {
+      if (conv && conv.messages) {
+        let loadedSuggestions: string[] = [];
+        setMessages(conv.messages.map((m: { role: string; content: string }) => {
+          let content = m.content;
+          const sugMatch = content.match(/<!--suggestions:(\[.*?\])-->/);
+          if (sugMatch) { try { loadedSuggestions = JSON.parse(sugMatch[1]); } catch {} content = content.replace(/<!--suggestions:\[.*?\]-->/, '').trim(); }
+          const images: { style: string; url: string; prompt: string }[] = [];
+          const imgRegex = /!\[(.+?)\]\((.+?)\)/g; let match;
+          while ((match = imgRegex.exec(content)) !== null) { images.push({ style: match[1], url: match[2], prompt: '' }); }
+          return { role: m.role as 'user' | 'ai', content, images: images.length > 0 ? images : undefined };
+        }));
+        setConversationOpen(true); setConversationTitle(conv.title);
+        setCurrentConvId(conv.id); convIdRef.current = conv.id; setIsLoading(false);
+        setWorkflowPhase('idle'); setNodeStatus(null); setIsImageMode(false);
+        setSuggestedQuestions(loadedSuggestions); setActiveNodeId(conv.node_id || '');
+      }
+    }).catch(() => {});
+  };
+
+
+  // ── Send Message Handler ──
+  const handleSend = async () => {
+    const text = (homeTextareaRef.current?.value || convTextareaRef.current?.value || inputText).trim();
+    if (!text || isLoading) return;
+
+    const reportKw = ["市场调研报告", "生成调研报告", "调研报告", "商业方案", "品牌落地", "商业策划", "品牌手册", "商业计划书", "营销方案", "营销策划", "提炼品牌精神", "生成品牌屋", "生成logo", "设计logo", "logo", "做什么产品", "做哪些产品", "做产品", "产品规划", "设计产品", "导出"];
+    if (reportKw.some(kw => text.includes(kw))) {
+      followupNodeRef.current = null;
+    } else if (!followupNodeRef.current && messages.length > 0 && activeNodeId) {
+      followupNodeRef.current = activeNodeId;
+    }
+
+    if (homeTextareaRef.current) homeTextareaRef.current.value = '';
+    if (convTextareaRef.current) convTextareaRef.current.value = '';
+    setInputText(''); setSuggestedQuestions([]);
+
+    const userMessage = { role: 'user' as const, content: text };
+    setMessages((prev) => [...prev, userMessage]);
+    setConversationOpen(true);
+    setConversationTitle(text.slice(0, 20) + (text.length > 20 ? '...' : ''));
+    setIsLoading(true); setWorkflowPhase('analyzing'); setNodeStatus(null);
+    setMessages((prev) => [...prev, { role: 'ai', content: '' }]);
+
+    setTimeout(() => { const el = document.getElementById('doubao-messages'); if (el) el.scrollTop = el.scrollHeight; }, 50);
+
+    const activeConvId = convIdRef.current || currentConvId;
+    const saveMessages = [...messages, { role: 'user' as const, content: text }];
+    fetch('http://localhost:5001/api/conversations/save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conv_id: activeConvId, title: activeConvId ? conversationTitle : text.slice(0, 40), node_id: activeNodeId, messages: saveMessages }),
+    }).then(r => r.json()).then(d => {
+      if (d.id) { setCurrentConvId(d.id); convIdRef.current = d.id; }
+      if (d.conversations) setConvHistory(d.conversations);
+    }).catch(() => {});
+
+    sseConvIdRef.current = convIdRef.current;
+    const controller = new AbortController(); abortRef.current = controller;
+
+    let aiContent = '';
+    const imageUrls: { style: string; url: string; prompt: string }[] = [];
+    try {
+      const response = await fetch('http://localhost:5001/api/chat', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history: messages.slice(-10), stream: true, image_ratio: imageRatio, image_count: imageCount, followup_node: followupNodeRef.current, model: modelOptions[modelIndex].id }),
+        signal: controller.signal,
+      });
+      followupNodeRef.current = null;
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No reader');
+      const decoder = new TextDecoder();
+      const svgLogos: { style: string; code: string }[] = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        for (const line of decoder.decode(value, { stream: true }).split('\n')) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.type === 'analyzing') {
+              setNodeStatus({ nodeId: '', nodeName: '', nodeIcon: '🔍', progress: 5, message: data.message });
+            } else if (data.type === 'node_selected') {
+              setWorkflowPhase('executing');
+              setNodeStatus({ nodeId: data.node, nodeName: data.name, nodeIcon: data.icon, progress: 10, message: `已匹配「${data.name}」引擎` });
+              setActiveNodeId(data.node);
+            } else if (data.type === 'progress') {
+              setNodeStatus((prev) => prev ? { ...prev, progress: data.percent, message: data.message } : null);
+            } else if (data.type === 'response_start') {
+              setWorkflowPhase('responding'); setNodeStatus(null);
+            } else if (data.type === 'content') {
+              aiContent += data.content;
+              setMessages((prev) => { const u = [...prev]; u[u.length - 1] = { role: 'ai', content: aiContent, images: [...imageUrls], svgLogos: [...svgLogos] }; return u; });
+            } else if (data.type === 'svg') {
+              svgLogos.push({ style: data.style, code: data.code });
+            } else if (data.type === 'image') {
+              imageUrls.push({ style: data.style, url: data.url, prompt: data.prompt });
+            } else if (data.type === 'file_saved') {
+              aiContent += `\n\n📁 ${data.message}`;
+            } else if (data.type === 'image_gen_start') {
+              setNodeStatus({ nodeId: '', nodeName: '生成Logo', nodeIcon: '🎨', progress: 97, message: `正在生成 ${data.count} 种风格Logo...` });
+              setWorkflowPhase('executing');
+            } else if (data.type === 'suggestions') {
+              setSuggestedQuestions(data.items || []);
+            }
+          } catch {}
+        }
+      }
+    } catch (err: any) {
+      if (err?.name === 'AbortError') {
+        setMessages((prev) => { const u = [...prev]; if (u[u.length - 1]?.content === '') u[u.length - 1] = { role: 'ai', content: '⏹ 已停止生成' }; return u; });
+      } else {
+        setMessages((prev) => { const u = [...prev]; u[u.length - 1] = { role: 'ai', content: `请求异常：${err?.message || err || '未知错误'}` }; return u; });
+      }
+      setWorkflowPhase('idle'); setNodeStatus(null);
+    } finally {
+      setIsLoading(false); abortRef.current = null;
+      if (sseConvIdRef.current) {
+        convCacheRef.current.set(sseConvIdRef.current, { messages: [...messages], isLoading: false, workflowPhase: 'idle', nodeStatus: null, conversationTitle });
+      }
+      if (convIdRef.current && aiContent) {
+        let savedContent = aiContent;
+        if (imageUrls.length > 0) savedContent += '\n\n' + imageUrls.map(img => `![${img.style}](${img.url})`).join('\n');
+        const curSuggestions = suggestedQuestionsRef.current;
+        if (curSuggestions.length > 0) savedContent += '\n\n<!--suggestions:' + JSON.stringify(curSuggestions) + '-->';
+        fetch('http://localhost:5001/api/conversations/save', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ conv_id: convIdRef.current, title: conversationTitle, node_id: activeNodeId, messages: [...saveMessages, { role: 'ai' as const, content: savedContent }] }),
+        }).then(r => r.json()).then(d => { if (d.conversations) setConvHistory(d.conversations); }).catch(() => {});
+      }
+    }
+  };
+
+  // Register handleSend so HomeHero can trigger it
+  useEffect(() => { handleSendRef.current = handleSend; });
+
+  // ── Conversation View ──
+  return (
+    <section className="doubao-conversation">
+      <header className="doubao-conversation-header">
+        <button className="doubao-back" onClick={() => { setConversationOpen(false); setMessages([]); setConversationTitle('新对话'); setCurrentConvId(null); convIdRef.current = null; setWorkflowPhase('idle'); setNodeStatus(null); setInputText(''); setIsImageMode(false); }} type="button"><ChevronLeft size={18} /></button>
+        <div className="doubao-header-center"><h2>{conversationTitle}</h2><span>{activeDirection !== '通用' ? activeDirection : '通用咨询'}</span></div>
+        <div className="doubao-header-actions">
+          {isLoading && <button onClick={stopGeneration} className="doubao-stop-btn" type="button"><span className="doubao-stop-icon">■</span></button>}
+          <button onClick={() => {
+            const lastAi = [...messages].reverse().find(m => m.role === 'ai');
+            if (lastAi) {
+              fetch('http://localhost:5001/api/save-to-project', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({content: lastAi.content, title: conversationTitle}) }).then(r => r.json()).then(d => { if (d.status === 'ok') alert(d.message); }).catch(() => {});
+            }
+          }} type="button" title="保存到AI对话产出"><Bookmark size={16} /></button>
+        </div>
+      </header>
+
+      <div className="doubao-messages" id="doubao-messages">
+        <AnimatePresence>
+        {messages.length === 0 && (
+          <motion.div className="doubao-empty" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }}>
+            <motion.div className="doubao-empty-icon" initial={{ scale: 0, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.1 }}>曜</motion.div>
+            <motion.h3 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>曜势科技</motion.h3>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>基于 {activeDirection} 赛道，我能帮你做什么？</motion.p>
+          </motion.div>
+        )}
+        </AnimatePresence>
+        {messages.map((msg, index) => (
+          <motion.div key={index} initial={{ opacity: 0, y: 16, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.35 }} className={msg.role === 'user' ? 'doubao-message doubao-user' : 'doubao-message doubao-ai'}>
+            <div className="doubao-message-inner">
+              {msg.role === 'ai' && !isImageMode && <motion.div className="doubao-ai-avatar" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}>曜</motion.div>}
+              <div className={`doubao-bubble ${msg.role === 'user' ? 'doubao-bubble-user' : 'doubao-bubble-ai'}`}>
+                {msg.role === 'ai' && msg.content === '' && isLoading ? (
+                  <div className="doubao-node-progress">
+                    {nodeStatus && nodeStatus.nodeName ? (
+                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                        <div className="node-progress-card-head">
+                          <motion.div className="node-badge" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}><span className="node-badge-icon">{nodeStatus.nodeIcon}</span><span className="node-badge-label">{nodeStatus.nodeName}</span></motion.div>
+                          <motion.span className="node-pct-ring" key={nodeStatus.progress} initial={{ scale: 1.3 }} animate={{ scale: 1 }} transition={{ duration: 0.2 }}>{nodeStatus.progress}%</motion.span>
+                        </div>
+                        <div className="node-progress-bar-wrap">
+                          <motion.div className="node-progress-bar-glow" animate={{ width: `${nodeStatus.progress}%` }} transition={{ duration: 0.4 }} />
+                          <motion.div className="node-progress-bar-fill" animate={{ width: `${nodeStatus.progress}%` }} transition={{ duration: 0.4 }} />
+                        </div>
+                        <motion.p className="node-progress-msg" key={nodeStatus.message} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}>{nodeStatus.message}</motion.p>
+                      </motion.div>
+                    ) : (
+                      <motion.div className="node-analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div className="node-analyzing-dots"><span /><span /><span /><span /></div><p>正在分析您的需求意图...</p></motion.div>
+                    )}
+                  </div>
+                ) : (
+                  <motion.div className="doubao-bubble-content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
+                )}
+              </div>
+            </div>
+            {msg.role === 'ai' && msg.svgLogos && msg.svgLogos.length > 0 && (
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'12px', padding:'8px 0 0 42px' }}>
+                {msg.svgLogos.map((logo, i) => {
+                  const img = msg.images?.find(im => im.style === logo.style);
+                  return (
+                    <div key={i} className="md-svg-container">
+                      {img ? <img src={img.url} alt={logo.style} style={{width:'100%',aspectRatio:'1',objectFit:'contain',display:'block',background:'#fff'}} /> : <div dangerouslySetInnerHTML={{ __html: logo.code }} />}
+                      <button className="md-svg-save-btn" onClick={() => {
+                        if (img) {
+                          window.open(`http://localhost:5001/api/download-image?url=${encodeURIComponent(img.url)}`, '_blank');
+                        } else if (logo.code) {
+                          const blob = new Blob([logo.code], { type: 'image/svg+xml' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a'); a.href = url; a.download = (logo.style || 'logo') + '.svg';
+                          a.click(); URL.revokeObjectURL(url);
+                        }
+                      }} title="保存图片">⬇</button>
+                      <div style={{padding:'6px 10px',fontSize:'11px',fontWeight:600,color:'#475569',textAlign:'center',borderTop:'1px solid #f1f5f9'}}>{logo.style}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {msg.role === 'ai' && msg.images && msg.images.length > 0 && (!msg.svgLogos || msg.svgLogos.length === 0) && (
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'12px', padding:'8px 0 0 42px' }}>
+                {msg.images.map((img, i) => (
+                  <div key={i} className="md-svg-container">
+                    <img src={img.url} alt={img.style} style={{width:'100%',aspectRatio:'1',objectFit:'contain',display:'block',background:'#fff'}} />
+                    <button className="md-svg-save-btn" onClick={() => window.open(`http://localhost:5001/api/download-image?url=${encodeURIComponent(img.url)}`, '_blank')} title="保存图片">⬇</button>
+                    <div style={{padding:'6px 10px',fontSize:'11px',fontWeight:600,color:'#475569',textAlign:'center',borderTop:'1px solid #f1f5f9'}}>{img.style}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {msg.role === 'ai' && msg.content && !isLoading && (
+              <motion.div className="doubao-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+                <button type="button" onClick={() => navigator.clipboard.writeText(msg.content).then(() => (document.activeElement as HTMLElement)?.blur()).catch(() => {})}><Copy size={14} /></button>
+                <button onClick={() => fetch('http://localhost:5001/api/save-to-project', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({content: msg.content, title: conversationTitle}) }).then(r => r.json()).then(d => { if (d.status === 'ok') alert(d.message); }).catch(() => {})} type="button"><Bookmark size={14} /></button>
+              </motion.div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+
+      {suggestedQuestions.length > 0 && !isLoading && (
+        <div className="suggested-questions-bar">
+          {suggestedQuestions.map((q, i) => (
+            <button key={i} className="suggested-question-chip" onClick={() => { if (convTextareaRef.current) convTextareaRef.current.value = q; setInputText(q); setSuggestedQuestions([]); followupNodeRef.current = activeNodeId; setTimeout(() => handleSend(), 80); }} type="button">{q}</button>
+          ))}
+        </div>
+      )}
+
+      {activeNodeId === 'node1' && !isLoading && messages.length > 0 && (
+        <div className="suggested-questions-bar">
+          <button className="suggested-question-chip" style={{background:'var(--brand-accent)',color:'#fff',borderColor:'var(--brand-accent)',fontWeight:600}}
+            onClick={() => { if (convTextareaRef.current) convTextareaRef.current.value = '帮我基于以上调研数据提炼品牌精神，生成品牌策略和提示词'; setInputText('帮我基于以上调研数据提炼品牌精神，生成品牌策略和提示词'); setSuggestedQuestions([]); followupNodeRef.current = 'node1.5'; setTimeout(() => handleSend(), 80); }} type="button">✨ 提炼品牌精神 (Node1.5)</button>
+        </div>
+      )}
+
+      {uploadedFiles.length > 0 && (
+        <div className="uploaded-files-bar">
+          {uploadedFiles.map((f, i) => (<span key={i} className="uploaded-file-tag"><span className="file-tag-icon">📄</span><span className="file-tag-name">{f.name}</span><button className="file-tag-close" onClick={() => removeUploadedFile(f.name)} type="button">×</button></span>))}
+        </div>
+      )}
+
+      <div className="doubao-composer">
+        <div className="doubao-composer-inner">
+          <textarea ref={convTextareaRef} placeholder="继续追问，或让曜势把结果保存为阶段产物..." onChange={(e) => setInputText(e.target.value)} onCompositionStart={() => { isComposingRef.current = true; }} onCompositionEnd={() => { isComposingRef.current = false; }} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !isComposingRef.current) { e.preventDefault(); handleSend(); } else if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); handleSend(); } }} />
+          <div className="doubao-composer-foot">
+            <div className="toolbar-left">
+              <div className="picker-wrap">
+                <button className={openPicker === 'model' ? 'toolbar-select model-select is-active' : 'toolbar-select model-select'} onClick={() => setOpenPicker(openPicker === 'model' ? null : 'model')} type="button"><Bot size={14} /><span>{modelOptions[modelIndex].name}</span><ChevronDown size={13} /></button>
+                {openPicker === 'model' && <div className="picker-popover">{modelOptions.map((item, index) => (<button key={item.name} className={modelIndex === index ? 'model-menu-row selected' : 'model-menu-row'} onClick={() => { setModelIndex(index); setOpenPicker(null); }} type="button"><span className="model-icon">✦</span><span className="model-name">{item.name}</span><span className="model-desc">{item.desc}</span></button>))}</div>}
+              </div>
+              {isImageMode ? (
+                <>
+                  <div className="picker-wrap"><button className={ratioOpen ? 'toolbar-select is-active-soft' : 'toolbar-select'} onClick={() => { setRatioOpen(!ratioOpen); setCountOpen(false); setOpenPicker(null); }} type="button"><span>{imageRatio}</span></button>{ratioOpen && <div className="picker-popover" style={{width:'160px',padding:'8px'}}>{['1:1','4:3','16:9'].map(r => <button key={r} className={imageRatio===r?'model-menu-row selected':'model-menu-row'} onClick={()=>{setImageRatio(r);setRatioOpen(false)}} type="button"><span className="model-name">{r}</span></button>)}</div>}</div>
+                  <div className="picker-wrap"><button className={countOpen ? 'toolbar-select is-active-soft' : 'toolbar-select'} onClick={() => { setCountOpen(!countOpen); setRatioOpen(false); setOpenPicker(null); }} type="button"><span>{imageCount} 张</span></button>{countOpen && <div className="picker-popover" style={{width:'140px',padding:'8px'}}>{[1,2,3,4].map(n => <button key={n} className={imageCount===n?'model-menu-row selected':'model-menu-row'} onClick={()=>{setImageCount(n);setCountOpen(false)}} type="button"><span className="model-name">{n} 张</span></button>)}</div>}</div>
+                </>
+              ) : (
+                <>
+                  <div className="picker-wrap"><button className={libraryModal === 'file' || fileIndex !== null ? 'toolbar-select is-active-soft' : 'toolbar-select'} onClick={() => { setOpenPicker(null); setLibraryModal(libraryModal === 'file' ? null : 'file'); }} type="button"><span>📂</span><span>参考历史文件</span><ChevronDown size={13} /></button>
+                    {libraryModal === 'file' && <FileLibraryPopover onSelect={(url) => { setInputText((prev) => prev + '\n参考文件：' + url); setLibraryModal(null); }} onClose={() => setLibraryModal(null)} />}
+                  </div>
+                  <div className="picker-wrap"><button className={'toolbar-select'} onClick={() => { const input = document.createElement('input'); input.type = 'file'; input.multiple = true; input.onchange = (e: any) => { const files = e.target.files; if (files.length > 0) setInputText((prev) => prev + ` [已上传 ${files.length} 个文件]`); }; input.click(); }} type="button"><span>📎</span><span>上传文件</span><ChevronDown size={13} /></button></div>
+                </>
+              )}
+            </div>
+            <div className="toolbar-right">
+              <button className={`icon-action send-action ${!inputText.trim() || isLoading ? 'send-disabled' : ''}`} aria-label="发送" onClick={handleSend} disabled={!inputText.trim() || isLoading} type="button"><ArrowUp size={17} /></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// =============================================================================
+// Home Hero + Composer (non-conversation)
+// =============================================================================
+
+function HomeHero() {
+  const ctx = useAppContext();
+  const {
+    activeDirection, setActiveDirection, isLoading,
+    modelIndex, setModelIndex, inputText, setInputText,
+    uploadedFiles, setUploadedFiles, setConversationOpen, setIsImageMode,
+    convIdRef, isComposingRef, homeTextareaRef, suggestedQuestionsRef, handleSendRef,
+  } = ctx;
+
+  const quickSkills = quickSkillsByDirection[activeDirection];
+  const [typedHeroText, setTypedHeroText] = useState('');
+  const [openPicker, setOpenPicker] = useState<PickerType>(null);
+  const [libraryModal, setLibraryModal] = useState<LibraryModalType>(null);
+  const [fileIndex, setFileIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    let index = 0; let deleting = false; let timeoutId: number | undefined;
+    const tick = () => {
+      if (!deleting) {
+        index += 1; setTypedHeroText(heroText.slice(0, index));
+        if (index === heroText.length) { deleting = true; timeoutId = window.setTimeout(tick, 1600); return; }
+        timeoutId = window.setTimeout(tick, heroText[index - 1] === '\n' ? 260 : 58); return;
+      }
+      index -= 1; setTypedHeroText(heroText.slice(0, index));
+      if (index === 0) { deleting = false; timeoutId = window.setTimeout(tick, 480); return; }
+      timeoutId = window.setTimeout(tick, 24);
+    };
+    timeoutId = window.setTimeout(tick, 520);
+    return () => { window.clearTimeout(timeoutId); };
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.picker-popover') && !(e.target as HTMLElement).closest('.toolbar-select')) {
+        setOpenPicker(null);
+      }
+    };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, []);
+
+  const removeUploadedFile = (name: string) => {
+    fetch(`http://localhost:5001/api/uploaded-files/${encodeURIComponent(name)}`, {method:'DELETE'})
+      .then(r => r.json()).then(() => setUploadedFiles(prev => prev.filter(f => f.name !== name))).catch(()=>{});
+  };
+
+  const triggerSend = () => {
+    const text = homeTextareaRef.current?.value?.trim() || inputText.trim();
+    if (!text) return;
+    setInputText(text);
+    setConversationOpen(true);
+    setIsImageMode(false);
+    if (homeTextareaRef.current) homeTextareaRef.current.value = '';
+    // Defer to let state update, then call handleSend via HomePage's registered ref
+    setTimeout(() => handleSendRef.current?.(), 50);
+  };
+
+  return (
+    <>
+      <section className="hero-area">
+        <div className="hero-copy-block">
+          <div className="hero-mark" aria-hidden="true">
+            <div className="hero-wordmark hero-wordmark-back">曜势</div>
+            <div className="hero-wordmark hero-wordmark-front">曜势</div>
+          </div>
+          <h1><span className="hero-typed">{typedHeroText || ' '}</span><span className="hero-caret" aria-hidden="true" /></h1>
+        </div>
+      </section>
+      <section className="composer-area">
+        <div className="composer-stack">
+          <div className="venture-track">
+            <div className="track-line" />
+            {directions.map((item, index) => {
+              const isOffice = item === '通用';
+              return (
+                <button key={item} className={`${activeDirection === item ? 'track-node active' : 'track-node'} ${isOffice ? 'office-node' : 'venture-node'}`} onClick={() => setActiveDirection(item)} type="button">
+                  <span className="node-dot">{isOffice ? '通用' : index}</span>
+                  <span className="node-label">{isOffice ? '日常办公' : item}</span>
+                </button>
+              );
+            })}
+          </div>
+          {uploadedFiles.length > 0 && (
+            <div className="uploaded-files-bar">
+              {uploadedFiles.map((f, i) => (<span key={i} className="uploaded-file-tag"><span className="file-tag-icon">📄</span><span className="file-tag-name">{f.name}</span><button className="file-tag-close" onClick={() => removeUploadedFile(f.name)} type="button">×</button></span>))}
+            </div>
+          )}
+          <div className="composer-card">
+            <textarea ref={homeTextareaRef} placeholder="描述你的创业想法、目标用户、当前卡点，曜势会帮你拆成可执行方案..." onChange={(e) => setInputText(e.target.value)} onCompositionStart={() => { isComposingRef.current = true; }} onCompositionEnd={() => { isComposingRef.current = false; }} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !isComposingRef.current) { e.preventDefault(); triggerSend(); } else if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); triggerSend(); } }} />
+            <div className="skill-row in-composer">
+              {quickSkills.map((item) => (<button key={item} className="skill-chip">{item}</button>))}
+            </div>
+            <div className="composer-toolbar">
+              <div className="toolbar-left">
+                <div className="picker-wrap">
+                  <button className={openPicker === 'model' ? 'toolbar-select model-select is-active' : 'toolbar-select model-select'} onClick={() => setOpenPicker(openPicker === 'model' ? null : 'model')} type="button"><Bot size={14} /><span>{modelOptions[modelIndex].name}</span><ChevronDown size={13} /></button>
+                  {openPicker === 'model' && <div className="picker-popover">{modelOptions.map((item, index) => (<button key={item.name} className={modelIndex === index ? 'model-menu-row selected' : 'model-menu-row'} onClick={() => { setModelIndex(index); setOpenPicker(null); }} type="button"><span className="model-icon">✦</span><span className="model-name">{item.name}</span><span className="model-desc">{item.desc}</span></button>))}</div>}
+                </div>
+                <div className="picker-wrap">
+                  <button className={libraryModal === 'file' || fileIndex !== null ? 'toolbar-select is-active-soft' : 'toolbar-select'} onClick={() => { setOpenPicker(null); setLibraryModal(libraryModal === 'file' ? null : 'file'); }} type="button"><span>📂</span><span>参考历史文件</span><ChevronDown size={13} /></button>
+                    {libraryModal === 'file' && <FileLibraryPopover onSelect={(url) => { setInputText((prev) => prev + '\n参考文件：' + url); setLibraryModal(null); }} onClose={() => setLibraryModal(null)} />}
+                </div>
+              </div>
+              <div className="toolbar-right">
+                <button className={`icon-action send-action ${isLoading ? 'send-disabled' : ''}`} aria-label="发送" onClick={triggerSend} disabled={isLoading} type="button"><ArrowUp size={17} /></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="footer-note">内容由 AI 生成，请核实完整性</div>
+      </section>
+    </>
+  );
+}
+
+// =============================================================================
+// App Shell (sidebar + page routing)
+// =============================================================================
+
+function AppShell() {
+  const ctx = useAppContext();
+  const {
+    activePage, setActivePage,
+    sidebarCollapsed, setSidebarCollapsed,
+    conversationOpen, setConversationOpen,
+    messages, setMessages, isLoading, setIsLoading,
+    workflowPhase, setWorkflowPhase,
+    nodeStatus, setNodeStatus,
+    conversationTitle, setConversationTitle,
+    currentConvId, setCurrentConvId,
+    convHistory,
+    accountMenuOpen, setAccountMenuOpen,
+    rechargeModalOpen, setRechargeModalOpen,
+    setIsImageMode, setInputText, setActiveNodeId,
+    convIdRef, convCacheRef,
+  } = ctx;
+
+  const [expertExpanded, setExpertExpanded] = useState(false);
+  const [openHistoryMenu, setOpenHistoryMenu] = useState<number | null>(null);
+
+  // Close history menu on outside click
+  useEffect(() => {
+    if (openHistoryMenu === null) return;
+    const handler = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.history-menu-popover') && !(e.target as HTMLElement).closest('.history-menu-button')) {
+        setOpenHistoryMenu(null);
+      }
+    };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [openHistoryMenu]);
+
+  const deleteConversation = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    fetch(`http://localhost:5001/api/conversations/${id}`, { method: 'DELETE' })
+      .then(() => { ctx.setConvHistory((prev: any[]) => prev.filter((c: any) => c.id !== id)); setOpenHistoryMenu(null); }).catch(() => {});
+  };
+
+  // Fetch conversation history on mount (was in HomePage, moved here so sidebar always loads)
+  useEffect(() => {
+    fetch('http://localhost:5001/api/conversations')
+      .then((r) => r.json()).then((data) => ctx.setConvHistory(data)).catch(() => {});
+  }, []);
+
+  const loadConversation = (id: number) => {
+    if (currentConvId && (messages.length > 0 || isLoading)) {
+      convCacheRef.current.set(currentConvId, {
+        messages: [...messages], isLoading, workflowPhase,
+        nodeStatus: nodeStatus ? {...nodeStatus} : null, conversationTitle,
+      });
+    }
+    const cached = convCacheRef.current.get(id);
+    if (cached && cached.isLoading) {
+      setMessages(cached.messages); setIsLoading(cached.isLoading);
+      setWorkflowPhase(cached.workflowPhase); setNodeStatus(cached.nodeStatus);
+      setConversationOpen(true); setConversationTitle(cached.conversationTitle);
+      setCurrentConvId(id); convIdRef.current = id; setIsImageMode(false);
+      setActivePage('home'); return;
+    }
+    fetch(`http://localhost:5001/api/conversations/${id}`).then((r) => r.json()).then((conv) => {
+      if (conv && conv.messages) {
+        setMessages(conv.messages.map((m: { role: string; content: string }) => {
+          let content = m.content;
+          const sugMatch = content.match(/<!--suggestions:(\[.*?\])-->/);
+          if (sugMatch) content = content.replace(/<!--suggestions:\[.*?\]-->/, '').trim();
+          const images: { style: string; url: string; prompt: string }[] = [];
+          const imgRegex = /!\[(.+?)\]\((.+?)\)/g; let match;
+          while ((match = imgRegex.exec(content)) !== null) images.push({ style: match[1], url: match[2], prompt: '' });
+          return { role: m.role as 'user' | 'ai', content, images: images.length > 0 ? images : undefined };
+        }));
+        setConversationOpen(true); setConversationTitle(conv.title);
+        setCurrentConvId(conv.id); convIdRef.current = conv.id; setIsLoading(false);
+        setWorkflowPhase('idle'); setNodeStatus(null); setIsImageMode(false);
+        setActiveNodeId(conv.node_id || ''); setActivePage('home');
+      }
+    }).catch(() => {});
+  };
+
+  return (
+    <div className={sidebarCollapsed ? 'shell sidebar-collapsed' : 'shell'}>
+      {!sidebarCollapsed && (
+      <aside className="sidebar">
+        <div className="sidebar-top">
+          <img src="/页内logo2.png?v=3" alt="曜势科技" className="sidebar-logo-text" />
+          <div className="sidebar-tools">
+            <button onClick={() => setSidebarCollapsed(true)} type="button" aria-label="折叠侧边栏"><ChevronLeft size={14} /></button>
+          </div>
+        </div>
+        <div className="sidebar-search"><Search size={14} /><input placeholder="搜索对话和生成图片比例" /></div>
+        <nav className="sidebar-nav">
+          {sidebarItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activePage === item.key || (item.key === 'home' && activePage === 'settings');
+            return (
+              <div key={item.label} className="sidebar-nav-group">
+                <button className={isActive ? 'sidebar-item active' : 'sidebar-item'} onClick={() => {
+                  if (item.key === 'home') {
+                    if (currentConvId && activePage !== 'home' && (messages.length > 0 || isLoading)) {
+                      convCacheRef.current.set(currentConvId, { messages: [...messages], isLoading, workflowPhase, nodeStatus: nodeStatus ? {...nodeStatus} : null, conversationTitle });
+                    }
+                    const activeCached = currentConvId ? convCacheRef.current.get(currentConvId) : null;
+                    if (activeCached && activeCached.isLoading) {
+                      setMessages(activeCached.messages); setIsLoading(activeCached.isLoading);
+                      setWorkflowPhase(activeCached.workflowPhase); setNodeStatus(activeCached.nodeStatus);
+                      setConversationOpen(true); setIsImageMode(false);
+                    } else if (isLoading) {
+                      setConversationOpen(true); setIsImageMode(false);
+                    } else {
+                      setConversationOpen(false); setMessages([]); setConversationTitle('新对话');
+                      setCurrentConvId(null); convIdRef.current = null; setWorkflowPhase('idle');
+                      setNodeStatus(null); setInputText(''); setIsImageMode(false);
+                    }
+                    setActivePage('home'); return;
+                  }
+                  if (item.key === 'expert') { setExpertExpanded((value) => !value); return; }
+                  if (item.key === 'skills' || item.key === 'projects') { setConversationOpen(false); setActivePage(item.key); }
+                }} type="button">
+                  {Icon ? <Icon size={14} /> : <span className="sidebar-dot" />}<span>{item.label}</span>
+                  {item.key === 'expert' && <ChevronDown className={expertExpanded ? 'sidebar-chevron open' : 'sidebar-chevron'} size={13} />}
+                </button>
+                {item.key === 'expert' && expertExpanded && (
+                  <div className="expert-subnav">
+                    <button onClick={() => { setConversationOpen(false); setMessages([]); setConversationTitle('新对话'); setCurrentConvId(null); convIdRef.current = null; setIsLoading(false); setWorkflowPhase('idle'); setNodeStatus(null); setInputText('帮我设计品牌Logo：'); setIsImageMode(true); setConversationOpen(true); setActivePage('home'); }} type="button">AI生图</button>
+                    <button onClick={() => { setConversationOpen(false); setMessages([]); setConversationTitle('新对话'); setCurrentConvId(null); convIdRef.current = null; setIsLoading(false); setWorkflowPhase('idle'); setNodeStatus(null); setInputText('帮我生成品牌宣传视频素材：'); setIsImageMode(false); setConversationOpen(true); setActivePage('home'); }} type="button">AI视频</button>
+                    <button onClick={() => { setConversationOpen(false); setActivePage('coding'); }} type="button">AI编程</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+        <section className="history-block">
+          <div className="history-heading">对话历史</div>
+          <div className="history-list">
+            {convHistory.length === 0 && <div className="history-empty">暂无对话记录</div>}
+            {convHistory.map((item, index) => (
+              <div key={item.id} className="history-row">
+                <button className="history-item" onClick={() => loadConversation(item.id)} type="button">
+                  <span className="history-title">{item.title}</span>
+                  <span className="history-tag-badge tag-对话">{item.message_count}条</span>
+                  {item.node_id === "node3" || item.node_id === "node3.1" ? <span className="history-tag-badge" style={{background:"#fce7f3",color:"#be185d",marginLeft:"4px"}}>📷</span> : null}
+                </button>
+                <button className="history-menu-button" onClick={(e) => { e.stopPropagation(); setOpenHistoryMenu(openHistoryMenu === item.id ? null : item.id); }} type="button">⋯</button>
+                {openHistoryMenu === item.id && (
+                  <div className="history-menu-popover">
+                    <button onClick={() => { setOpenHistoryMenu(null); const name = window.prompt('修改对话名称', item.title); if (name && name.trim()) { fetch(`http://localhost:5001/api/conversations/${item.id}/rename`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({title: name.trim()}) }).then(r => r.json()).then(() => { ctx.setConvHistory((prev: any[]) => prev.map(c => c.id === item.id ? {...c, title: name.trim()} : c)); }).catch(() => {}); } }} type="button">重命名</button>
+                    <button onClick={(e) => deleteConversation(item.id, e)} type="button">删除</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+        <div className="sidebar-footer account-footer">
+          {accountMenuOpen && (
+            <div className="account-popover">
+              <div className="account-credit-card"><span>剩余积分</span><strong>1,280</strong></div>
+              <button onClick={() => { setRechargeModalOpen(true); setAccountMenuOpen(false); }} type="button"><span><span className="account-menu-icon">+</span>积分充值</span></button>
+              <button onClick={() => { setAccountMenuOpen(false); setConversationOpen(false); setActivePage('settings'); }} type="button"><span><Settings2 size={14} />设置</span></button>
+              <button onClick={() => { setAccountMenuOpen(false); window.open('https://docs.kaiwu.ai', '_blank'); }} type="button"><span><span className="account-menu-icon">?</span>帮助</span></button>
+              <button onClick={() => { setAccountMenuOpen(false); window.location.reload(); }} type="button"><span><span className="account-menu-icon">↻</span>检查更新</span></button>
+              <div className="account-divider" />
+              <button className="logout-row" onClick={() => { localStorage.clear(); setAccountMenuOpen(false); setConversationOpen(false); setMessages([]); setConversationTitle('新对话'); setCurrentConvId(null); convIdRef.current = null; setWorkflowPhase('idle'); setNodeStatus(null); setInputText(''); setIsImageMode(false); setActivePage('home'); }} type="button"><span><span className="account-menu-icon">↪</span>退出登录</span></button>
+            </div>
+          )}
+          <div className="account-bottom-wrap">
+            <div className="points-inline account-points"><span>剩余积分</span><strong>1,280</strong></div>
+            <button className="footer-badge account-trigger" onClick={() => setAccountMenuOpen((value) => !value)} type="button">
+              <span className="footer-avatar">曜</span><span>OPC创业者</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+      )}
+
+      <main className="main-stage">
+        <button className={sidebarCollapsed ? 'sidebar-toggle solo visible' : 'sidebar-toggle solo'} onClick={() => setSidebarCollapsed(false)} type="button" aria-label="展开侧边栏"><ChevronRight size={16} /></button>
+        <div className="ambient-orb orb-one" /><div className="ambient-orb orb-two" /><div className="ambient-orb orb-three" />
+        {conversationOpen ? <HomePage /> :
+         activePage === 'skills' ? <SkillsPage /> :
+         activePage === 'projects' ? <ProjectsPage /> :
+         activePage === 'settings' ? <SettingsPage /> :
+         activePage === 'coding' ? <CodingPage /> :
+         <HomeHero />}
+      </main>
+      {rechargeModalOpen && (
+        <div className="recharge-modal" onClick={() => setRechargeModalOpen(false)}>
+          <div className="recharge-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header"><h3>积分充值</h3><button onClick={() => setRechargeModalOpen(false)} type="button">✕</button></div>
+            <div style={{padding:'24px',textAlign:'center'}}>
+              <p style={{color:'#64748b',marginBottom:'16px'}}>功能开发中，敬请期待</p>
+              <button onClick={() => setRechargeModalOpen(false)} style={{padding:'8px 24px',borderRadius:'8px',background:'#6366f1',color:'#fff',border:'none',cursor:'pointer'}} type="button">知道了</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =============================================================================
+// Root Export
+// =============================================================================
+
+export function App() {
+  return (
+    <div className="desktop-app">
+      <AppProvider>
+        <AppShell />
+      </AppProvider>
+    </div>
+  );
+}

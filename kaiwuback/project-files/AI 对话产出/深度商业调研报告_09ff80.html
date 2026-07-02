@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>市场调研报告 · 曜势科技</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #0D9488;
+    --accent-light: #CCFBF1;
+    --accent-dark: #0F766E;
+    --bg: #FFFFFF;
+    --text: #1A1A2E;
+    --text-secondary: #4A4A68;
+    --text-muted: #8E8EA0;
+    --border: #E8E8EE;
+    --card-bg: #F8FAFC;
+    --table-header: #F0FDF9;
+    --highlight: #FFF7ED;
+    --tag-bg: #F0FDF4;
+    --chart-1: #0D9488;
+    --chart-2: #F59E0B;
+    --chart-3: #6366F1;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "Inter","Noto Sans SC",-apple-system,sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.8; -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  #deck { display:flex; width:10000vw; height:100vh; transition:transform .6s cubic-bezier(.4,0,.2,1); will-change:transform; }
+  .slide { width:100vw; height:100vh; flex:0 0 100vw; overflow-y:auto; padding:0; background:var(--bg); }
+
+  /* ── Cover ── */
+  .slide-cover {
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    text-align:center; padding:80px 80px;
+    background: linear-gradient(180deg, #F0FDF9 0%, #fff 60%);
+  }
+  .slide-cover .cover-badge {
+    display:inline-block; background:var(--accent); color:#fff;
+    padding:4px 16px; border-radius:20px; font-size:12px; font-weight:500;
+    letter-spacing:.1em; margin-bottom:32px;
+  }
+  .slide-cover h1 {
+    font-size:min(4.5vw,44px); font-weight:700; color:var(--text);
+    line-height:1.3; margin-bottom:12px; max-width:700px;
+  }
+  .slide-cover .cover-sub {
+    font-size:15px; color:var(--text-muted); max-width:460px; margin-bottom:48px;
+  }
+  .slide-cover .cover-meta {
+    font-size:12px; color:var(--text-muted);
+    display:flex; gap:24px;
+  }
+
+  /* ── TOC ── */
+  .slide-toc {
+    display:flex; flex-direction:column; justify-content:center;
+    padding:80px 120px;
+  }
+  .slide-toc .toc-title {
+    font-size:13px; letter-spacing:.2em; color:var(--text-muted);
+    text-transform:uppercase; margin-bottom:40px;
+    padding-bottom:12px; border-bottom:1px solid var(--border);
+  }
+  .slide-toc .toc-list { display:flex; flex-direction:column; gap:4px; }
+  .slide-toc .toc-item {
+    display:flex; align-items:baseline; gap:16px;
+    padding:14px 0; border-bottom:1px solid var(--border);
+    cursor:default;
+  }
+  .slide-toc .toc-num {
+    font-size:28px; font-weight:700; color:var(--accent); min-width:60px;
+  }
+  .slide-toc .toc-label {
+    font-size:18px; font-weight:500; color:var(--text);
+  }
+
+  /* ── Chapter opener ── */
+  .slide-chapter {
+    display:flex; flex-direction:column; justify-content:center;
+    padding:80px 100px;
+    background:linear-gradient(180deg, var(--table-header) 0%, #fff 50%);
+  }
+  .slide-chapter .ch-tag {
+    display:inline-block; font-size:13px; letter-spacing:.15em;
+    color:var(--accent); font-weight:600; margin-bottom:8px;
+  }
+  .slide-chapter .ch-num {
+    font-size:72px; font-weight:900; color:var(--accent-light); line-height:1;
+    margin-bottom:8px;
+  }
+  .slide-chapter h2 {
+    font-size:min(3.2vw,30px); font-weight:700; color:var(--text); margin-bottom:8px;
+  }
+  .slide-chapter .ch-desc {
+    font-size:14px; color:var(--text-muted); max-width:500px; line-height:1.7;
+  }
+
+  /* ── Content ── */
+  .slide-content {
+    padding:50px 80px 40px; display:flex; flex-direction:column;
+  }
+  .slide-content .page-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:32px; padding-bottom:8px;
+    border-bottom:2px solid var(--accent);
+  }
+  .page-header .ph-chapter { font-size:12px; color:var(--accent); font-weight:600; letter-spacing:.1em; }
+  .page-header .ph-num { font-size:11px; color:var(--text-muted); }
+  .slide-content h3 {
+    font-size:min(2.4vw,26px); font-weight:700; margin-bottom:20px; color:var(--text); line-height:1.3;
+  }
+  .slide-content h4 {
+    font-size:17px; font-weight:600; color:var(--accent-dark);
+    margin:20px 0 10px; padding-left:12px; border-left:3px solid var(--accent);
+  }
+  .slide-content p {
+    font-size:15px; color:var(--text-secondary); margin-bottom:12px; line-height:2.0;
+  }
+
+  /* ── Data table ── */
+  .data-table {
+    width:100%; border-collapse:collapse; margin:12px 0; font-size:12px;
+  }
+  .data-table thead th {
+    background:var(--table-header); color:var(--accent-dark);
+    padding:10px 12px; text-align:left; font-weight:600; font-size:11px;
+    border-bottom:2px solid var(--accent); white-space:nowrap;
+  }
+  .data-table tbody td {
+    padding:8px 12px; border-bottom:1px solid var(--border);
+    color:var(--text-secondary);
+  }
+  .data-table tbody tr:nth-child(even) td { background:var(--card-bg); }
+
+  /* ── KPI highlight row ── */
+  .kpi-highlight {
+    display:flex; gap:20px; margin:16px 0; flex-wrap:wrap;
+  }
+  .kpi-card {
+    flex:1; min-width:140px; background:var(--card-bg);
+    border-radius:10px; padding:18px 20px; text-align:center;
+    border:1px solid var(--border);
+  }
+  .kpi-card .kpi-value {
+    font-size:28px; font-weight:700; color:var(--accent); margin-bottom:4px;
+  }
+  .kpi-card .kpi-label {
+    font-size:11px; color:var(--text-muted); line-height:1.4;
+  }
+
+  /* ── Chart bar (CSS) ── */
+  .bar-chart { display:flex; align-items:flex-end; gap:12px; height:160px; padding:0 4px; margin:12px 0; }
+  .bar-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .bar-fill { width:100%; border-radius:4px 4px 0 0; min-height:4px; transition:height .5s ease; }
+  .bar-label { font-size:10px; color:var(--text-muted); text-align:center; line-height:1.3; }
+  .bar-value { font-size:11px; font-weight:600; color:var(--text); }
+
+  /* ── Analyst insight box ── */
+  .insight-box {
+    background:var(--highlight); border-left:4px solid var(--chart-2);
+    padding:16px 20px; border-radius:0 8px 8px 0; margin:16px 0;
+  }
+  .insight-box .insight-label {
+    font-size:11px; font-weight:700; color:var(--chart-2); letter-spacing:.1em;
+    margin-bottom:6px; text-transform:uppercase;
+  }
+  .insight-box p { font-size:12px; color:var(--text-secondary); margin:0; line-height:1.8; }
+
+  /* ── Source ── */
+  .source {
+    margin-top:auto; padding-top:12px; font-size:10px; color:var(--text-muted);
+    border-top:1px solid var(--border); letter-spacing:.02em;
+  }
+
+  /* ── Tags ── */
+  .tag-row { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+  .tag {
+    display:inline-block; background:var(--tag-bg); color:var(--accent-dark);
+    padding:2px 10px; border-radius:12px; font-size:11px; font-weight:500;
+  }
+
+  /* ── Navigation ── */
+  #nav {
+    position:fixed; bottom:24px; right:28px; z-index:100;
+    display:flex; gap:6px; align-items:center;
+    background:rgba(255,255,255,.9); padding:6px 12px;
+    border-radius:24px; box-shadow:0 2px 12px rgba(0,0,0,.06);
+    backdrop-filter:blur(8px);
+  }
+  #nav button {
+    width:32px; height:32px; border-radius:50%;
+    border:1px solid var(--border); background:#fff;
+    cursor:pointer; font-size:14px; display:flex;
+    align-items:center; justify-content:center;
+    transition:all .15s; color:var(--text);
+  }
+  #nav button:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+  #nav .page-indicator {
+    font-size:12px; color:var(--text-muted); padding:0 6px; min-width:60px; text-align:center;
+  }
+
+  /* ── Two col ── */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+  .two-col-wide { display:grid; grid-template-columns:1.2fr 1fr; gap:28px; }
+</style>
+</head>
+<body>
+
+<div id="deck">
+<!-- SLIDES_HERE --><section class="slide slide-cover"><div class="cover-badge">MARKET RESEARCH</div><h1>银发新生代市场机遇</h1><div class="cover-sub">1. 精准人群画像与消费基础</div><div class="cover-meta"><span>数据来源：曜势科技 AI 分析</span><span>2026-06-26</span></div></section><section class="slide slide-toc"><div class="toc-title">报告目录</div><div class="toc-list"><div class="toc-item"><span class="toc-num">01</span><span class="toc-label">1. 精准人群画像与消费基础</span></div><div class="toc-item"><span class="toc-num">02</span><span class="toc-label">2. 四大核心场景需求分析</span></div><div class="toc-item"><span class="toc-num">03</span><span class="toc-label">3. 商品变现与服务模式</span></div></div></section><section class="slide slide-chapter"><div class="ch-tag">PART 01</div><div class="ch-num">01</div><h2>1. 精准人群画像与消费基础</h2></section><section class="slide slide-content"><div class="page-header"><span class="ph-chapter">深度商业调研报告</span><span class="ph-num">04 / 08</span></div><h3>1. 精准人群画像与消费基础</h3><p>本次调研聚焦55–68岁新退休活力老人，其收入结构稳定、空巢比例高，正在形成以“意义消费”和“情感补偿”为核心的增量市场。该类人群个人月退休金集中在4000–8000元，叠加配偶收入后家庭月可支配收入普遍超过1.2万元，具备较强的非生活必需品购买力。约55%的受访者处于空巢状态，子女不在身边带来的时间盈余与孤独感，直接催生了对社交归属、自我提升及跨代互动的强烈需求。从心理账户看，他们将消费重点从“生存保障”转移至“圆梦投资”“情感连接”和“代际传递”，愿意为能够提供价值感、被需要感的服务持续付费。这一群体不仅基数庞大，且消费观念积极，是社区生活服务赛道中被低估的优质资产。</p><div class="source">数据来源：曜势科技 AI 分析 · 基于对话数据</div></section><section class="slide slide-chapter"><div class="ch-tag">PART 02</div><div class="ch-num">02</div><h2>2. 四大核心场景需求分析</h2></section><section class="slide slide-content"><div class="page-header"><span class="ph-chapter">深度商业调研报告</span><span class="ph-num">06 / 08</span></div><h3>2. 四大核心场景需求分析</h3><p>新生代银发族的日常呈现出明显的时间分块和情绪周期，可归纳为四大高价值场景。每天9:00–16:00的“情感空窗期”是孤独感最集中的时段，他们渴望有一个步行可达的“老友客厅”，随时随地找到活动搭子，填补社交空白。周末与节假日的“跨代亲子时光”中，祖辈迫切需要能与子孙深度互动的场景，以克服话题代沟和互动肤浅的问题。每晚19:00–22:00的“自我更新期”暴露出知识焦虑和害怕与社会脱节的心态，技能交换、圆梦舞台成为刚需。而在生日、节庆及纪念日等“仪式感与礼赠期”，他们需要社群内的“高光时刻”和具有个人印记的伴手礼，来确认自身存在感与情感连接。四类场景精准对应不同时段的心理空缺，为产品设计提供了清晰的落地锚点。</p><div class="source">数据来源：曜势科技 AI 分析 · 基于对话数据</div></section><section class="slide slide-chapter"><div class="ch-tag">PART 03</div><div class="ch-num">03</div><h2>3. 商品变现与服务模式</h2></section><section class="slide slide-content"><div class="page-header"><span class="ph-chapter">深度商业调研报告</span><span class="ph-num">08 / 08</span></div><h3>3. 商品变现与服务模式</h3><p>基于以上场景，以“体验型商品”为引流和粘性核心的服务模式具有高变现效率。体验型商品主打社交情感价值和自我实现，具体产品包括“老友客厅”会员（含每日低消或月卡）、单次技能交换工作坊入场券以及微型Livehouse/展览门票。这类产品深度嵌入情感空窗期、自我更新期和仪式感礼赠期，在定价上充分利用“社交情感费”心理账户，月度预算控制在200–500元，单次活动价格设定在50–200元，符合目标人群高频决策、轻度支出习惯。高频消费属性使其成为平台稳定收入的压舱石，并可通过会员体系沉淀私域流量，为后续引入健康管理、旅游定制等更高客单价的品类积累信任和数据资产。</p><p>综上，本调研清晰勾勒出一个以“精神归属+价值再创造”为核心的银发社区服务闭环。通过紧抓四大高频场景，以体验型商品作为切入口，能够快速建立用户粘性与消费惯性。后续应围绕该人群分层递进地拓展商品矩阵，将“老友客厅”打造为城市退休人群的第二个家，在满足情感需求的同时实现可持续的商业增长。</p><div class="source">数据来源：曜势科技 AI 分析 · 基于对话数据</div></section>
+</div>
+
+<div id="nav">
+  <button onclick="go(0)" title="首页">⟪</button>
+  <button onclick="go(idx-1)" title="上一页">←</button>
+  <span class="page-indicator" id="pi">1 / 1</span>
+  <button onclick="go(idx+1)" title="下一页">→</button>
+  <button onclick="go(total-1)" title="末页">⟫</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('#deck .slide');
+const total = slides.length;
+let idx = 0;
+function go(n) {
+  if (n < 0 || n >= total) return;
+  idx = n;
+  document.getElementById('deck').style.transform = `translateX(-${idx * 100}vw)`;
+  document.getElementById('pi').textContent = `${idx+1} / ${total}`;
+}
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(idx+1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx-1); }
+  else if (e.key === 'Home') { e.preventDefault(); go(0); }
+  else if (e.key === 'End') { e.preventDefault(); go(total-1); }
+});
+let wAcc=0,wTO;addEventListener('wheel',e=>{wAcc+=e.deltaY;if(Math.abs(wAcc)>60){go(idx+(wAcc>0?1:-1));wAcc=0;}clearTimeout(wTO);wTO=setTimeout(()=>wAcc=0,200);},{passive:true});
+let tx=0;addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(idx+(dx<0?1:-1));});
+go(0);
+</script>
+</body>
+</html>

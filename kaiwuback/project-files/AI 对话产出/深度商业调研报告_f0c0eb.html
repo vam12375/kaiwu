@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深度商业调研报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1a365d; --primary-rgb: 26,54,93;
+  --secondary: #2c5282; --secondary-rgb: 44,82,130;
+  --accent: #ed8936; --accent-rgb: 237,137,54;
+  --bg: #f7fafc; --bg-rgb: 247,250,252;
+  --text: #2d3748; --text-rgb: 45,55,72;
+  --text-light: #718096;
+  --border: #e2e8f0;
+  --success: #38a169; --danger: #e53e3e;
+  --h1: 36px; --h2: 28px; --h3: 22px; --h4: 18px;
+  --body: 16px; --note: 14px;
+  --sans: "Noto Sans SC", sans-serif;
+  --serif: "Noto Serif SC", serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--text);background:var(--bg);line-height:1.8;-webkit-font-smoothing:antialiased}
+.container{max-width:1200px;margin:0 auto}
+.content{padding:20px 60px}
+
+/* Top Nav */
+.top-nav{position:sticky;top:0;z-index:100;height:60px;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 60px}
+.top-nav .nav-logo{font-size:18px;font-weight:700;color:var(--primary)}
+.top-nav .nav-links{display:flex;gap:32px;font-size:14px}
+.top-nav .nav-links a{color:var(--text-light);text-decoration:none}
+.top-nav .nav-links a:hover{color:var(--primary)}
+
+/* Cover */
+.cover{background:linear-gradient(135deg,#1a365d 0%,#2c5282 100%);height:280px;padding:40px 60px;color:white;display:flex;flex-direction:column;justify-content:center}
+.cover h1{font-size:42px;font-weight:bold;margin-bottom:20px}
+.cover .subtitle{font-size:20px;opacity:.9;margin-bottom:40px}
+.cover .divider{width:80px;height:4px;background:var(--accent);margin-bottom:40px}
+.cover .meta{display:flex;gap:40px;font-size:14px;opacity:.8}
+
+/* TOC */
+.toc{height:80px;background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:32px;padding:0 60px;overflow-x:auto;position:sticky;top:60px;z-index:99}
+.toc a{font-size:14px;color:var(--text-light);text-decoration:none;white-space:nowrap;padding:8px 0;border-bottom:2px solid transparent;transition:all .2s}
+.toc a:hover,.toc a.active{color:var(--primary);border-bottom-color:var(--accent)}
+
+/* Chapter Header */
+.chapter-header{padding:20px 60px;background:var(--bg);border-left:5px solid var(--accent);margin:0}
+.chapter-header .chapter-tag{font-size:14px;color:var(--accent);font-weight:600;letter-spacing:2px}
+.chapter-header h2{font-size:var(--h2);color:var(--primary);margin-top:10px}
+
+/* Section Header */
+.section-header{padding:16px 60px;border-bottom:1px solid var(--border)}
+.section-header h3{font-size:20px;color:var(--text);display:flex;align-items:center;gap:15px}
+.section-header h3 .dot{width:8px;height:8px;background:var(--primary);border-radius:50%;flex-shrink:0}
+
+/* Body Text */
+.body-text{padding:12px 60px}
+.body-text p{font-size:var(--body);color:#4a5568;line-height:1.7;margin-bottom:10px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:16px 0}
+thead tr{background:var(--primary);color:white}
+thead th{padding:15px 20px;text-align:left;font-weight:600}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:nth-child(even){background:var(--bg)}
+td{padding:15px 20px;color:var(--text)}
+
+/* Data Cards */
+.data-cards{display:flex;gap:20px;margin:30px 0;flex-wrap:wrap}
+.data-card{flex:1;min-width:200px;border-radius:12px;padding:20px}
+.data-card.gradient{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white}
+.data-card.bordered{background:white;border:1px solid var(--border)}
+.data-card .card-label{font-size:14px;opacity:.8;margin-bottom:10px}
+.data-card .card-value{font-size:32px;font-weight:bold}
+.data-card .card-note{font-size:14px;opacity:.8;margin-top:10px}
+.data-card.bordered .card-label,.data-card.bordered .card-note{color:var(--text-light)}
+.data-card.bordered .card-value{color:var(--primary)}
+
+/* Chart Container */
+.chart-box{background:white;padding:20px;border-radius:12px;border:1px solid var(--border);margin:16px 0}
+.chart-box h4{font-size:var(--h4);color:var(--primary);margin-bottom:20px}
+.chart-area{min-height:300px;background:linear-gradient(180deg,#f7fafc 0%,#edf2f7 100%);display:flex;align-items:center;justify-content:center;padding:30px 20px;border-radius:8px;color:#a0aec0;font-size:14px}
+
+/* Steps */
+.step-list{margin:30px 0}
+.step-item{display:flex;gap:20px;padding:20px;background:var(--bg);border-radius:8px;margin-bottom:15px}
+.step-num{width:40px;height:40px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0}
+.step-content strong{display:block;color:var(--text);margin-bottom:5px}
+.step-content span{font-size:14px;color:var(--text-light)}
+
+/* Checklist */
+.checklist{margin:20px 0}
+.checklist .check-item{display:flex;align-items:flex-start;margin-bottom:15px;gap:15px}
+.checklist .check-item .check{color:var(--accent);font-size:18px}
+.checklist .check-item span{color:var(--text)}
+
+/* Progress Bar */
+.progress-bar{margin:20px 0}
+.progress-bar .bar-label{display:flex;justify-content:space-between;margin-bottom:8px}
+.progress-bar .bar-label span:first-child{color:var(--text);font-size:14px}
+.progress-bar .bar-label span:last-child{color:var(--primary);font-size:14px;font-weight:600}
+.progress-bar .bar-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-bar .bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:4px}
+
+/* Footer */
+.footer{background:var(--primary);padding:30px 60px;color:white;font-size:14px}
+.footer .footer-grid{display:flex;justify-content:space-between;margin-bottom:20px}
+.footer .footer-grid strong{display:block;margin-bottom:10px}
+.footer .footer-grid div{opacity:.8;font-size:14px}
+.footer .footer-bottom{border-top:1px solid rgba(255,255,255,.2);padding-top:20px;display:flex;justify-content:space-between;font-size:12px;opacity:.6}
+
+/* Slide classes (兼容旧格式) */
+.slide{width:100%;padding:16px 60px;position:relative;overflow:hidden}
+.slide.dark{background:var(--bg);color:var(--text)}
+.slide.light{background:white;color:var(--text)}
+.slide.hero{padding:30px 60px;min-height:300px;display:flex;flex-direction:column;justify-content:center}
+.slide.hero.dark{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white}
+.slide.hero.light{background:var(--bg)}
+.chrome{display:flex;justify-content:space-between;font-size:12px;opacity:.7;margin-bottom:20px}
+.foot{margin-top:30px;display:flex;justify-content:space-between;font-size:12px;opacity:.55;border-top:1px solid var(--border);padding-top:20px}
+.frame{flex:1}
+.h-hero{font-weight:900;font-size:5vw;line-height:.96;margin-bottom:20px}
+.h-sub{font-weight:600;font-size:20px;margin-bottom:20px;color:var(--primary)}
+.h-xl{font-weight:700;font-size:32px;margin-bottom:20px}
+.body-zh{font-weight:400;font-size:16px;line-height:1.8;color:#4a5568;margin-bottom:15px}
+.kicker{font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2vh}
+.lead{font-size:18px;line-height:1.5;opacity:.86}
+.meta-row{display:flex;gap:1.2em;font-size:12px;opacity:.6}
+.grid-3-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:20px 0}
+.data-card.bordered{background:white;border:1px solid var(--border);border-radius:12px;padding:30px}
+.data-card.bordered .card-label{color:var(--text-light);font-size:14px;margin-bottom:10px}
+.data-card.bordered .card-value{color:var(--primary);font-weight:bold}
+.slide.dark .chrome,.slide.dark .foot,.slide.hero.dark .foot,.slide.hero.dark .chrome{color:rgba(255,255,255,.7)}
+.slide.hero.dark .h-hero{color:white}
+.slide.hero.dark .lead,.slide.hero.dark .meta-row{color:rgba(255,255,255,.86)}
+.slide.hero.dark .foot{border-top-color:rgba(255,255,255,.2)}
+.slide.hero.dark .body-zh{color:rgba(255,255,255,.9)}
+/* Hide top nav and TOC for slide-based reports */
+.slide-report .top-nav,.slide-report .toc{display:none}
+@media(max-width:768px){.slide{padding:30px 20px}.grid-3-3{grid-template-columns:1fr}.slide.hero{padding:40px 20px;min-height:300px}.h-hero{font-size:8vw}}
+
+/* Responsive */
+@media(max-width:1023px){.container{max-width:768px}.content{padding:30px 40px}.cover{padding:40px;height:320px}.cover h1{font-size:32px}.data-cards{flex-direction:column}}
+@media(max-width:768px){.container{width:100%}.content{padding:20px}.cover{padding:30px;height:280px}.cover h1{font-size:28px}h2{font-size:22px!important}.chart-area{min-height:200px}.top-nav{padding:0 20px}.toc{padding:0 20px;gap:20px}}
+</style>
+</head>
+<body class="slide-report">
+
+<!-- ====== Top Nav ====== -->
+<div class="top-nav">
+  <div class="nav-logo">曜势科技</div>
+  <div class="nav-links">
+    <a href="#cover">首页</a><a href="#toc">目录</a>
+    <a href="#ch1">行业概述</a><a href="#ch2">消费者洞察</a>
+    <a href="#ch3">案例分析</a><a href="#ch4">未来展望</a>
+  </div>
+</div>
+
+<!-- ====== Cover ====== -->
+<div class="cover" id="cover">
+  <h1>深度商业调研报告</h1>
+  <p class="subtitle">基于AI对话 · 深度数据洞察</p>
+  <div class="divider"></div>
+  <div class="meta">
+    <span>报告日期：2026年6月</span><span>页数：约30页</span><span>版本：V1.0</span>
+  </div>
+</div>
+
+<!-- ====== TOC ====== -->
+<div class="toc" id="toc">
+  <a href="#ch1">CHAPTER 01 · 行业发展概述</a>
+  <a href="#ch2">CHAPTER 02 · 消费者洞察</a>
+  <a href="#ch3">CHAPTER 03 · 案例分析</a>
+  <a href="#ch4">CHAPTER 04 · 未来展望</a>
+</div>
+
+<!-- ================================================================== -->
+<!-- CHAPTER 01: 行业发展概述 -->
+
+
+<section class="slide hero dark"><div class="chrome"><div>深度商业调研报告</div><div>01 / 09</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>深度商业调研报告</div><h1 class="h-hero" data-anim style="font-size:5vw">好的，收到您的深度调研指令。由于您未指定具体细分赛道，我将基于对话历史中已提供的</h1><p class="lead" style="max-width:50vw;font-size:1.2vw" data-anim>基于对话数据的深度分析报告</p><div style="width:80px;height:4px;background:var(--accent);margin-bottom:2vh" data-anim></div><div class="meta-row" data-anim><span>2026-06-29</span><span>·</span><span>曜势科技</span><span>·</span><span>AI Analysis</span></div></div><div class="foot"><div>曜势科技 · 深度商业调研</div><div>— 2026-06-29 —</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>01 / 09</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 01</div><h2 class="h-xl" data-anim>核心发现</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>01 / 09</div></div></section><section class="slide light"><div class="chrome"><div>深度商业调研报告</div><div>04 / 09</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>## 一、行业发展概述</h3><div class="grid-3-3" data-anim><div class="data-card bordered"><div class="card-label">2.0, 2025</div><div class="card-value" style="font-size:24px">2024</div></div><div class="data-card bordered"><div class="card-label">45</div><div class="card-value" style="font-size:24px">创新药研发与授权</div></div><div class="data-card bordered"><div class="card-label">35</div><div class="card-value" style="font-size:24px">消费级医疗器械品牌</div></div><div class="data-card bordered"><div class="card-label">25</div><div class="card-value" style="font-size:24px">CXO服务</div></div></div><p class="body-zh" data-anim>本报告研究的“医药行业”采用广义定义，指围绕人类生命健康，集研究、开发、生产、经营、服务于一体的综合产业体系。根据对话提及及行业共识，当前核心赛道可解构为三层：</p><p class="body-zh" data-anim>*   核心层（产品制造）：化学药、生物药（单抗/细胞基因治疗等）、中药及天然药物、疫苗、血液制品。此层是行业价值基础，当前主旋律是 “真创新” ，即从仿制向同类首创/同类最佳（First-in-class/Best-in-class）转型。</p><p class="body-zh" data-anim>*   外延层（器械与消费）：覆盖医疗设备、体外诊断、高值耗材，并向 “消费级医疗” 延伸，包括动态血糖仪(CGM)、家用美容仪、高级助听器等。该层被视为 “穿越支付寒冬的现金奶牛” ，具备抗周期属性。</p><p class="body-zh" data-anim>*   服务层（流通与数字化）：包含医药分销、零售药店、互联网医疗及 “医药数字化服务” ，即面向药企、医院的SaaS、AI辅助诊断、数字疗法（DTx）等。</p><p class="body-zh" data-anim>中国医药市场已全面走出集采引发的价格阵痛，进入由创新药全球化和消费医疗升级双轮驱动的增长新周期。医保支付结构优化，为真正具备临床价值的创新产品腾挪出巨大空间。</p></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>04</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>05 / 09</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>核心发现</h3><p class="body-zh" data-anim>2026年中国医药行业规模达2.3万亿元，增速约7%[行业测算]，核心由出海BD交易爆发和消费医疗复苏拉动。创新药License-out交易总额2025年首破500亿美元，2026年进入集中里程碑付款期，同时国内新药平均上市审批时间缩短至8个月。消费级医疗设备成穿越支付寒冬的现金奶牛。预计2027年市场规模将达2.5万亿元[行业测算]，增速8%，届时全球化销售网络成型、AI新药管线逐步商业化。</p><table class="report-data"><thead><tr><th>年份</th><th>市场规模(万亿元)</th><th>增速</th><th>核心驱动</th></tr></thead><tbody><tr><td>2025</td><td>2.1</td><td>~5%</td><td>—</td></tr></tbody></table></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>05</div></div></section><section class="slide light"><div class="chrome"><div>深度商业调研报告</div><div>06 / 09</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>核心发现</h3><p class="body-zh" data-anim>2026年中国医药行业市场规模预计达2.3万亿元[行业测算]，增速回升至约7%，正式走出集采阵痛，进入“真创新”与“全球化”兑现期。核心驱动力转向出海BD交易爆发与消费医疗复苏，创新药海外授权总额突破500亿美元，本土创新药平均上市周期已缩短至8个月。</p><table class="report-data"><thead><tr><th>年份</th><th>市场规模（万亿元）</th><th>同比增速</th></tr></thead><tbody><tr><td>2025</td><td>2.1（估算）</td><td>~5%</td></tr><tr><td>2026</td><td>2.3 [行业测算]</td><td>~7%</td></tr><tr><td>2027E</td><td>2.5 [行业测算]</td><td>~8%</td></tr></tbody></table></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>06</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>07 / 09</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>核心发现</h3><p class="body-zh" data-anim>中国医药行业2026年进入“真创新”与“全球化”兑现期，市场规模预计达2.3万亿元（行业测算），增速反弹至约7%。核心动能来自：License-out交易额首破500亿美元，创新药出海进入集中里程碑付款期；消费级医疗产品需求复苏，提供稳定现金流。行业正从集采出清转向创新放量与全球销售网络成型。</p><table class="report-data"><thead><tr><th>年份</th><th>市场规模(万亿元)</th><th>增速</th><th>核心驱动</th></tr></thead><tbody><tr><td>2025</td><td>2.1 (估算)</td><td>~5%</td><td>集采出清、创新药放量</td></tr><tr><td>2026</td><td>2.3 [行业测算]</td><td>~7%</td><td>—</td></tr></tbody></table></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>07</div></div></section><section class="slide light"><div class="chrome"><div>深度商业调研报告</div><div>08 / 09</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>核心发现</h3><p class="body-zh" data-anim>医药行业已进入“真创新”与“全球化”兑现期。2026年市场规模预计达2.3万亿元[行业测算]，增速约7%，核心驱动来自出海BD交易爆发与消费医疗复苏。2025年License-out交易总额首破500亿美元，国内创新药平均审评周期缩短至8个月。</p><table class="report-data"><thead><tr><th>年份</th><th>市场规模(万亿元)</th><th>增速</th><th>核心驱动</th></tr></thead><tbody><tr><td>2025</td><td>2.1 (估算)</td><td>~5%</td><td>集采出清、创新药放量</td></tr><tr><td>2026</td><td>2.3 [行业测算]</td><td>~7%</td><td>出海BD交易爆发、消费医疗复苏</td></tr></tbody></table></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>08</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>09 / 09</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>核心发现</h3><p class="body-zh" data-anim>宏观市场迈入“真创新”兑现期，行业规模稳健攀升。当前市场总盘已从集采影响中走出，2026年约达2.3万亿元，较2025年的2.1万亿实现9.5% 的名义增长[行业测算]。出海授权（License-out）交易激增成为核心驱动力，近期交易总金额突破500亿美元大关，而创新药上市审批平均时效压缩至8个月以内，利好管线价值释放。</p><table class="report-data"><thead><tr><th>**核心维度**</th><th>**当前现状 (2026年)**</th><th>**关键数据/动向**</th></tr></thead><tbody><tr><td>**市场总规模**</td><td>突破性增长[行业测算]</td><td>—</td></tr></tbody></table></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>09</div></div></section>
+>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深度商业调研报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1a365d; --primary-rgb: 26,54,93;
+  --secondary: #2c5282; --secondary-rgb: 44,82,130;
+  --accent: #ed8936; --accent-rgb: 237,137,54;
+  --bg: #f7fafc; --bg-rgb: 247,250,252;
+  --text: #2d3748; --text-rgb: 45,55,72;
+  --text-light: #718096;
+  --border: #e2e8f0;
+  --success: #38a169; --danger: #e53e3e;
+  --h1: 36px; --h2: 28px; --h3: 22px; --h4: 18px;
+  --body: 16px; --note: 14px;
+  --sans: "Noto Sans SC", sans-serif;
+  --serif: "Noto Serif SC", serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--text);background:var(--bg);line-height:1.8;-webkit-font-smoothing:antialiased}
+.container{max-width:1200px;margin:0 auto}
+.content{padding:20px 60px}
+
+/* Top Nav */
+.top-nav{position:sticky;top:0;z-index:100;height:60px;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 60px}
+.top-nav .nav-logo{font-size:18px;font-weight:700;color:var(--primary)}
+.top-nav .nav-links{display:flex;gap:32px;font-size:14px}
+.top-nav .nav-links a{color:var(--text-light);text-decoration:none}
+.top-nav .nav-links a:hover{color:var(--primary)}
+
+/* Cover */
+.cover{background:linear-gradient(135deg,#1a365d 0%,#2c5282 100%);height:280px;padding:40px 60px;color:white;display:flex;flex-direction:column;justify-content:center}
+.cover h1{font-size:42px;font-weight:bold;margin-bottom:20px}
+.cover .subtitle{font-size:20px;opacity:.9;margin-bottom:40px}
+.cover .divider{width:80px;height:4px;background:var(--accent);margin-bottom:40px}
+.cover .meta{display:flex;gap:40px;font-size:14px;opacity:.8}
+
+/* TOC */
+.toc{height:80px;background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:32px;padding:0 60px;overflow-x:auto;position:sticky;top:60px;z-index:99}
+.toc a{font-size:14px;color:var(--text-light);text-decoration:none;white-space:nowrap;padding:8px 0;border-bottom:2px solid transparent;transition:all .2s}
+.toc a:hover,.toc a.active{color:var(--primary);border-bottom-color:var(--accent)}
+
+/* Chapter Header */
+.chapter-header{padding:20px 60px;background:var(--bg);border-left:5px solid var(--accent);margin:0}
+.chapter-header .chapter-tag{font-size:14px;color:var(--accent);font-weight:600;letter-spacing:2px}
+.chapter-header h2{font-size:var(--h2);color:var(--primary);margin-top:10px}
+
+/* Section Header */
+.section-header{padding:16px 60px;border-bottom:1px solid var(--border)}
+.section-header h3{font-size:20px;color:var(--text);display:flex;align-items:center;gap:15px}
+.section-header h3 .dot{width:8px;height:8px;background:var(--primary);border-radius:50%;flex-shrink:0}
+
+/* Body Text */
+.body-text{padding:12px 60px}
+.body-text p{font-size:var(--body);color:#4a5568;line-height:1.7;margin-bottom:10px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:16px 0}
+thead tr{background:var(--primary);color:white}
+thead th{padding:15px 20px;text-align:left;font-weight:600}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:nth-child(even){background:var(--bg)}
+td{padding:15px 20px;color:var(--text)}
+
+/* Data Cards */
+.data-cards{display:flex;gap:20px;margin:30px 0;flex-wrap:wrap}
+.data-card{flex:1;min-width:200px;border-radius:12px;padding:20px}
+.data-card.gradient{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white}
+.data-card.bordered{background:white;border:1px solid var(--border)}
+.data-card .card-label{font-size:14px;opacity:.8;margin-bottom:10px}
+.data-card .card-value{font-size:32px;font-weight:bold}
+.data-card .card-note{font-size:14px;opacity:.8;margin-top:10px}
+.data-card.bordered .card-label,.data-card.bordered .card-note{color:var(--text-light)}
+.data-card.bordered .card-value{color:var(--primary)}
+
+/* Chart Container */
+.chart-box{background:white;padding:20px;border-radius:12px;border:1px solid var(--border);margin:16px 0}
+.chart-box h4{font-size:var(--h4);color:var(--primary);margin-bottom:20px}
+.chart-area{min-height:300px;background:linear-gradient(180deg,#f7fafc 0%,#edf2f7 100%);display:flex;align-items:center;justify-content:center;padding:30px 20px;border-radius:8px;color:#a0aec0;font-size:14px}
+
+/* Steps */
+.step-list{margin:30px 0}
+.step-item{display:flex;gap:20px;padding:20px;background:var(--bg);border-radius:8px;margin-bottom:15px}
+.step-num{width:40px;height:40px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0}
+.step-content strong{display:block;color:var(--text);margin-bottom:5px}
+.step-content span{font-size:14px;color:var(--text-light)}
+
+/* Checklist */
+.checklist{margin:20px 0}
+.checklist .check-item{display:flex;align-items:flex-start;margin-bottom:15px;gap:15px}
+.checklist .check-item .check{color:var(--accent);font-size:18px}
+.checklist .check-item span{color:var(--text)}
+
+/* Progress Bar */
+.progress-bar{margin:20px 0}
+.progress-bar .bar-label{display:flex;justify-content:space-between;margin-bottom:8px}
+.progress-bar .bar-label span:first-child{color:var(--text);font-size:14px}
+.progress-bar .bar-label span:last-child{color:var(--primary);font-size:14px;font-weight:600}
+.progress-bar .bar-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-bar .bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:4px}
+
+/* Footer */
+.footer{background:var(--primary);padding:30px 60px;color:white;font-size:14px}
+.footer .footer-grid{display:flex;justify-content:space-between;margin-bottom:20px}
+.footer .footer-grid strong{display:block;margin-bottom:10px}
+.footer .footer-grid div{opacity:.8;font-size:14px}
+.footer .footer-bottom{border-top:1px solid rgba(255,255,255,.2);padding-top:20px;display:flex;justify-content:space-between;font-size:12px;opacity:.6}
+
+/* Slide classes (兼容旧格式) */
+.slide{width:100%;padding:16px 60px;position:relative;overflow:hidden}
+.slide.dark{background:var(--bg);color:var(--text)}
+.slide.light{background:white;color:var(--text)}
+.slide.hero{padding:30px 60px;min-height:300px;display:flex;flex-direction:column;justify-content:center}
+.slide.hero.dark{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white}
+.slide.hero.light{background:var(--bg)}
+.chrome{display:flex;justify-content:space-between;font-size:12px;opacity:.7;margin-bottom:20px}
+.foot{margin-top:30px;display:flex;justify-content:space-between;font-size:12px;opacity:.55;border-top:1px solid var(--border);padding-top:20px}
+.frame{flex:1}
+.h-hero{font-weight:900;font-size:5vw;line-height:.96;margin-bottom:20px}
+.h-sub{font-weight:600;font-size:20px;margin-bottom:20px;color:var(--primary)}
+.h-xl{font-weight:700;font-size:32px;margin-bottom:20px}
+.body-zh{font-weight:400;font-size:16px;line-height:1.8;color:#4a5568;margin-bottom:15px}
+.kicker{font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2vh}
+.lead{font-size:18px;line-height:1.5;opacity:.86}
+.meta-row{display:flex;gap:1.2em;font-size:12px;opacity:.6}
+.grid-3-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:20px 0}
+.data-card.bordered{background:white;border:1px solid var(--border);border-radius:12px;padding:30px}
+.data-card.bordered .card-label{color:var(--text-light);font-size:14px;margin-bottom:10px}
+.data-card.bordered .card-value{color:var(--primary);font-weight:bold}
+.slide.dark .chrome,.slide.dark .foot,.slide.hero.dark .foot,.slide.hero.dark .chrome{color:rgba(255,255,255,.7)}
+.slide.hero.dark .h-hero{color:white}
+.slide.hero.dark .lead,.slide.hero.dark .meta-row{color:rgba(255,255,255,.86)}
+.slide.hero.dark .foot{border-top-color:rgba(255,255,255,.2)}
+.slide.hero.dark .body-zh{color:rgba(255,255,255,.9)}
+/* Hide top nav and TOC for slide-based reports */
+.slide-report .top-nav,.slide-report .toc{display:none}
+@media(max-width:768px){.slide{padding:30px 20px}.grid-3-3{grid-template-columns:1fr}.slide.hero{padding:40px 20px;min-height:300px}.h-hero{font-size:8vw}}
+
+/* Responsive */
+@media(max-width:1023px){.container{max-width:768px}.content{padding:30px 40px}.cover{padding:40px;height:320px}.cover h1{font-size:32px}.data-cards{flex-direction:column}}
+@media(max-width:768px){.container{width:100%}.content{padding:20px}.cover{padding:30px;height:280px}.cover h1{font-size:28px}h2{font-size:22px!important}.chart-area{min-height:200px}.top-nav{padding:0 20px}.toc{padding:0 20px;gap:20px}}
+</style>
+</head>
+<body class="slide-report">
+
+<!-- ====== Top Nav ====== -->
+<div class="top-nav">
+  <div class="nav-logo">曜势科技</div>
+  <div class="nav-links">
+    <a href="#cover">首页</a><a href="#toc">目录</a>
+    <a href="#ch1">行业概述</a><a href="#ch2">消费者洞察</a>
+    <a href="#ch3">案例分析</a><a href="#ch4">未来展望</a>
+  </div>
+</div>
+
+<!-- ====== Cover ====== -->
+<div class="cover" id="cover">
+  <h1>深度商业调研报告</h1>
+  <p class="subtitle">基于AI对话 · 深度数据洞察</p>
+  <div class="divider"></div>
+  <div class="meta">
+    <span>报告日期：2026年6月</span><span>页数：约30页</span><span>版本：V1.0</span>
+  </div>
+</div>
+
+<!-- ====== TOC ====== -->
+<div class="toc" id="toc">
+  <a href="#ch1">CHAPTER 01 · 行业发展概述</a>
+  <a href="#ch2">CHAPTER 02 · 消费者洞察</a>
+  <a href="#ch3">CHAPTER 03 · 案例分析</a>
+  <a href="#ch4">CHAPTER 04 · 未来展望</a>
+</div>
+
+<!-- ================================================================== -->
+<!-- CHAPTER 01: 行业发展概述 -->
+
+<!-- SLIDES_HERE -->
+<div class="footer">
+  <div class="footer-grid">
+    <div><strong>联系我们</strong><div>电话：138-0000-0000<br>邮箱：contact@kaiwu.ai<br>地址：杭州市西湖区</div></div>
+    <div><strong>关注我们</strong><div>微信公众号<br>抖音号：曜势科技</div></div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 曜势科技 版权所有</span>
+    <span>本报告仅供内部使用，未经授权不得外传</span>
+  </div>
+</div>
+
+<script>setTimeout(function(){if(typeof lucide!=="undefined")lucide.createIcons();},300);</script></body>
+</html>

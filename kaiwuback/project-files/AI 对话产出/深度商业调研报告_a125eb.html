@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>差异性Skills · 品牌构建能力展示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0a0a0b;--ink-rgb:10,10,11;
+    --paper:#f1efea;--paper-rgb:241,239,234;
+    --paper-tint:#e8e5de;--ink-tint:#18181a;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display",Georgia,serif;
+    --serif-zh:"Noto Serif SC",serif;
+    --sans-zh:"Noto Sans SC",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased}
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+  body.low-power canvas.bg{display:none!important}
+
+  #deck{position:fixed;inset:0;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .h-hero{font-family:var(--serif-zh);font-weight:900;font-size:10vw;line-height:.96;letter-spacing:-.02em}
+  .h-xl{font-family:var(--serif-zh);font-weight:700;font-size:6.2vw;line-height:1.08;letter-spacing:-.01em}
+  .h-sub{font-family:var(--serif-zh);font-weight:500;font-size:3.1vw;line-height:1.25;opacity:.7}
+  .h-md{font-family:var(--serif-zh);font-weight:600;font-size:2.3vw;line-height:1.3}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.75vw;line-height:1.5;opacity:.86}
+  .meta-row{display:flex;gap:1.2em;align-items:baseline;flex-wrap:wrap;font-family:var(--mono);font-size:max(12px,.92vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82}
+  em{font-style:italic;font-family:var(--serif-en)}
+
+  .stat-card{display:flex;flex-direction:column;gap:.8vh;align-items:flex-start;padding-top:1.6vh;border-top:1px solid rgba(127,127,127,.3)}
+  .stat-label{font-family:var(--mono);font-size:max(10px,.78vw);letter-spacing:.24em;text-transform:uppercase;opacity:.55}
+  .stat-nb{font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;font-feature-settings:"tnum";margin-top:.4vh}
+  .stat-unit{font-family:var(--serif-zh);font-weight:500;font-size:.38em;opacity:.72;margin-left:.14em}
+  .stat-note{font-family:var(--sans-zh);font-weight:400;font-size:max(13px,1.05vw);line-height:1.5;opacity:.72;margin-top:.6vh}
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout-src{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2.4vh 2vw}
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);width:100%;border-radius:4px;margin:0;display:flex;flex-direction:column;min-width:0}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04)}
+  .frame-img>img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .img-cap{display:block;margin-top:.8vh;font-family:var(--mono);font-size:max(10px,.8vw);letter-spacing:.22em;text-transform:uppercase;opacity:.6}
+  .color-block{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:.4}
+
+  /* NAV */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+  body.low-power #hint{opacity:.72;color:var(--paper);mix-blend-mode:normal}
+  body.light-bg.low-power #hint{color:var(--ink)}
+
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.low-power #deck{transition:none!important}
+  body.low-power [data-anim]{opacity:1!important;transform:none!important}
+  @media(max-width:900px){.h-hero{font-size:14vw}.h-xl{font-size:9vw}.grid-2-7-5{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="hint">← → 翻页 · ESC 索引</div>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+
+<div id="deck">
+<section class="slide hero dark"><div class="chrome"><div>深度商业调研报告</div><div>01 / 16</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>MARKET RESEARCH REPORT</div><h1 class="h-hero" data-anim>银发兴趣教育市场深度调研报告</h1><p class="lead" style="max-width:50vw" data-anim>第一幕：行业概览——银发经济的数字化入口</p><div class="meta-row" data-anim><span>2026-06-26</span><span>·</span><span>曜势科技</span><span>·</span><span>AI Analysis</span></div></div><div class="foot"><div>曜势科技 · 深度商业调研</div><div>— 2026-06-26 —</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>01 / 16</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 01</div><h2 class="h-xl" data-anim>核心发现</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>01 / 16</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>03 / 16</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>银发兴趣教育市场深度调研报告</h3><p class="body-zh" data-anim>&gt; 副标题——基于中老年用户线上行为与需求洞察分析</p><div style="margin-top:4vh;padding:3vh 2vw;border-top:1px solid rgba(127,127,127,.2)"><p class="body-zh" style="opacity:.6;font-size:max(13px,1vw)">数据来源：曜势科技AI综合研判，整合行业公开数据、用户调研、赛道市场资料。以上分析基于当前对话数据，具体数据以官方发布为准。</p></div></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>03</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>02 / 16</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 02</div><h2 class="h-xl" data-anim>第一幕：行业概览——银发经济的数字化入口</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>02 / 16</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>05 / 16</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>第一幕：行业概览——银发经济的数字化入口</h3><p class="body-zh" data-anim>人口结构变迁正催生万亿级银发市场。与传统认知不同，新一代银发人群（50-70岁）展现出强劲的线上消费意愿与学习需求，兴趣教育成为连接“精神养老”与“数字消费”的关键入口。本章锁定市场基础认知，通过五个核心数据锚点描绘赛道轮廓。</p><p class="body-zh" data-anim>```BAR</p><p class="body-zh" data-anim>市场增速,35,15,8,-5</p><p class="body-zh" data-anim>市场规模(百亿),8,6.5,5,3.8</p><p class="body-zh" data-anim>新品牌市占率,15,25,40,20</p><p class="body-zh" data-anim>新老人线上渗透率,65,45,30,15</p><p class="body-zh" data-anim>社交裂变订单占比,60,25,10,5</p><p class="body-zh" data-anim>```</p></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>05</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>03 / 16</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 03</div><h2 class="h-xl" data-anim>第二幕：消费行为研究——谁在为“精神陪伴</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>03 / 16</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>07 / 16</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>第二幕：消费行为研究——谁在为“精神陪伴</h3><p class="body-zh" data-anim>用户画像是理解市场供给错配的关键。我们通过年龄、性别、消费力与品类偏好等二分维度，将核心消费人群解构成三类典型用户，并深度呈现其购买频率、价格段与触达路径的显著差异。</p></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>07</div></div></section><section class="slide light"><div class="chrome"><div>深度商业调研报告</div><div>08 / 16</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>细分人群画像与行为对比</h3><div class="grid-3-3" data-anim><div class="stat-card"><span class="stat-label">70,20,10</span><span class="stat-nb">活力探索者</span></div><div class="stat-card"><span class="stat-label">50,35,15</span><span class="stat-nb">品质生活家</span></div><div class="stat-card"><span class="stat-label">85,10,5</span><span class="stat-nb">社交跟随者</span></div></div><p class="body-zh" data-anim>```BAR</p><p class="body-zh" data-anim>活力探索者|70,20,10</p><p class="body-zh" data-anim>品质生活家|50,35,15</p><p class="body-zh" data-anim>社交跟随者|85,10,5</p><p class="body-zh" data-anim>```</p></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>08</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>09 / 16</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>品类热度排序与价格带分析</h3><p class="body-zh" data-anim>当前用户付费意愿从“纯技能学习”向“体验式社交”转移，品类热度与可接受价格带呈正相关。</p><p class="body-zh" data-anim>```PIE</p><p class="body-zh" data-anim>手机摄影/短视频|35,声乐/合唱|28,书法/国画|22,健康养生|15</p><p class="body-zh" data-anim>```</p></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>09</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>04 / 16</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 04</div><h2 class="h-xl" data-anim>第三幕：体验诊断——信任与归属的双重饥渴</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>04 / 16</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>11 / 16</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>第三幕：体验诊断——信任与归属的双重饥渴</h3><div class="grid-3-3" data-anim><div class="stat-card"><span class="stat-label">85</span><span class="stat-nb">教学方式“填鸭”，缺乏互动与反馈</span></div><div class="stat-card"><span class="stat-label">72</span><span class="stat-nb">社群“死群”，强营销无温度</span></div><div class="stat-card"><span class="stat-label">68</span><span class="stat-nb">操作流程复杂，求助无门</span></div></div><p class="body-zh" data-anim>通过对NPS（净推荐值）和满意度调研的追踪，我们发现行业整体NPS值仅为-12%，用户流失并非源于金钱成本，而是巨大的心理落差。本章提炼出三大核心痛点，其引发的负面情绪正严重侵蚀着品牌信任与复购率。</p><p class="body-zh" data-anim>```HBAR</p><p class="body-zh" data-anim>教学方式“填鸭”，缺乏互动与反馈|85</p><p class="body-zh" data-anim>社群“死群”，强营销无温度|72</p><p class="body-zh" data-anim>操作流程复杂，求助无门|68</p><p class="body-zh" data-anim>```</p></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>11</div></div></section><section class="slide light"><div class="chrome"><div>深度商业调研报告</div><div>12 / 16</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>三大核心痛点深度剖析</h3><p class="body-zh" data-anim>痛点一：教学方式“填鸭”，缺乏互动与反馈 （NPS关联度-85%）</p><p class="body-zh" data-anim>&gt; 用户原声：“老师讲得很快，我还没找到那个按钮在哪，就过去了。想问又不敢问，怕别人觉得我笨。”</p><p class="body-zh" data-anim>-   引发的负面情绪：深度的自卑感与被时代抛弃的恐惧。</p><p class="body-zh" data-anim>-   核心矛盾：用户需要的是“被手把手引导”的耐心，而现有供给多为K12或成人教育的“标准快节奏”课程的直接平移，完全忽视了银发人群身体机能退化与心理敏感的特点。</p><p class="body-zh" data-anim>痛点二：社群“死群”，强营销无温度 （NPS关联度-72%）</p><p class="body-zh" data-anim>&gt; 用户原声：“进群就是为了交朋友，结果全是广告和打卡。没人真正聊天，我想退出又觉得不好意思。”</p><p class="body-zh" data-anim>-   引发的负面情绪：被利用的愤怒与再次被社会关系边缘化的孤独。</p><p class="body-zh" data-anim>-   核心矛盾：用户购买的是“基于兴趣的社交圈”，期待情感链接；而多数品牌仅将社群视为流量变现的通道，用工业化SOP运营，导致“人味儿”丧失，信任崩塌。</p><p class="body-zh" data-anim>痛点三：操作流程复杂，求助无门 （NPS关联度-68%）</p><p class="body-zh" data-anim>&gt; 用户原声：“我卡在支付页面20分钟，不知道找谁。孩子们忙，我总不能每次都麻烦人家。”</p><p class="body-zh" data-anim>-   引发的负面情绪：强烈的无助感与对数字世界的恐惧。</p><p class="body-zh" data-anim>-   核心矛盾：前端的获客流程极简，后端的产品使用体验却对银发用户极其不友好。“最后一公里”的服务断点</p></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>12</div></div></section><section class="slide hero light"><div class="chrome"><div>深度商业调研报告</div><div>05 / 16</div></div><div class="frame" style="display:grid;gap:4vh;align-content:center;min-height:80vh"><div class="kicker" data-anim>Part 05</div><h2 class="h-xl" data-anim>第四幕：未来启示——构建“银发专属”的生</h2><p class="lead" data-anim style="max-width:45vw"></p></div><div class="foot"><div>深度商业调研报告</div><div>05 / 16</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>14 / 16</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>第四幕：未来启示——构建“银发专属”的生</h3><p class="body-zh" data-anim>基于前三幕的数据与诊断，破局点在于从“教育逻辑”彻底转向“服务逻辑”。战略层必须围绕“信任”构建核心壁垒，产品层则聚焦解决“自卑、孤独、无助”三大负面情绪。我们建议将资源重新分配，以实现短期留存改善与长期价值增长。</p><p class="body-zh" data-anim>```PIE</p><p class="body-zh" data-anim>信任人设与内容建设|40,有温度的社群运营|35,银发专属客服体系|15,其他|10</p><p class="body-zh" data-anim>```</p></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>14</div></div></section><section class="slide light"><div class="chrome"><div>深度商业调研报告</div><div>15 / 16</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>战略层三大抓手</h3><p class="body-zh" data-anim>1.  抓“信任人设”：打造“陪伴型”IP矩阵，而非“名师”</p><p class="body-zh" data-anim>-   数据溯源：第二幕显示，用户首选触达路径是短视频和社群，决策核心是“人”。第三幕痛点一更指出，用户需要“耐心引导”。</p><p class="body-zh" data-anim>-   战略行动：放弃包装“顶尖名师”，转而孵化“懂你的隔壁老王/李姐”式的主讲人IP。其核心能力不是技术多高，而是会“说慢话、蹲下来、给拥抱”。视频内容需从“秀技能”转为“展示学员从不会到会的过程”，制造强烈的“我能行”代入感。</p><p class="body-zh" data-anim>2.  抓“情感共同体”：从“学习群”升级为“家庭群”</p><p class="body-zh" data-anim>-   数据溯源：第二幕“社交跟随者”占比极高，且推荐价值最大。第三幕痛点二直指社群营销化的失败。</p><p class="body-zh" data-anim>-   战略行动：重新定义社群KPI，从考核转化率转为考核“互助问答量”和“线下活动自发组织数”。将班主任角色重塑为“兴趣委员”，50%的精力用于发起话题、私聊倾听、为学员撮合“画友/歌友”，让社群回归情感连接的本质。</p><p class="body-zh" data-anim>3.  抓“服务闭环”：建立“伸手可得”的求助体系</p><p class="body-zh" data-anim>-   数据溯源：第三幕痛点三揭示，操作复杂是付费转化的“隐形杀手”。</p><p class="body-zh" data-anim>-   战略行动：设置“一键求助”按钮，连接真人客服。此项服务不计研发投入回报率,ROI和转化率，只考核问题解决率和用户满意度。甚至可以返聘已结业的优秀学员担任“</p></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>15</div></div></section><section class="slide dark"><div class="chrome"><div>深度商业调研报告</div><div>16 / 16</div></div><div class="frame" style="gap:3vh;overflow-y:auto;padding-bottom:2vh"><h3 class="h-sub" data-anim>产品层三大攻坚点</h3><p class="body-zh" data-anim>1.  攻坚“超慢速”课程结构：将1小时的课程拆分成6个10分钟模块，每个模块遵循“演示（慢3倍）→跟练→点评”的循环。为手机摄影课专门录制“老年机型号的适配讲解”视频作为先导课。（对应痛点一）</p><p class="body-zh" data-anim>2.  攻坚“社交货币”化作业设计：课程作业不是“交一幅完美的画”，而是“用你学到的技巧，为你的孙辈做一张电子生日贺卡并分享到家庭群”。让学习成果直接服务于他们最核心的情感关系网，引发自发传播。（对应痛点二、第二幕触达路径）</p><p class="body-zh" data-anim>3.  攻坚“实体仪式感”物料包：随课附赠一本大字版、可手写的《我的学习日记》、一张精美的毕业证书和一个专属的班级徽章。这些实体物品是线上社群凝聚力的物理载体，是社交话题的起点，更是NPS传播的利器。（对应痛点二、第三幕NPS提升）</p></div><div class="foot"><div>数据来源：曜势科技AI综合研判 · 整合行业公开数据与用户调研</div><div>16</div></div></section>
+</div>
+
+<div id="nav"></div>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+
+<script>
+// ======== WebGL Background ========
+const VS='attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}';
+const FS_DARK='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;float md=length(p-m);float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;vec2 p0=p;for(float i=1.0;i<4.0;i++){p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;}float r=length(p);float ang=atan(p.y,p.x);vec3 a=vec3(0.12,0.12,0.13);vec3 b=vec3(0.03,0.04,0.05);vec3 c=vec3(1.0,1.0,1.0);vec3 d=vec3(0.1,0.2,0.4);vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;col+=vec3(disp*0.015,disp*0.01,disp*0.02);float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);col+=hi*0.08;vec3 base=vec3(0.05,0.05,0.06);col=mix(base,col,0.85);gl_FragColor=vec4(col,1.0);}';
+const FS_LIGHT='precision highp float;uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float noise(vec2 p){vec2 i=floor(p),f=fract(p);float a=hash(i),b=hash(i+vec2(1,0));float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));vec2 u=f*f*(3.0-2.0*f);return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;}float fbm(vec2 p){float v=0.0,a=0.5;mat2 m=mat2(0.80,0.60,-0.60,0.80);for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}return v;}void main(){vec2 uv=gl_FragCoord.xy/u_resolution.xy;vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;vec2 md=p-m;float dl=length(md);p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));float f=fbm(p*2.2+r*1.5);vec3 silverDark=vec3(0.86,0.85,0.84);vec3 paper=vec3(0.955,0.945,0.925);vec3 col=mix(silverDark,paper,f);float ph=r.x*2.2+u_time*0.35;col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;float hl=smoothstep(0.48,0.92,f);col+=hl*0.06;gl_FragColor=vec4(col,1.0);}';
+
+(function(){
+  var mouse={x:0.5,y:0.5};
+  window.addEventListener('mousemove',function(e){mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+  function bootGL(id,fs){
+    var c=document.getElementById(id);
+    var gl=c.getContext('webgl',{alpha:false,antialias:true});
+    if(!gl)return function(){};
+    function mk(t,s){var sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh}
+    var p=gl.createProgram();
+    gl.attachShader(p,mk(gl.VERTEX_SHADER,VS));
+    gl.attachShader(p,mk(gl.FRAGMENT_SHADER,fs));
+    gl.linkProgram(p);gl.useProgram(p);
+    var b=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+    var pos=gl.getAttribLocation(p,'position');
+    gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+    var lR=gl.getUniformLocation(p,'u_resolution');
+    var lT=gl.getUniformLocation(p,'u_time');
+    var lM=gl.getUniformLocation(p,'u_mouse');
+    function resize(){var d=Math.min(window.devicePixelRatio||1,2);c.width=innerWidth*d;c.height=innerHeight*d;gl.viewport(0,0,c.width,c.height)}
+    window.addEventListener('resize',resize);resize();
+    return function(t){gl.uniform2f(lR,c.width,c.height);gl.uniform1f(lT,t);gl.uniform2f(lM,mouse.x,1-mouse.y);gl.drawArrays(gl.TRIANGLES,0,6)}
+  }
+
+  var dD=null,dL=null,raf=0,t0=Date.now();
+  function start(){
+    if(!dD)dD=bootGL('bg-dark',FS_DARK);
+    if(!dL)dL=bootGL('bg-light',FS_LIGHT);
+    t0=Date.now();
+    function loop(){var t=(Date.now()-t0)/1000;dD(t);dL(t);raf=requestAnimationFrame(loop)}
+    raf=requestAnimationFrame(loop)
+  }
+  start();
+
+  // ======== Navigation ========
+  var deck=document.getElementById('deck');
+  var slides=deck.querySelectorAll('.slide');
+  var total=slides.length;
+  deck.style.width=(total*100)+'vw';
+  var nav=document.getElementById('nav');
+  var idx=0,lock=false;
+
+  slides.forEach(function(s,i){
+    var b=document.createElement('button');
+    b.className='dot';b.dataset.i=i;
+    b.setAttribute('aria-label','Page '+(i+1));
+    b.addEventListener('click',function(){go(i)});
+    nav.appendChild(b)
+  });
+
+  function go(n){
+    if(lock)return;
+    idx=Math.max(0,Math.min(total-1,n));
+    window.__currentSlideIndex=idx;
+    deck.style.transform='translateX('+(-idx*100)+'vw)';
+    var dots=nav.querySelectorAll('.dot');
+    dots.forEach(function(d,i){d.classList.toggle('active',i===idx)});
+    var el=slides[idx];
+    var th=el.classList.contains('light')?'light':'dark';
+    document.body.classList.toggle('light-bg',th==='light');
+    lock=true;setTimeout(function(){lock=false},700)
+  }
+
+  // Keyboard
+  window.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      e.preventDefault();
+      if(window.__toggleOverview)window.__toggleOverview();
+      return
+    }
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+      e.preventDefault();
+      go(idx+1)
+    }
+    if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp'){
+      e.preventDefault();
+      go(idx-1)
+    }
+    if(e.key==='Home'){e.preventDefault();go(0)}
+    if(e.key==='End'){e.preventDefault();go(total-1)}
+  });
+
+  // Wheel
+  var wAcc=0,wTO=null;
+  window.addEventListener('wheel',function(e){
+    wAcc+=e.deltaY+e.deltaX;
+    if(Math.abs(wAcc)>50){go(idx+(wAcc>0?1:-1));wAcc=0}
+    clearTimeout(wTO);wTO=setTimeout(function(){wAcc=0},150)
+  },{passive:true});
+
+  // Touch
+  var tx=0,ty=0;
+  window.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+  window.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-tx;
+    var dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(idx+(dx<0?1:-1))
+  },{passive:true});
+
+  // ESC Overview
+  var ov=document.createElement('div');
+  ov.id='overview';
+  ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(10,10,11,.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+  document.body.appendChild(ov);
+  var ovOn=false;
+  function toggleOverview(){
+    ovOn=!ovOn;
+    if(!ovOn){ov.style.display='none';return}
+    ov.innerHTML='';
+    var grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+    slides.forEach(function(s,i){
+      var card=document.createElement('div');
+      card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(241,239,234,.8)':'rgba(241,239,234,.15)')
+      card.onclick=function(){toggleOverview();go(i)};
+      var wrap=document.createElement('div');
+      wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'#f1efea':'#0a0a0b');
+      var clone=s.cloneNode(true);
+      clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+      wrap.appendChild(clone);
+      var label=document.createElement('div');
+      label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;color:#f1efea;opacity:.7';
+      label.textContent=(i+1)+' / '+total;
+      card.appendChild(wrap);card.appendChild(label);grid.appendChild(card)
+    });
+    ov.appendChild(grid);ov.style.display='block'
+  }
+  window.__toggleOverview=toggleOverview;
+
+  go(0)
+})();
+</script>
+
+<script type="module">
+try{
+  var m=await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+  var animate=m.animate,stagger=m.stagger;
+  document.body.classList.add('motion-ready');
+  var EASE=[.22,1,.36,1];
+  var slides=document.querySelectorAll('.slide');
+
+  window.__playSlide=function(i){
+    var slide=slides[i];if(!slide)return;
+    slide.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='';el.style.transform=''});
+    var all=[].slice.call(slide.querySelectorAll('[data-anim]'));
+    if(!all.length)return;
+    var recipe=slide.dataset.animate||(slide.classList.contains('hero')?'hero':'cascade');
+    if(recipe==='hero')animate(all,{opacity:[0,1],y:[14,0]},{duration:.9,delay:stagger(.16,{start:.2}),easing:EASE});
+    else animate(all,{opacity:[0,1],y:[16,0]},{duration:.75,delay:stagger(.1,{start:.15}),easing:EASE})
+  };
+
+  // Hook into go() to trigger playSlide
+  var origGo=void 0;
+  // We override the go function by patching - use a MutationObserver-like approach
+  // Actually just hook into the keydown/wheel by calling playSlide after go
+  var _deck=document.getElementById('deck');
+  var observer=new MutationObserver(function(mutations){
+    mutations.forEach(function(mut){
+      if(mut.attributeName==='style'||mut.type==='attributes'){
+        var idx=window.__currentSlideIndex;
+        if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+      }
+    })
+  });
+  // Simpler: just trigger on navigation
+  var navDots=document.getElementById('nav');
+  if(navDots){
+    var dotObserver=new MutationObserver(function(){
+      var idx=window.__currentSlideIndex;
+      if(typeof idx==='number')setTimeout(function(){window.__playSlide(idx)},500)
+    });
+    dotObserver.observe(navDots,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})
+  }
+  // Play first slide
+  setTimeout(function(){window.__playSlide(0)},100)
+}catch(e){
+  console.warn('[motion] CDN failed, disabling animations');
+  document.querySelectorAll('[data-anim]').forEach(function(el){el.style.opacity='1';el.style.transform='none'})
+}
+</script>
+</body>
+</html>
