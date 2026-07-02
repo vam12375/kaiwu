@@ -53,6 +53,17 @@ Fetched from the backend and stored in React state:
 - external skills from `/api/skills`
 - uploaded files from `/api/uploaded-files`
 
+### Skill Library State
+
+`useSkillLibrary()` owns the usable skill-library workflow:
+
+- Fetch repository-backed external skills through `src/api/skills.ts`.
+- Merge external skills with static market skills from `data.ts`.
+- Persist user-level installed, enabled, and custom skills in `localStorage`.
+- Expose derived `skillItems`, `installedSkillIds`, `enabledSkillIds`, search query state, and install/manage/custom-skill actions to `App.tsx`.
+
+Keep skill install/manage behavior out of `MainStage.tsx` and `AppModals.tsx`; those components should render state and call hook actions passed from `App.tsx`.
+
 ---
 
 ## Single Owner Rules
