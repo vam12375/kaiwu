@@ -1,14 +1,40 @@
-# 环境变量（含API密钥）
+# 环境变量（含 API 密钥）
 .env
+.env.*
+!.env.example
+!**/.env.example
 
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.venv/
+venv/
+env/
 
-# Node
+# Node / Vite
 node_modules/
 dist/
+build/
+.vite/
+.turbo/
+.next/
+.npm/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
 
 # IDE
 .vscode/
@@ -18,5 +44,29 @@ dist/
 .DS_Store
 Thumbs.db
 
-# 对话数据（用户隐私）
+# 日志与临时文件
+logs/
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# 本地应用数据与生成产物
 conversations/
+kaiwuback/conversations/
+kaiwuback/project-files/
+kaiwuback/project-images/
+
+# Trellis / Codex 本地运行状态
+.codex/
+.trellis/.developer
+.trellis/.current-task
+.trellis/.runtime/
+.trellis/.ralph-state.json
+.trellis/.agent-log
+.trellis/.session-id
+.trellis/.plan-log
+.trellis/*.tmp
+.trellis/*.new
+.trellis/.backup-*
