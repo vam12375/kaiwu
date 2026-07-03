@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Use frontend quality checklist and build verification when checking the change."}
+{"file": ".trellis/spec/guides/index.md", "reason": "Shared checklist for avoiding unnecessary scope expansion."}
