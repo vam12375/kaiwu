@@ -1,13 +1,158 @@
-"""文件管理与图片服务路由 —— 从 main.py 抽取"""
 import base64
-from pathlib import Path
+import json
+import re
+import shutil
+from binascii import Error as BinasciiError
 from datetime import datetime
 from urllib.parse import quote
 
-from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
+from fastapi import Request
+from fastapi.responses import JSONResponse, FileResponse
 from starlette.responses import Response
 
 from server.config import IMG_STORE, PROJECT_LIB
+
+PROJECT_FOLDER_META = PROJECT_LIB / ".folder-meta.json"
+PROJECT_FILE_META = PROJECT_LIB / ".file-meta.json"
+PROJECT_FOLDER_STATE = PROJECT_LIB / ".folder-state.json"
+VIRTUAL_PROJECT_FOLDERS = {"最近文件"}
+DEFAULT_PROJECT_FOLDERS = {"编程文件库", "AI 对话产出", "创业资料", "产品设计", "营销素材"}
+VIRTUAL_LIBRARY_FOLDERS = {"图片库", "视频库"}
+INVALID_NAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+def _read_folder_meta() -> dict[str, str]:
+    if not PROJECT_FOLDER_META.exists():
+        return {}
+    try:
+        data = json.loads(PROJECT_FOLDER_META.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return {}
+        return {str(key): str(value or "") for key, value in data.items()}
+    except Exception as e:
+        print(f"[FILE] Folder metadata read failed: {str(e)[:120]}", flush=True)
+        return {}
+
+
+def _write_folder_meta(meta: dict[str, str]) -> None:
+    PROJECT_FOLDER_META.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _read_file_meta() -> dict[str, dict]:
+    if not PROJECT_FILE_META.exists():
+        return {}
+    try:
+        data = json.loads(PROJECT_FILE_META.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return {}
+        return {str(key): value for key, value in data.items() if isinstance(value, dict)}
+    except Exception as e:
+        print(f"[FILE] File metadata read failed: {str(e)[:120]}", flush=True)
+        return {}
+
+
+def _write_file_meta(meta: dict[str, dict]) -> None:
+    PROJECT_FILE_META.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _read_folder_state() -> dict[str, list[str]]:
+    if not PROJECT_FOLDER_STATE.exists():
+        return {"hidden": []}
+    try:
+        data = json.loads(PROJECT_FOLDER_STATE.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return {"hidden": []}
+        hidden = data.get("hidden", [])
+        if not isinstance(hidden, list):
+            hidden = []
+        return {"hidden": [str(name) for name in hidden]}
+    except Exception as e:
+        print(f"[FILE] Folder state read failed: {str(e)[:120]}", flush=True)
+        return {"hidden": []}
+
+
+def _write_folder_state(state: dict[str, list[str]]) -> None:
+    PROJECT_FOLDER_STATE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _hide_virtual_folder(folder_name: str) -> None:
+    state = _read_folder_state()
+    hidden = set(state.get("hidden", []))
+    hidden.add(folder_name)
+    _write_folder_state({"hidden": sorted(hidden)})
+
+
+def _show_folder(folder_name: str) -> None:
+    state = _read_folder_state()
+    hidden = set(state.get("hidden", []))
+    if folder_name not in hidden:
+        return
+    hidden.remove(folder_name)
+    _write_folder_state({"hidden": sorted(hidden)})
+
+
+def _validate_leaf_name(name: str, label: str) -> tuple[str | None, JSONResponse | None]:
+    clean_name = (name or "").strip()
+    if not clean_name:
+        return None, JSONResponse({"error": f"{label} required"}, status_code=400)
+    if clean_name in {".", ".."} or "/" in clean_name or "\\" in clean_name:
+        return None, JSONResponse({"error": f"invalid {label}"}, status_code=400)
+    if INVALID_NAME_CHARS.search(clean_name):
+        return None, JSONResponse({"error": f"invalid {label}"}, status_code=400)
+    return clean_name, None
+
+
+def _resolve_project_folder(folder_name: str):
+    root = PROJECT_LIB.resolve()
+    folder_path = (PROJECT_LIB / folder_name).resolve()
+    if folder_path == root or root not in folder_path.parents:
+        return None
+    return folder_path
+
+
+def _file_meta_key(folder_name: str, filename: str) -> str:
+    return f"{folder_name}/{filename}"
+
+
+def _infer_file_source(folder_name: str, filename: str, meta: dict[str, dict]) -> str:
+    source = meta.get(_file_meta_key(folder_name, filename), {}).get("source")
+    if source:
+        return str(source)
+    if folder_name == "AI 对话产出":
+        return "ai"
+    if folder_name not in DEFAULT_PROJECT_FOLDERS:
+        return "manual_upload"
+    return "system"
+
+
+def _project_file_entry(folder_name: str, f, meta: dict[str, dict] | None = None):
+    file_meta = meta or {}
+    return {
+        "name": f.name,
+        "folder": folder_name,
+        "type": f.suffix.upper().lstrip(".") or "FILE",
+        "size": f.stat().st_size,
+        "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
+        "url": f"http://localhost:5001/project-files/{quote(folder_name, safe='')}/{quote(f.name, safe='')}",
+        "source": _infer_file_source(folder_name, f.name, file_meta),
+    }
+
+
+def _unique_file_path(folder_path, filename: str):
+    candidate = folder_path / filename
+    stem = candidate.stem
+    suffix = candidate.suffix
+    index = 1
+    while candidate.exists():
+        candidate = folder_path / f"{stem}_{index}{suffix}"
+        index += 1
+    return candidate
+
+
+def _count_project_images() -> int:
+    if not IMG_STORE.exists():
+        return 0
+    return sum(1 for f in IMG_STORE.iterdir() if f.is_file() and f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'))
 
 
 def register_file_routes(app):
@@ -35,25 +180,217 @@ def register_file_routes(app):
         return JSONResponse({"error": "not found"}, status_code=404)
 
     @app.get("/api/project-files")
-    def api_list_project_files():
+    def api_list_project_files(folder: str = ""):
         files = []
+        meta = _read_file_meta()
+        requested_folder = folder.strip()
         if PROJECT_LIB.exists():
-            for folder in PROJECT_LIB.iterdir():
-                if folder.is_dir():
-                    for f in sorted(folder.glob("*"), key=lambda x: x.stat().st_mtime, reverse=True):
-                        if f.suffix.lower() in ('.html', '.pdf', '.pptx', '.txt'):
-                            files.append({
-                                "name": f.name, "folder": folder.name,
-                                "type": f.suffix.upper().lstrip('.'),
-                                "size": f.stat().st_size,
-                                "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime('%Y-%m-%d %H:%M'),
-                                "url": f"http://localhost:5001/project-files/{quote(folder.name)}/{quote(f.name)}",
-                            })
-        return files[:100]
+            folders = []
+            if requested_folder:
+                folder_name, folder_error = _validate_leaf_name(requested_folder, "folder")
+                if folder_error:
+                    return folder_error
+                folder_path = _resolve_project_folder(folder_name)
+                if folder_path is None or not folder_path.is_dir():
+                    return JSONResponse({"error": "folder not found"}, status_code=404)
+                folders = [folder_path]
+            else:
+                folders = [item for item in PROJECT_LIB.iterdir() if item.is_dir()]
+
+            for folder_path in folders:
+                if folder_path.name.startswith("."):
+                    continue
+                for f in sorted(folder_path.glob("*"), key=lambda x: x.stat().st_mtime, reverse=True):
+                    if f.is_file() and not f.name.startswith("."):
+                        files.append((f.stat().st_mtime, _project_file_entry(folder_path.name, f, meta)))
+        files.sort(key=lambda item: item[0], reverse=True)
+        return [entry for _, entry in files]
+
+    @app.get("/api/project-folders")
+    def api_list_project_folders():
+        folders = []
+        meta = _read_folder_meta()
+        hidden_folders = set(_read_folder_state().get("hidden", []))
+        if PROJECT_LIB.exists():
+            for folder in sorted(PROJECT_LIB.iterdir(), key=lambda x: x.name):
+                if not folder.is_dir() or folder.name.startswith(".") or folder.name in VIRTUAL_PROJECT_FOLDERS or folder.name in hidden_folders:
+                    continue
+                file_count = sum(1 for f in folder.iterdir() if f.is_file() and not f.name.startswith("."))
+                folders.append({
+                    "name": folder.name,
+                    "desc": meta.get(folder.name, ""),
+                    "count": f"{file_count} 个文件",
+                    "modified": datetime.fromtimestamp(folder.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
+                    "deletable": True,
+                })
+        folder_names = {folder["name"] for folder in folders}
+        if "图片库" not in hidden_folders and "图片库" not in folder_names:
+            folders.append({
+                "name": "图片库",
+                "desc": "",
+                "count": f"{_count_project_images()} 个文件",
+                "modified": datetime.fromtimestamp(IMG_STORE.stat().st_mtime).strftime("%Y-%m-%d %H:%M") if IMG_STORE.exists() else "",
+                "deletable": True,
+            })
+        if "视频库" not in hidden_folders and "视频库" not in folder_names:
+            folders.append({
+                "name": "视频库",
+                "desc": "",
+                "count": "0 个文件",
+                "modified": "",
+                "deletable": True,
+            })
+        return folders
+
+    @app.post("/api/project-folders")
+    async def api_create_project_folder(request: Request):
+        data = await request.json()
+        folder_name, error = _validate_leaf_name(data.get("name", ""), "folder name")
+        if error:
+            return error
+        if folder_name in VIRTUAL_PROJECT_FOLDERS:
+            return JSONResponse({"error": "folder name is reserved"}, status_code=400)
+        folder_path = _resolve_project_folder(folder_name)
+        if folder_path is None:
+            return JSONResponse({"error": "invalid folder name"}, status_code=400)
+        if folder_path.exists():
+            return JSONResponse({"error": "folder already exists"}, status_code=409)
+
+        folder_path.mkdir(parents=True, exist_ok=False)
+        try:
+            _show_folder(folder_name)
+        except Exception as e:
+            print(f"[FILE] Folder state update failed: {str(e)[:120]}", flush=True)
+        desc = str(data.get("desc", "") or "").strip()
+        if desc:
+            meta = _read_folder_meta()
+            meta[folder_name] = desc[:200]
+            try:
+                _write_folder_meta(meta)
+            except Exception as e:
+                print(f"[FILE] Folder metadata write failed: {str(e)[:120]}", flush=True)
+        print(f"[FILE] Folder created: {folder_name}", flush=True)
+        return {
+            "status": "ok",
+            "folder": {
+                "name": folder_name,
+                "desc": desc[:200],
+                "count": "0 个文件",
+                "modified": datetime.fromtimestamp(folder_path.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
+            },
+        }
+
+    @app.delete("/api/project-folders/{folder:path}")
+    def api_delete_project_folder(folder: str):
+        folder_name, error = _validate_leaf_name(folder, "folder name")
+        if error:
+            return error
+
+        folder_path = _resolve_project_folder(folder_name)
+        deleted_physical_folder = False
+        if folder_path is not None and folder_path.is_dir():
+            try:
+                shutil.rmtree(folder_path)
+                deleted_physical_folder = True
+            except Exception as e:
+                print(f"[FILE] Folder delete failed: {str(e)[:120]}", flush=True)
+                return JSONResponse({"error": "delete failed"}, status_code=500)
+        elif folder_name == "图片库":
+            try:
+                if IMG_STORE.exists():
+                    shutil.rmtree(IMG_STORE)
+                IMG_STORE.mkdir(parents=True, exist_ok=True)
+                _hide_virtual_folder(folder_name)
+            except Exception as e:
+                print(f"[FILE] Image library delete failed: {str(e)[:120]}", flush=True)
+                return JSONResponse({"error": "delete failed"}, status_code=500)
+        elif folder_name == "视频库":
+            try:
+                _hide_virtual_folder(folder_name)
+            except Exception as e:
+                print(f"[FILE] Video library delete failed: {str(e)[:120]}", flush=True)
+                return JSONResponse({"error": "delete failed"}, status_code=500)
+        else:
+            return JSONResponse({"error": "folder not found"}, status_code=404)
+
+        if deleted_physical_folder and folder_name in VIRTUAL_LIBRARY_FOLDERS:
+            try:
+                _hide_virtual_folder(folder_name)
+            except Exception as e:
+                print(f"[FILE] Folder state cleanup failed: {str(e)[:120]}", flush=True)
+
+        folder_meta = _read_folder_meta()
+        if folder_name in folder_meta:
+            folder_meta.pop(folder_name, None)
+            try:
+                _write_folder_meta(folder_meta)
+            except Exception as e:
+                print(f"[FILE] Folder metadata cleanup failed: {str(e)[:120]}", flush=True)
+
+        file_meta = _read_file_meta()
+        file_prefix = f"{folder_name}/"
+        cleaned_file_meta = {key: value for key, value in file_meta.items() if not key.startswith(file_prefix)}
+        if len(cleaned_file_meta) != len(file_meta):
+            try:
+                _write_file_meta(cleaned_file_meta)
+            except Exception as e:
+                print(f"[FILE] File metadata cleanup failed: {str(e)[:120]}", flush=True)
+
+        print(f"[FILE] Folder deleted: {folder_name}", flush=True)
+        return {"status": "ok", "folder": folder_name}
+
+    @app.post("/api/project-library/upload")
+    async def api_upload_project_library_file(request: Request):
+        data = await request.json()
+        folder_name, folder_error = _validate_leaf_name(data.get("folder", ""), "folder")
+        if folder_error:
+            return folder_error
+        filename, filename_error = _validate_leaf_name(data.get("filename", ""), "filename")
+        if filename_error:
+            return filename_error
+
+        folder_path = _resolve_project_folder(folder_name)
+        if folder_path is None or not folder_path.is_dir():
+            return JSONResponse({"error": "folder not found"}, status_code=404)
+
+        content = data.get("content", "")
+        if data.get("base64"):
+            try:
+                raw = base64.b64decode(str(content).split(",")[-1], validate=True)
+            except (BinasciiError, ValueError):
+                return JSONResponse({"error": "invalid file content"}, status_code=400)
+        else:
+            raw = str(content).encode("utf-8")
+
+        if not raw:
+            return JSONResponse({"error": "content required"}, status_code=400)
+
+        file_path = _unique_file_path(folder_path, filename)
+        file_path.write_bytes(raw)
+        meta = _read_file_meta()
+        meta[_file_meta_key(folder_name, file_path.name)] = {
+            "source": "manual_upload",
+            "uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        }
+        try:
+            _write_file_meta(meta)
+        except Exception as e:
+            print(f"[FILE] File metadata write failed: {str(e)[:120]}", flush=True)
+        print(f"[FILE] Uploaded: {folder_name}/{file_path.name}", flush=True)
+        return {"status": "ok", "file": _project_file_entry(folder_name, file_path, meta)}
 
     @app.get("/project-files/{folder:path}/{filename:path}")
     def serve_project_file(folder: str, filename: str):
-        path = PROJECT_LIB / folder / filename
+        folder_name, folder_error = _validate_leaf_name(folder, "folder")
+        if folder_error:
+            return folder_error
+        safe_filename, filename_error = _validate_leaf_name(filename, "filename")
+        if filename_error:
+            return filename_error
+        folder_path = _resolve_project_folder(folder_name)
+        if folder_path is None:
+            return JSONResponse({"error": "not found"}, status_code=404)
+        path = folder_path / safe_filename
         if path.exists():
             return FileResponse(path)
         return JSONResponse({"error": "not found"}, status_code=404)
@@ -75,7 +412,7 @@ def register_file_routes(app):
 
     # ── 文件上传 API ──
     @app.post("/api/upload-file")
-    async def api_upload_file(request):
+    async def api_upload_file(request: Request):
         from server.intent.recognizer import add_uploaded_file, _uploaded_files
         data = await request.json()
         filename = data.get('filename', 'unknown')

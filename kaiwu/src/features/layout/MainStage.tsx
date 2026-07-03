@@ -1,6 +1,8 @@
 ﻿import { ArrowUp, Bot, Brain, ChevronDown, ChevronRight, Cpu, FileStack, HelpCircle, Search, Settings2, UserRound } from 'lucide-react';
 
-import { directions, installedSkills, modelOptions, projectFolders, projectLibraryFiles, settingsSections, skillCategories, skillMarketItems } from '../../data';
+import { useEffect, useState } from 'react';
+import { Check, Trash2 } from 'lucide-react';
+import { directions, modelOptions, settingsSections } from '../../data';
 import { ConversationPanel } from '../chat/ConversationPanel';
 import { SkillLibraryPage } from './SkillLibraryPage';
 import { BrandHeader } from '../home/BrandHeader';
@@ -46,11 +48,15 @@ export function MainStage(props: MainStageProps) {
     nodeStatus,
     openPicker,
     openProjectFile,
+    deleteProjectFolders,
+    projectFolders,
     projectImages,
+    projectSearchQuery,
     projectView,
     quickSkills,
     ratioOpen,
     realProjectFiles,
+    refreshProjectFiles,
     referenceImageIndexes,
     removeUploadedFile,
     resetConversation,
@@ -74,10 +80,10 @@ export function MainStage(props: MainStageProps) {
     setOpenPicker,
     setPreviewImageIndex,
     setProjectModal,
+    setProjectSearchQuery,
     setProjectView,
     setRatioOpen,
     setReferenceImageIndexes,
-    setSelectedFileIndex,
     setSelectedFolderIndex,
     setSkillModal,
     setSkillModalData,
@@ -102,6 +108,59 @@ export function MainStage(props: MainStageProps) {
     selectedCardImage,
     setSelectedCardImage,
   } = props;
+
+  const [folderEditMode, setFolderEditMode] = useState(false);
+  const [selectedProjectFolderNames, setSelectedProjectFolderNames] = useState<string[]>([]);
+  const activeProjectFolder = projectFolders[selectedFolderIndex] || projectFolders[0];
+  const projectQuery = projectSearchQuery.trim().toLocaleLowerCase();
+  const matchesProjectName = (name: string) => !projectQuery || name.toLocaleLowerCase().includes(projectQuery);
+  const visibleProjectFolders = projectFolders.filter((folder: { name: string }) => matchesProjectName(folder.name));
+  const visibleProjectFolderNames = visibleProjectFolders.map((folder: { name: string }) => folder.name);
+  const visibleProjectFolderKey = visibleProjectFolderNames.join('|');
+  const visibleRealProjectFiles = realProjectFiles
+    .filter((file: { folder: string; name: string; source?: string }) => {
+      if (projectView === 'folder') return activeProjectFolder && file.folder === activeProjectFolder.name;
+      if (projectView === 'ai') return file.source === 'ai' || file.folder === 'AI 对话产出';
+      if (projectView === 'uploaded') return file.source === 'manual_upload';
+      return true;
+    })
+    .filter((file: { name: string }) => matchesProjectName(file.name));
+  const visibleProjectImages = projectImages.filter((image: { name: string }) => matchesProjectName(image.name));
+  const getProjectFileSourceLabel = (file: { source?: string; folder: string }) => {
+    if (file.source === 'manual_upload') return '手动上传';
+    if (file.source === 'ai' || file.folder === 'AI 对话产出') return 'AI 对话产出';
+    return '项目文件';
+  };
+  const toggleProjectFolderSelection = (folderName: string) => {
+    setSelectedProjectFolderNames((current) => (
+      current.includes(folderName)
+        ? current.filter((name) => name !== folderName)
+        : [...current, folderName]
+    ));
+  };
+  const cancelProjectFolderEdit = () => {
+    setFolderEditMode(false);
+    setSelectedProjectFolderNames([]);
+  };
+  const handleDeleteSelectedProjectFolders = async () => {
+    if (!deleteProjectFolders || selectedProjectFolderNames.length === 0) return;
+    const deleted = await deleteProjectFolders(selectedProjectFolderNames);
+    if (!deleted) return;
+    cancelProjectFolderEdit();
+  };
+
+  useEffect(() => {
+    if (projectView !== 'home') {
+      cancelProjectFolderEdit();
+    }
+  }, [projectView]);
+
+  useEffect(() => {
+    setSelectedProjectFolderNames((current) => {
+      const next = current.filter((name) => visibleProjectFolderNames.includes(name));
+      return next.length === current.length ? current : next;
+    });
+  }, [visibleProjectFolderKey]);
 
   return (
             <main className="main-stage">
@@ -231,7 +290,7 @@ export function MainStage(props: MainStageProps) {
                   <header className="library-header">
                     <div>
                       <div className="settings-kicker">Project Files</div>
-                      <h2>{projectView === 'home' ? '项目库' : projectView === 'folder' ? projectFolders[selectedFolderIndex].name : projectView === 'ai' ? 'AI 产出文件' : '我上传的文件'}</h2>
+                      <h2>{projectView === 'home' ? '项目库' : projectView === 'folder' ? activeProjectFolder?.name : projectView === 'ai' ? 'AI 产出文件' : '我上传的文件'}</h2>
                       <p>{projectView === 'home' ? '集中管理 AI 对话产出的文件和你在项目中创建、上传的资料。' : '管理项目文件、文件夹和资料来源。'}</p>
                     </div>
                     <div className="project-actions">
@@ -240,22 +299,136 @@ export function MainStage(props: MainStageProps) {
                     </div>
                   </header>
                   <div className="library-toolbar">
-                    <div className="library-search"><Search size={15} /><span>搜索文件夹、文档、表格、AI 产出...</span></div>
+                    <label className="library-search">
+                      <Search size={15} />
+                      <input
+                        value={projectSearchQuery}
+                        onChange={(event) => setProjectSearchQuery(event.target.value)}
+                        placeholder="按照名称搜索文件夹或文件"
+                      />
+                    </label>
                     <div className="library-tabs"><button className={projectView === 'home' ? 'active' : ''} onClick={() => setProjectView('home')} type="button">全部文件</button><button className={projectView === 'ai' ? 'active' : ''} onClick={() => setProjectView('ai')} type="button">AI 产出</button><button className={projectView === 'uploaded' ? 'active' : ''} onClick={() => setProjectView('uploaded')} type="button">我上传的</button></div>
                   </div>
-                  {projectView === 'home' && <section className="project-section"><div className="section-title-row"><h3>文件夹</h3><span>点击文件夹弹窗查看文件</span></div><div className="folder-grid">{projectFolders.map((folder, index) => (<button key={folder.name} className={`folder-card tone-${folder.tone}`} onClick={() => { setSelectedFolderIndex(index); setProjectModal('folder-detail'); }} type="button"><div className="folder-icon">▣</div><div><h3>{folder.name}</h3><p>{folder.desc}</p><span>{(() => { const c = folder.name === '图片库' ? projectImages.length : realProjectFiles.filter((f: { folder: string }) => f.folder === folder.name).length; return `${c} 个文件`; })()}</span></div></button>))}</div></section>}
-                  <section className="project-section"><div className="section-title-row"><h3>{projectView === 'ai' ? 'AI 产出文件' : projectView === 'uploaded' ? '我上传的文件' : '最近文件'}</h3><span>点击文件弹窗查看详情</span></div><div className="file-table">
-                    {/* Real project files */}
-                    {realProjectFiles.length > 0 && realProjectFiles.map((file: { name: string; folder: string; type: string; modified: string; url: string }, i: number) => (
-                      <button key={`real-${i}`} className="file-row" onClick={() => openProjectFile(file)} type="button">
-                        <span style={{display:'inline-grid',placeItems:'center',borderRadius:'9px',color:'#334155',fontSize:'11px',fontWeight:700,background:'rgba(15,23,42,0.06)',height:'28px',padding:'0 8px',margin:'0 10px'}}>{file.type}</span>
-                        <span className="file-main"><strong>{file.name}</strong><small>{file.folder} · {file.modified}</small></span>
-                        <span className="file-updated">{file.modified}</span>
-                        <span className="file-action">查看</span>
-                      </button>
-                    ))}
-                    {projectLibraryFiles.filter((file) => projectView === 'ai' ? file.source.includes('AI') : projectView === 'uploaded' ? file.source.includes('上传') : true).map((file) => { const fileIndex = projectLibraryFiles.findIndex((item) => item.name === file.name); return (<button key={file.name} className="file-row" onClick={() => { setSelectedFileIndex(fileIndex); setProjectModal('file-detail'); }} type="button"><span className={`file-type tone-${file.tone}`}>{file.type}</span><span className="file-main"><strong>{file.name}</strong><small>{file.folder} · {file.source}</small></span><span className="file-updated">{file.updated}</span><span className="file-action">查看详情</span></button>); })}
-                  </div></section>
+                  {projectView === 'folder' && activeProjectFolder && (
+                    <section className="project-section folder-detail-panel">
+                      <button className="library-back-button" onClick={() => setProjectView('home')} type="button">返回项目库</button>
+                      <div className="section-title-row">
+                        <h3>{activeProjectFolder.name}</h3>
+                        <span>{activeProjectFolder.desc}</span>
+                      </div>
+                      {activeProjectFolder.name === '图片库' ? (
+                        visibleProjectImages.length > 0 ? (
+                          <div className="project-image-grid">
+                            {visibleProjectImages.map((img: { name: string; url: string; modified: string }) => (
+                              <a key={img.name} className="project-image-card" href={img.url} target="_blank" rel="noreferrer">
+                                <img src={img.url} alt={img.name} />
+                                <span>{img.modified}</span>
+                              </a>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="file-empty-state">暂无匹配图片</div>
+                        )
+                      ) : (
+                        <div className="file-table">
+                          {visibleRealProjectFiles.map((file: { name: string; folder: string; type: string; modified: string; url: string; source?: string }, i: number) => (
+                            <button key={`folder-real-${i}`} className="file-row" onClick={() => openProjectFile(file)} type="button">
+                              <span className="file-type tone-slate">{file.type}</span>
+                              <span className="file-main"><strong>{file.name}</strong><small>{file.folder} · {getProjectFileSourceLabel(file)}</small></span>
+                              <span className="file-updated">{file.modified}</span>
+                              <span className="file-action">查看</span>
+                            </button>
+                          ))}
+                          {visibleRealProjectFiles.length === 0 && <div className="file-empty-state">暂无匹配文件</div>}
+                        </div>
+                      )}
+                    </section>
+                  )}
+                  {projectView === 'home' && (
+                    <section className="project-section">
+                      <div className="section-title-row">
+                        <h3>文件夹</h3>
+                        <div className="folder-edit-toolbar">
+                          {folderEditMode ? (
+                            <>
+                              <button className="folder-edit-button" onClick={cancelProjectFolderEdit} type="button">取消</button>
+                              <button
+                                className="folder-delete-selected-button"
+                                disabled={selectedProjectFolderNames.length === 0}
+                                onClick={handleDeleteSelectedProjectFolders}
+                                type="button"
+                              >
+                                <Trash2 size={14} />
+                                删除所选{selectedProjectFolderNames.length > 0 ? `（${selectedProjectFolderNames.length}）` : ''}
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button className="folder-edit-button" onClick={() => setFolderEditMode(true)} type="button">编辑</button>
+                              <span>点击文件夹查看文件</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {visibleProjectFolders.length > 0 ? (
+                        <div className="folder-grid">
+                          {visibleProjectFolders.map((folder: { name: string; desc: string; tone: string; count?: string }, index: number) => {
+                            const folderIndex = projectFolders.findIndex((item: { name: string }) => item.name === folder.name);
+                            const count = folder.name === '图片库' ? `${projectImages.length} 个文件` : (folder.count || '0 个文件');
+                            const selected = selectedProjectFolderNames.includes(folder.name);
+                            return (
+                              <article key={folder.name} className={`folder-card tone-${folder.tone}${folderEditMode ? ' is-editing' : ''}${selected ? ' is-selected' : ''}`}>
+                                <button
+                                  className="folder-open-button"
+                                  onClick={() => {
+                                    if (folderEditMode) {
+                                      toggleProjectFolderSelection(folder.name);
+                                      return;
+                                    }
+                                    refreshProjectFiles?.(folder.name);
+                                    setSelectedFolderIndex(folderIndex);
+                                    setProjectView('folder');
+                                  }}
+                                  type="button"
+                                  aria-pressed={folderEditMode ? selected : undefined}
+                                >
+                                  {folderEditMode && (
+                                    <span className={selected ? 'folder-select-box selected' : 'folder-select-box'}>
+                                      {selected && <Check size={13} />}
+                                    </span>
+                                  )}
+                                  <div className="folder-icon">▣</div>
+                                  <div>
+                                    <h3>{folder.name}</h3>
+                                    <p>{folder.desc}</p>
+                                    <span>{count}</span>
+                                  </div>
+                                </button>
+                              </article>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="file-empty-state">没有匹配的文件夹</div>
+                      )}
+                    </section>
+                  )}
+                  {projectView !== 'folder' && (
+                    <section className="project-section">
+                      <div className="section-title-row"><h3>{projectView === 'ai' ? 'AI 产出文件' : projectView === 'uploaded' ? '我上传的文件' : '最近文件'}</h3><span>点击文件查看详情</span></div>
+                      <div className="file-table">
+                        {visibleRealProjectFiles.map((file: { name: string; folder: string; type: string; modified: string; url: string; source?: string }, i: number) => (
+                          <button key={`real-${i}`} className="file-row" onClick={() => openProjectFile(file)} type="button">
+                            <span className="file-type tone-slate">{file.type}</span>
+                            <span className="file-main"><strong>{file.name}</strong><small>{file.folder} · {getProjectFileSourceLabel(file)}</small></span>
+                            <span className="file-updated">{file.modified}</span>
+                            <span className="file-action">查看</span>
+                          </button>
+                        ))}
+                        {visibleRealProjectFiles.length === 0 && <div className="file-empty-state">暂无匹配文件</div>}
+                      </div>
+                    </section>
+                  )}
                 </section>
               ) : (
                 <>

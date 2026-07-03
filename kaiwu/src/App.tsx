@@ -64,7 +64,7 @@
  * =============================================================================
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type {
   ConvHistory,
@@ -78,13 +78,18 @@ import type {
   SkillCategory,
   PickerType,
   LibraryModalType,
+  ProjectFile,
+  ProjectFolder,
+  ProjectImage,
   SkillLibraryItem,
 } from './types';
 import {
   quickSkillsByDirection,
   modelOptions,
   heroText,
+  projectFolders as projectFolderTemplates,
 } from './data';
+import { deleteProjectFolder, fetchProjectFiles, fetchProjectFolders } from './api/projectFiles';
 import { AppSidebar } from './features/layout/AppSidebar';
 import { AppModals } from './features/layout/AppModals';
 import { MainStage } from './features/layout/MainStage';
@@ -92,6 +97,38 @@ import { type AgentMessage } from './hooks/agentEventReducer';
 import { useConversation } from './hooks/useConversation';
 import { useConversationTask, type ConversationTaskCacheEntry } from './hooks/useConversationTask';
 import { useSkillLibrary } from './hooks/useSkillLibrary';
+
+const projectFolderTones = ['blue', 'purple', 'green', 'amber', 'teal', 'rose', 'indigo', 'slate'];
+
+function mergeProjectFolders(serverFolders: Array<Omit<ProjectFolder, 'tone'>>): ProjectFolder[] {
+  const serverByName = new Map(serverFolders.map((folder) => [folder.name, folder]));
+  const templateByName = new Map(projectFolderTemplates.map((folder) => [folder.name, folder]));
+  const merged: ProjectFolder[] = projectFolderTemplates.flatMap((template) => {
+    const serverFolder = serverByName.get(template.name);
+    if (!serverFolder) return [];
+    return {
+      ...template,
+      count: serverFolder?.count || '0 个文件',
+      desc: serverFolder?.desc || template.desc,
+      deletable: true,
+      modified: serverFolder?.modified,
+    };
+  });
+
+  serverFolders.forEach((folder, index) => {
+    if (templateByName.has(folder.name)) return;
+    merged.push({
+      name: folder.name,
+      count: folder.count || '0 个文件',
+      desc: folder.desc || '自定义项目资料文件夹',
+      deletable: true,
+      tone: projectFolderTones[index % projectFolderTones.length],
+      modified: folder.modified,
+    });
+  });
+
+  return merged;
+}
 
 // =============================================================================
 // App Component
@@ -111,8 +148,8 @@ export function App() {
   const [activePage, setActivePage] = useState<SidebarPage>('home');
   const [projectView, setProjectView] = useState<ProjectView>('home');
   const [projectModal, setProjectModal] = useState<ProjectModal>(null);
+  const [projectSearchQuery, setProjectSearchQuery] = useState('');
   const [selectedFolderIndex, setSelectedFolderIndex] = useState(0);
-  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [skillView, setSkillView] = useState<SkillView>('market');
   const [skillModal, setSkillModal] = useState<SkillModal>(null);
   const [skillModalData, setSkillModalData] = useState<SkillLibraryItem | null>(null);
@@ -136,8 +173,9 @@ export function App() {
   const [convHistory, setConvHistory] = useState<ConvHistory[]>([]);
   const [currentConvId, setCurrentConvId] = useState<number | null>(null);
   const [externalSkills, setExternalSkills] = useState<{ id: string; name: string; description: string; full_content: string }[]>([]);
-  const [projectImages, setProjectImages] = useState<{ name: string; url: string; size: number; modified: string }[]>([]);
-  const [realProjectFiles, setRealProjectFiles] = useState<{ name: string; folder: string; type: string; size: number; modified: string; url: string }[]>([]);
+  const [projectFolders, setProjectFolders] = useState<ProjectFolder[]>(projectFolderTemplates);
+  const [projectImages, setProjectImages] = useState<ProjectImage[]>([]);
+  const [realProjectFiles, setRealProjectFiles] = useState<ProjectFile[]>([]);
   const [codingPreviewUrl, setCodingPreviewUrl] = useState<string>('');
   const [selectedCardImage, setSelectedCardImage] = useState<string | undefined>();
   const [imageRatio, setImageRatio] = useState<string>('1:1');
@@ -295,6 +333,53 @@ export function App() {
       .then(r => r.json()).then(() => setUploadedFiles(prev => prev.filter(f => f.name !== name))).catch(()=>{});
   };
 
+  const refreshProjectFolders = useCallback(() => {
+    return fetchProjectFolders()
+      .then((folders) => setProjectFolders(mergeProjectFolders(folders)))
+      .catch(() => {});
+  }, []);
+
+  const refreshProjectFiles = useCallback((folder?: string) => {
+    return fetchProjectFiles(folder)
+      .then((data) => {
+        if (!folder) {
+          setRealProjectFiles(data);
+          return;
+        }
+        setRealProjectFiles((current) => {
+          const otherFiles = current.filter((file) => file.folder !== folder);
+          return [...data, ...otherFiles];
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleDeleteProjectFolders = useCallback(async (folderNames: string | string[]) => {
+    const names = Array.isArray(folderNames) ? folderNames : [folderNames];
+    const deletableNames = names.filter((folderName) => projectFolders.some((item) => item.name === folderName));
+    if (deletableNames.length === 0) return false;
+
+    const folderLabel = deletableNames.length === 1 ? `“${deletableNames[0]}”` : `${deletableNames.length} 个`;
+    const confirmed = window.confirm(`确定删除${folderLabel}文件夹吗？文件夹内的文件也会一起删除。`);
+    if (!confirmed) return false;
+
+    try {
+      await Promise.all(deletableNames.map((folderName) => deleteProjectFolder(folderName)));
+      setRealProjectFiles((current) => current.filter((file) => !deletableNames.includes(file.folder)));
+      if (deletableNames.includes('图片库')) {
+        setProjectImages([]);
+      }
+      setProjectView('home');
+      setSelectedFolderIndex(0);
+      await refreshProjectFolders();
+      await refreshProjectFiles();
+      return true;
+    } catch {
+      window.alert('删除失败，请稍后重试');
+      return false;
+    }
+  }, [projectFolders, refreshProjectFiles, refreshProjectFolders]);
+
   // Load project images
   useEffect(() => {
     fetch('http://localhost:5001/api/project-images')
@@ -305,11 +390,9 @@ export function App() {
 
   // Load real project files
   useEffect(() => {
-    fetch('http://localhost:5001/api/project-files')
-      .then((r) => r.json())
-      .then((data) => setRealProjectFiles(data))
-      .catch(() => {});
-  }, [messages.length, projectModal]);
+    refreshProjectFiles();
+    refreshProjectFolders();
+  }, [messages.length, refreshProjectFiles, refreshProjectFolders]);
 
   // Typing effect for hero text
   useEffect(() => {
@@ -421,11 +504,15 @@ export function App() {
           nodeStatus={nodeStatus}
           openPicker={openPicker}
           openProjectFile={openProjectFile}
+          deleteProjectFolders={handleDeleteProjectFolders}
+          projectFolders={projectFolders}
           projectImages={projectImages}
+          projectSearchQuery={projectSearchQuery}
           projectView={projectView}
           quickSkills={quickSkills}
           ratioOpen={ratioOpen}
           realProjectFiles={realProjectFiles}
+          refreshProjectFiles={refreshProjectFiles}
           referenceImageIndexes={referenceImageIndexes}
           removeUploadedFile={removeUploadedFile}
           resetConversation={resetConversation}
@@ -449,10 +536,10 @@ export function App() {
           setOpenPicker={setOpenPicker}
           setPreviewImageIndex={setPreviewImageIndex}
           setProjectModal={setProjectModal}
+          setProjectSearchQuery={setProjectSearchQuery}
           setProjectView={setProjectView}
           setRatioOpen={setRatioOpen}
           setReferenceImageIndexes={setReferenceImageIndexes}
-          setSelectedFileIndex={setSelectedFileIndex}
           setSelectedFolderIndex={setSelectedFolderIndex}
           setSkillModal={setSkillModal}
           setSkillModalData={setSkillModalData}
@@ -485,15 +572,14 @@ export function App() {
         installSkill={installSkill}
         installedSkillIds={installedSkillIds}
         libraryModal={libraryModal}
-        openProjectFile={openProjectFile}
         previewImageIndex={previewImageIndex}
-        projectImages={projectImages}
+        projectFolders={projectFolders}
         projectModal={projectModal}
         realProjectFiles={realProjectFiles}
         rechargeModalOpen={rechargeModalOpen}
         rechargeView={rechargeView}
-        selectedFileIndex={selectedFileIndex}
-        selectedFolderIndex={selectedFolderIndex}
+        refreshProjectFiles={refreshProjectFiles}
+        refreshProjectFolders={refreshProjectFolders}
         saveCustomSkill={saveCustomSkill}
         setFileIndex={setFileIndex}
         setLibraryModal={setLibraryModal}
