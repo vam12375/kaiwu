@@ -58,6 +58,9 @@ kaiwuback/conversations/
 kaiwuback/project-files/
 kaiwuback/project-images/
 
+# Claude Code
+.claude/
+
 # Trellis / Codex 本地运行状态
 .codex/
 .trellis/.developer
