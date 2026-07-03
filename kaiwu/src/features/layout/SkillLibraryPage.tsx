@@ -26,14 +26,7 @@ function getSourceLabel(skill: SkillLibraryItem) {
 
 function searchSkill(skill: SkillLibraryItem, query: string) {
   if (!query) return true;
-  const haystack = [
-    skill.name,
-    skill.description,
-    skill.category,
-    skill.connection || '',
-    skill.full_content || '',
-  ].join(' ').toLowerCase();
-  return haystack.includes(query);
+  return skill.name.toLowerCase().includes(query);
 }
 
 export function SkillLibraryPage({
@@ -84,8 +77,8 @@ export function SkillLibraryPage({
           <input
             value={skillSearchQuery}
             onChange={(event) => setSkillSearchQuery(event.target.value)}
-            placeholder="搜索技能、连接器和工作流"
-            aria-label="搜索技能"
+            placeholder="搜索技能标题"
+            aria-label="搜索技能标题"
           />
         </label>
         <div className="library-tabs">
@@ -125,7 +118,7 @@ export function SkillLibraryPage({
                   <div className="skill-card-actions">
                     <button onClick={() => openSkillModal(skill, 'detail')} type="button">详情</button>
                     <button onClick={() => openSkillModal(skill, installed ? 'manage' : 'install')} type="button">
-                      {installed ? '管理' : '安装'}
+                      {installed ? '去使用' : '安装'}
                     </button>
                   </div>
                 </div>
