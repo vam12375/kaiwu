@@ -1,8 +1,13 @@
 ﻿import { ArrowUp, Bot, Brain, ChevronDown, ChevronRight, Cpu, FileStack, HelpCircle, Search, Settings2, UserRound } from 'lucide-react';
 
-import { directions, modelOptions, projectFolders, projectLibraryFiles, settingsSections } from '../../data';
+import { directions, installedSkills, modelOptions, projectFolders, projectLibraryFiles, settingsSections, skillCategories, skillMarketItems } from '../../data';
 import { ConversationPanel } from '../chat/ConversationPanel';
 import { SkillLibraryPage } from './SkillLibraryPage';
+import { BrandHeader } from '../home/BrandHeader';
+import { ChatInput } from '../home/ChatInput';
+import { WorkflowSteps } from '../home/WorkflowSteps';
+import { FeatureCards } from '../home/FeatureCards';
+import { FreeMode } from '../home/FreeMode';
 
 type MainStageProps = Record<string, any>;
 
@@ -94,6 +99,8 @@ export function MainStage(props: MainStageProps) {
     videoLibraryOpen,
     videoModelOpen,
     videoSettingOpen,
+    selectedCardImage,
+    setSelectedCardImage,
   } = props;
 
   return (
@@ -252,125 +259,41 @@ export function MainStage(props: MainStageProps) {
                 </section>
               ) : (
                 <>
-              <section className="hero-area">
-                <div className="hero-copy-block">
-                  <div className="hero-mark" aria-hidden="true">
-                    <div className="hero-wordmark hero-wordmark-back">曜势</div>
-                    <div className="hero-wordmark hero-wordmark-front">曜势</div>
-                  </div>
-                  <h1>
-                    <span className="hero-typed">{typedHeroText || ' '}</span>
-                    <span className="hero-caret" aria-hidden="true" />
-                  </h1>
-                </div>
-              </section>
-    
-              <section className="composer-area">
-                <div className="composer-stack">
-                  <div className="venture-track" aria-label="创业阶段轨道">
-                    <div className="track-line" />
-                    {directions.map((item, index) => {
-                      const isOffice = item === '通用';
-                      const stepNumber = isOffice ? '通用' : index;
-                      const displayLabel = isOffice ? '日常办公' : item;
-                      return (
-                        <button
-                          key={item}
-                          className={`${activeDirection === item ? 'track-node active' : 'track-node'} ${isOffice ? 'office-node' : 'venture-node'}`}
-                          onClick={() => setActiveDirection(item)}
-                          type="button"
-                        >
-                          <span className="node-dot">{stepNumber}</span>
-                          <span className="node-label">{displayLabel}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-    
-                  {/* 已上传文件标签（首页） */}
-                  {uploadedFiles.length > 0 && (
-                    <div className="uploaded-files-bar">
-                      {uploadedFiles.map((f: { name: string }, i: number) => (
-                        <span key={i} className="uploaded-file-tag">
-                          <span className="file-tag-icon">📄</span>
-                          <span className="file-tag-name">{f.name}</span>
-                          <button className="file-tag-close" onClick={() => removeUploadedFile(f.name)} type="button" title="移除文件">×</button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-    
-                  <div className="composer-card">
-                    <textarea ref={homeTextareaRef} placeholder="描述你的创业想法、目标用户、当前卡点，曜势会帮你拆成可执行方案..." onChange={(e) => setInputText(e.target.value)} onCompositionStart={() => { isComposingRef.current = true; }} onCompositionEnd={() => { isComposingRef.current = false; }} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !isComposingRef.current) { e.preventDefault(); handleSend(); } else if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); handleSend(); } }} />
-                    <div className="skill-row in-composer">
-                      {quickSkills.map((item: string) => (
-                        <button key={item} className="skill-chip">
-                          {item}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="composer-toolbar">
-                      <div className="toolbar-left">
-                        <div className="picker-wrap">
-                          <button
-                            className={openPicker === 'model' ? 'toolbar-select model-select is-active' : 'toolbar-select model-select'}
-                            onClick={() => setOpenPicker(openPicker === 'model' ? null : 'model')}
-                            type="button"
-                          >
-                            <Bot size={14} />
-                            <span>{modelOptions[modelIndex].name}</span>
-                            <ChevronDown size={13} />
-                          </button>
-                          {openPicker === 'model' && (
-                            <div className="picker-popover">
-                              {modelOptions.map((item, index) => (
-                                <button
-                                  key={item.name}
-                                  className={modelIndex === index ? 'model-menu-row selected' : 'model-menu-row'}
-                                  onClick={() => {
-                                    setModelIndex(index);
-                                    setOpenPicker(null);
-                                  }}
-                                  type="button"
-                                >
-                                  <span className="model-icon">✦</span>
-                                  <span className="model-name">{item.name}</span>
-                                  <span className="model-desc">{item.desc}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
+                  <div className="main-stage-scroll">
+                    <BrandHeader />
+
+                    <ChatInput
+                      activeDirection={activeDirection}
+                      quickSkills={quickSkills}
+                      presetImage={selectedCardImage}
+                      onPresetConsumed={() => setSelectedCardImage?.(undefined)}
+                      homeTextareaRef={homeTextareaRef}
+                      inputText={inputText}
+                      setInputText={setInputText}
+                      isComposingRef={isComposingRef}
+                      handleSend={handleSend}
+                      isLoading={isLoading}
+                      modelIndex={modelIndex}
+                      setModelIndex={setModelIndex}
+                    />
+
+                    <section className="workflow-cards-section">
+                      <div className="workflow-cards-relative">
+                        <div className="workflow-steps-col">
+                          <WorkflowSteps />
                         </div>
-    
-                        <div className="picker-wrap">
-                          <button
-                            className={libraryModal === 'file' || fileIndex !== null ? 'toolbar-select is-active-soft' : 'toolbar-select'}
-                            onClick={() => {
-                              setOpenPicker(null);
-                              setLibraryModal('file');
-                              const aiIdx = projectFolders.findIndex(f => f.name === 'AI 对话产出');
-                              if (aiIdx >= 0) setSelectedFolderIndex(aiIdx);
-                            }}
-                            type="button"
-                          >
-                            <span>📂</span>
-                            <span>参考历史文件</span>
-                            <ChevronDown size={13} />
-                          </button>
+                        <div className="feature-cards-wrapper">
+                          <FeatureCards onCardClick={(title, imageUrl) => {
+                            setSelectedCardImage?.(imageUrl);
+                          }} />
                         </div>
-    
                       </div>
-                      <div className="toolbar-right">
-                        <button className={`icon-action send-action ${isLoading ? 'send-disabled' : ''}`} aria-label="发送" title="发送" onClick={handleSend} disabled={isLoading} type="button">
-                          <ArrowUp size={17} />
-                        </button>
-                      </div>
-                    </div>
+                    </section>
+
+                    <div className="footer-note">内容由 AI 生成，请核实完整性</div>
                   </div>
-                </div>
-    
-                <div className="footer-note">内容由 AI 生成，请核实完整性</div>
-              </section>
+
+                  <FreeMode />
                 </>
               )}
             </main>

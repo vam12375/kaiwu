@@ -82,19 +82,37 @@ button {
   height: 28px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   margin-bottom: 8px;
+  position: relative;
 }
 
-.sidebar-logo-text {
-  height: 36px;
-  width: auto;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto;
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sidebar-brand-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: #0f172a;
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.sidebar-brand-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.5px;
 }
 
 .sidebar-tools {
+  position: absolute;
+  right: 0;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -5081,3 +5099,532 @@ div:hover > .md-svg-save-btn {
   font-size: 16px; color: #888; padding: 0 2px; line-height: 1;
 }
 .file-tag-close:hover { color: #e00; }
+
+/* =============================================================================
+   NEW HOMEPAGE COMPONENTS — brand header, chat input, workflow steps,
+   feature cards, free mode
+   ============================================================================= */
+
+/* Main stage scrollable inner container */
+
+.main-stage-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.main-stage-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.main-stage-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.main-stage-scroll::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.08);
+  border-radius: 4px;
+}
+
+/* Brand Header */
+
+.brand-header {
+  width: 100%;
+  padding: 64px 0 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.brand-header-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #0f172a;
+}
+
+.brand-subtitle {
+  font-size: 15px;
+  font-weight: 500;
+  color: #475569;
+  letter-spacing: 0.3px;
+}
+
+/* Chat Input Section */
+
+.chat-input-section {
+  width: 100%;
+  padding: 12px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.chat-input-wrapper {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.chat-input-card {
+  position: relative;
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  background: #fff;
+  padding: 18px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.chat-input-textarea {
+  width: 100%;
+  resize: none;
+  background: none;
+  font-size: 14px;
+  color: #0f172a;
+  min-height: 80px;
+  border: none;
+  outline: none;
+}
+
+.chat-input-textarea::placeholder {
+  color: rgba(148, 163, 184, 0.6);
+}
+
+/* Preview thumbnail */
+
+.chat-preview-thumb {
+  position: relative;
+  display: inline-flex;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  animation: thumbIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-preview-thumb img {
+  width: 96px;
+  height: 48px;
+  object-fit: cover;
+  display: block;
+}
+
+.chat-preview-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.chat-preview-thumb:hover .chat-preview-remove {
+  opacity: 1;
+}
+
+@keyframes thumbIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Chat input toolbar */
+
+.chat-input-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(226, 232, 240, 0.3);
+}
+
+.chat-input-toolbar .toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-input-toolbar .toolbar-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  background: rgba(15, 23, 42, 0.04);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.chat-input-toolbar .toolbar-select:hover {
+  background: rgba(15, 23, 42, 0.07);
+}
+
+.chat-input-toolbar .toolbar-select.is-active {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+.chat-input-toolbar .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-input-toolbar .icon-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #475569;
+  transition: background 0.15s ease;
+}
+
+.chat-input-toolbar .icon-action:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+}
+
+.chat-input-toolbar .icon-action.voice-active {
+  background: #ef4444;
+  color: #fff;
+}
+
+.chat-input-toolbar .icon-action.voice-active:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+.chat-input-toolbar .send-action {
+  background: #0f172a;
+  color: #fff;
+}
+
+.chat-input-toolbar .send-action:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+.chat-input-toolbar .hidden-input {
+  display: none;
+}
+
+.chat-input-toolbar .picker-wrap {
+  position: relative;
+}
+
+.chat-input-toolbar .picker-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 50;
+}
+
+.chat-input-toolbar .model-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #0f172a;
+  transition: background 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.chat-input-toolbar .model-menu-row:hover {
+  background: #f8fafc;
+}
+
+.chat-input-toolbar .model-menu-row.selected {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.chat-input-toolbar .model-icon {
+  color: #6366f1;
+}
+
+.chat-input-toolbar .model-name {
+  font-weight: 600;
+}
+
+.chat-input-toolbar .model-desc {
+  margin-left: auto;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Workflow + Cards Section */
+
+.workflow-cards-section {
+  width: 100%;
+  padding: 40px 0 0;
+  z-index: 1;
+}
+
+.workflow-cards-relative {
+  position: relative;
+}
+
+.workflow-steps-col {
+  position: absolute;
+  left: 24px;
+  top: -48px;
+  bottom: 0;
+  width: 140px;
+  z-index: 10;
+}
+
+.feature-cards-wrapper {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Workflow Steps */
+
+.workflow-steps {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.workflow-steps-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.workflow-steps-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0f172a;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.workflow-steps-header span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.workflow-steps-list {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.workflow-steps-line {
+  position: absolute;
+  left: 9px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.workflow-step-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.workflow-step-dot {
+  position: relative;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(15, 23, 42, 0.06);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.workflow-step-dot span {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.workflow-step-dot.active {
+  border-color: #0f172a;
+  background: #0f172a;
+}
+
+.workflow-step-dot.active span {
+  color: #fff;
+}
+
+.workflow-step-title {
+  font-size: 13px;
+  line-height: 18px;
+  color: #94a3b8;
+  transition: color 0.15s ease;
+}
+
+.workflow-step-title.active {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Feature Cards */
+
+.feature-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.feature-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid rgba(226, 232, 240, 0.4);
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.15s ease;
+}
+
+.feature-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.feature-card-image {
+  aspect-ratio: 2 / 1;
+  width: 100%;
+  overflow: hidden;
+}
+
+.feature-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.feature-card:hover .feature-card-img {
+  transform: scale(1.05);
+}
+
+.feature-card-order {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  font-size: 8px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.feature-card-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px 4px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.15), transparent);
+}
+
+.feature-card-overlay span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Free Mode */
+
+.free-mode-card {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 50;
+  width: 200px;
+  overflow: hidden;
+  background: #0f172a;
+  padding: 12px 12px 12px 56px;
+  color: #fff;
+  clip-path: polygon(25% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.free-mode-card h3 {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.free-mode-card p {
+  font-size: 10px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.6);
+}

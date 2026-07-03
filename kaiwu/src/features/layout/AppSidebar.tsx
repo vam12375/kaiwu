@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
-import { ChevronDown, ChevronLeft, Search, Settings2 } from 'lucide-react';
+import { Box, ChevronDown, ChevronLeft, Search, Settings2 } from 'lucide-react';
 
 import { sidebarItems } from '../../data';
 import type { ConvHistory, SidebarPage } from '../../types';
@@ -55,7 +55,12 @@ export function AppSidebar({
   return (
     <aside className="sidebar">
       <div className="sidebar-top">
-        <img src="/页内logo2.png?v=3" alt="曜势科技" className="sidebar-logo-text" />
+        <div className="sidebar-brand">
+          <div className="sidebar-brand-icon">
+            <Box size={16} />
+          </div>
+          <span className="sidebar-brand-name">开物</span>
+        </div>
         <div className="sidebar-tools">
           <button onClick={() => setSidebarCollapsed(true)} type="button" aria-label="折叠侧边栏" title="折叠侧边栏">
             <ChevronLeft size={14} />
