@@ -134,3 +134,33 @@ export const projectLibraryFiles = [
   { name: '首批种子用户画像', type: 'JPG', source: 'AI 对话生成', folder: '创业资料', updated: '5 天前', tone: 'teal' },
   { name: '短视频脚本合集', type: 'MD', source: 'AI 对话生成', folder: '营销素材', updated: '6 天前', tone: 'rose' },
 ];
+
+export interface IFeatureCard {
+  id: string;
+  order: number;
+  title: string;
+  imageUrl: string;
+}
+
+export const FEATURE_CARDS: IFeatureCard[] = [
+  { id: '1', order: 1, title: '需求调研', imageUrl: '/需求调研.png' },
+  { id: '2', order: 2, title: '数据洞察', imageUrl: '/数据洞察.png' },
+  { id: '3', order: 3, title: '图片生成', imageUrl: '/图片生成.png' },
+  { id: '4', order: 4, title: '商业报告', imageUrl: '/商业报告.png' },
+  { id: '5', order: 5, title: '品牌故事', imageUrl: '/品牌故事.png' },
+  { id: '6', order: 6, title: '内容营销', imageUrl: '/内容营销.png' },
+];
+
+export interface IWorkflowStep {
+  id: string;
+  stepNumber: number;
+  title: string;
+  isActive: boolean;
+}
+
+export const WORKFLOW_STEPS: IWorkflowStep[] = [
+  { id: '1', stepNumber: 1, title: '需求调研', isActive: true },
+  { id: '2', stepNumber: 2, title: '全案计划', isActive: false },
+  { id: '3', stepNumber: 3, title: '产品创造', isActive: false },
+  { id: '4', stepNumber: 4, title: '营销推广', isActive: false },
+];
