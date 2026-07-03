@@ -88,12 +88,18 @@ def handle_export(message: str, history: list, intent: dict):
             max_score = score
             source_node = node
 
-    content_parts = []
-    if history:
-        for m in history:
-            if m.get("role") == "ai" and m.get("content"):
-                content_parts.append(m["content"])
-    full_content = "\n\n".join(content_parts[-3:]) if content_parts else message
+    # 优先从节点输出缓存取内容，避免历史消息错位
+    from server.agent.runtime import get_node_output
+    cached = get_node_output(source_node)
+    if cached:
+        full_content = cached
+    else:
+        content_parts = []
+        if history:
+            for m in history:
+                if m.get("role") == "ai" and m.get("content"):
+                    content_parts.append(m["content"])
+        full_content = "\n\n".join(content_parts[-3:]) if content_parts else message
     if not full_content.strip():
         full_content = message
     title = intent.get('topic', 'AI导出')[:30]

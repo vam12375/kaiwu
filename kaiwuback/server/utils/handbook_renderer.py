@@ -30,7 +30,7 @@ body{{font-family:var(--sans);color:var(--text);background:var(--bg);line-height
 
 /* Cover */
 .cover{{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:80px 60px;color:#fff}}
-.cover h1{{font-size:36px;font-weight:700;margin-bottom:12px;letter-spacing:-0.5px}}
+.cover h1{{font-size:36px;font-weight:700;margin-bottom:12px;letter-spacing:-0.5px;color:#fff}}
 .cover .subtitle{{font-size:18px;opacity:.85;margin-bottom:32px}}
 .cover .divider{{width:64px;height:3px;background:var(--accent);margin-bottom:32px}}
 .cover .meta{{display:flex;gap:32px;font-size:13px;opacity:.7}}

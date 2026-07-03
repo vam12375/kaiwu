@@ -6,6 +6,7 @@ import json
 import re
 import threading
 import time
+import uuid
 from typing import Any, Iterable
 
 from server.agent.event_store import EventStore
@@ -31,6 +32,19 @@ from server.utils.common import (
 )
 from server.utils.session import save_session_state as sess_save
 from server.llm_client import call_seedream
+
+# 节点输出缓存：导出 HTML 时按 node 取对应内容，避免取错历史消息
+_node_output_cache: dict[str, str] = {}
+
+
+def get_node_output(node_id: str) -> str:
+    """获取指定 node 的最新输出（用于导出 HTML）"""
+    return _node_output_cache.get(node_id, "")
+
+
+def clear_node_output_cache():
+    """清空节点输出缓存"""
+    _node_output_cache.clear()
 
 
 class AgentRuntime:
@@ -209,6 +223,24 @@ class AgentRuntime:
         print(f"[RESPONSE] Node={node_id}, len={len(ai_text)}, err={bool(llm_error[0])}", flush=True)
         sess_save(history, node_id)
         save_session_state(history, node_id)
+
+        # 缓存节点输出，供导出 HTML 时按 node 取对应内容
+        _node_output_cache[node_id] = ai_text
+
+        # node0 完成后将 dialogue_brief.md 存入 AI 对话产出
+        if node_id == "node0":
+            import re as _re_md
+            m = _re_md.search(
+                r'(# 品牌全案策略 · 对话信息摘要.*?)(?:```\s*$|以上为 node0)',
+                ai_text, _re_md.DOTALL
+            )
+            brief_md = m.group(1).strip() if m else ""
+            if brief_md:
+                from server.config import PROJECT_LIB
+                (PROJECT_LIB / "AI 对话产出").mkdir(parents=True, exist_ok=True)
+                fname = f"dialogue_brief_{uuid.uuid4().hex[:6]}.md"
+                (PROJECT_LIB / "AI 对话产出" / fname).write_text(brief_md, encoding='utf-8')
+                print(f"[NODE0] dialogue_brief.md → AI 对话产出", flush=True)
 
         suggested_questions = self._suggested_questions(node_id)
 
@@ -441,6 +473,9 @@ class AgentRuntime:
 
     @staticmethod
     def _is_node0_transition(message: str) -> bool:
+        # 短消息（≤30字）才视为切换指令；长消息是诊断回答，不触发切换
+        if len(message.strip()) > 30:
+            return False
         transition_signals = ["开始调研", "做商业方案", "产品设计", "营销方案", "营销文案", "品牌设计"]
         return any(keyword in message for keyword in transition_signals)
 
