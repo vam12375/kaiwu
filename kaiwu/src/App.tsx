@@ -135,9 +135,11 @@ export function App() {
   const [rechargeView, setRechargeView] = useState<'credits' | 'plans'>('credits');
   const [convHistory, setConvHistory] = useState<ConvHistory[]>([]);
   const [currentConvId, setCurrentConvId] = useState<number | null>(null);
+  const [externalSkills, setExternalSkills] = useState<{ id: string; name: string; description: string; full_content: string }[]>([]);
   const [projectImages, setProjectImages] = useState<{ name: string; url: string; size: number; modified: string }[]>([]);
   const [realProjectFiles, setRealProjectFiles] = useState<{ name: string; folder: string; type: string; size: number; modified: string; url: string }[]>([]);
   const [codingPreviewUrl, setCodingPreviewUrl] = useState<string>('');
+  const [selectedCardImage, setSelectedCardImage] = useState<string | undefined>();
   const [imageRatio, setImageRatio] = useState<string>('1:1');
   const [imageCount, setImageCount] = useState<number>(1);
   const [ratioOpen, setRatioOpen] = useState(false);
@@ -472,6 +474,8 @@ export function App() {
           videoLibraryOpen={videoLibraryOpen}
           videoModelOpen={videoModelOpen}
           videoSettingOpen={videoSettingOpen}
+          selectedCardImage={selectedCardImage}
+          setSelectedCardImage={setSelectedCardImage}
         />
       </div>
 

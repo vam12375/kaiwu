@@ -1,6 +1,6 @@
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, Bookmark, Bot, ChevronDown, ChevronLeft, Copy } from 'lucide-react';
+import { ArrowUp, Bookmark, Bot, Box, ChevronDown, ChevronLeft, Copy } from 'lucide-react';
 
 import { modelOptions, projectFolders } from '../../data';
 import type { Direction, LibraryModalType, PickerType } from '../../types';
@@ -176,10 +176,10 @@ export function ConversationPanel({
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.1 }}
               >
-                曜
+                <Box size={24} />
               </motion.div>
               <motion.h3 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-                曜势科技
+                开物
               </motion.h3>
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
                 基于 {activeDirection} 赛道，我能帮你做什么？
@@ -413,7 +413,7 @@ export function ConversationPanel({
         <div className="doubao-composer-inner">
           <textarea
             ref={convTextareaRef}
-            placeholder="继续追问，或让曜势把结果保存为阶段产物..."
+            placeholder="继续追问，或让开物把结果保存为阶段产物..."
             onChange={(event) => setInputText(event.target.value)}
             onCompositionStart={() => {
               isComposingRef.current = true;
