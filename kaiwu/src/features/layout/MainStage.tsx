@@ -1,7 +1,8 @@
 ﻿import { ArrowUp, Bot, Brain, ChevronDown, ChevronRight, Cpu, FileStack, HelpCircle, Search, Settings2, UserRound } from 'lucide-react';
 
-import { directions, installedSkills, modelOptions, projectFolders, projectLibraryFiles, settingsSections, skillCategories, skillMarketItems } from '../../data';
+import { directions, modelOptions, projectFolders, projectLibraryFiles, settingsSections } from '../../data';
 import { ConversationPanel } from '../chat/ConversationPanel';
+import { SkillLibraryPage } from './SkillLibraryPage';
 
 type MainStageProps = Record<string, any>;
 
@@ -19,7 +20,7 @@ export function MainStage(props: MainStageProps) {
     conversationTitle,
     convTextareaRef,
     countOpen,
-    externalSkills,
+    enabledSkillIds,
     fileIndex,
     followupNodeRef,
     handleSend,
@@ -30,6 +31,7 @@ export function MainStage(props: MainStageProps) {
     imageRatio,
     imageSizeOpen,
     inputText,
+    installedSkillIds,
     isComposingRef,
     isImageMode,
     isLoading,
@@ -74,7 +76,7 @@ export function MainStage(props: MainStageProps) {
     setSelectedFolderIndex,
     setSkillModal,
     setSkillModalData,
-    setSelectedSkillItemIndex,
+    setSkillSearchQuery,
     setSkillView,
     setSidebarCollapsed,
     setSuggestedQuestions,
@@ -82,6 +84,8 @@ export function MainStage(props: MainStageProps) {
     setVideoModelOpen,
     setVideoSettingOpen,
     sidebarCollapsed,
+    skillItems,
+    skillSearchQuery,
     skillView,
     stopGeneration,
     suggestedQuestions,
@@ -202,47 +206,19 @@ export function MainStage(props: MainStageProps) {
                   </main>
                 </section>
               ) : activePage === 'skills' ? (
-                <section className="library-page">
-                  <header className="library-header">
-                    <div>
-                      <div className="settings-kicker">Skill Hub</div>
-                      <h2>{skillView === 'market' ? '技能库' : '已安装技能'}</h2>
-                      <p>{skillView === 'market' ? '发现、安装和查看可用于对话的工具能力。' : '管理已安装技能、权限和默认启用状态。'}</p>
-                    </div>
-                    <button className="primary-action" onClick={() => setSkillModal('custom')} type="button">添加自定义技能</button>
-                  </header>
-                  <div className="library-toolbar">
-                    <div className="library-search"><Search size={15} /><span>搜索技能、连接器和工作流</span></div>
-                    <div className="library-tabs"><button className={skillView === 'market' ? 'active' : ''} onClick={() => setSkillView('market')} type="button">技能市场</button><button className={skillView === 'installed' ? 'active' : ''} onClick={() => setSkillView('installed')} type="button">已安装</button></div>
-                  </div>
-                  <div className="skill-category-row">{skillCategories.map((category) => (<button key={category} className={activeSkillCategory === category ? 'active' : ''} onClick={() => setActiveSkillCategory(category)} type="button">{category}</button>))}</div>
-                  <div className="skill-library-grid">
-                    {/* External skills from 差异性skills */}
-                    {skillView === 'market' && externalSkills.map((skill: { id: string; name: string; description: string; full_content: string }) => {
-                      const shortDesc: Record<string, string> = {
-                        '心理登月': '从用户心理层面寻找替代方案，用体验创新解决同质化竞争',
-                        '发售人群针对坐标轴理论': '人群分层、内容配比、精准投放与发售策略',
-                        '最小MVP从0-1': '客户购买心智路径五阶段拆解，内容策略与转化优化',
-                      };
-                      return (
-                      <article key={skill.id} className="skill-library-card tone-indigo">
-                        <div className="skill-card-top"><span className="skill-card-icon">◆</span><span className="skill-card-category">方法论</span></div>
-                        <h3>{skill.name}</h3><p>{shortDesc[skill.name] || skill.description.slice(0, 40)}</p>
-                        <div className="skill-card-footer">
-                          <button onClick={() => { setSkillModal('external'); setSkillModalData(skill); }} type="button">详情</button>
-                          <button onClick={() => { setSkillModal('manage'); }} type="button">管理</button>
-                        </div>
-                      </article>
-                    );})}
-                    {skillMarketItems.filter((skill) => skillView === 'installed' ? installedSkills.includes(skill.name) : true).filter((skill) => activeSkillCategory === '全部' ? true : skill.category === activeSkillCategory).map((skill) => { const skillItemIndex = skillMarketItems.findIndex((item) => item.name === skill.name); const installed = installedSkills.includes(skill.name); return (
-                      <article key={skill.name} className={`skill-library-card tone-${skill.tone}`}>
-                        <div className="skill-card-top"><span className="skill-card-icon">✦</span><span className="skill-card-category">{skill.category}</span></div>
-                        <h3>{skill.name}</h3><p>{skill.desc}</p>
-                        <div className="skill-card-footer">{installed && <button onClick={() => { setSelectedSkillItemIndex(skillItemIndex); setSkillModal('detail'); }} type="button">详情</button>}<button onClick={() => { setSelectedSkillItemIndex(skillItemIndex); setSkillModal(installed ? 'manage' : 'install'); }} type="button">{installed ? '管理' : '安装'}</button></div>
-                      </article>
-                    ); })}
-                  </div>
-                </section>
+                <SkillLibraryPage
+                  activeSkillCategory={activeSkillCategory}
+                  enabledSkillIds={enabledSkillIds}
+                  installedSkillIds={installedSkillIds}
+                  setActiveSkillCategory={setActiveSkillCategory}
+                  setSkillModal={setSkillModal}
+                  setSkillModalData={setSkillModalData}
+                  setSkillSearchQuery={setSkillSearchQuery}
+                  setSkillView={setSkillView}
+                  skillItems={skillItems}
+                  skillSearchQuery={skillSearchQuery}
+                  skillView={skillView}
+                />
               ) : activePage === 'projects' ? (
                 <section className="library-page project-page">
                   <header className="library-header">

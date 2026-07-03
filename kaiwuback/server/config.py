@@ -34,7 +34,9 @@ SEEDREAM_MODEL = "doubao-seedream-5-0-lite-260128"
 # ═══════════════════════════════════════
 # 差异性技能库 & 报告模板
 # ═══════════════════════════════════════
-SKILLS_DIR = Path("/Users/wangzijian/Desktop/kaiwu_All/kaiwuback/skills-files")
+SKILLS_DIR = Path(
+    os.getenv("KAIWU_SKILLS_DIR", str(Path(__file__).parent.parent / "skills-files"))
+).expanduser()
 REPORT_TEMPLATES_DIR = Path(__file__).parent.parent / "report_templates"
 
 # ═══════════════════════════════════════

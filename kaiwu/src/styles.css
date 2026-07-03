@@ -1127,6 +1127,14 @@ button {
   box-shadow: 0 14px 26px rgba(15, 23, 42, 0.16);
 }
 
+.library-header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .library-toolbar {
   display: flex;
   align-items: center;
@@ -1147,6 +1155,20 @@ button {
   border: 1px solid rgba(148, 163, 184, 0.14);
   color: #94a3b8;
   font-size: 12px;
+}
+
+.library-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.library-search input::placeholder {
+  color: #94a3b8;
 }
 
 .library-tabs {
@@ -1261,6 +1283,34 @@ button {
   background: #0f172a;
   color: #ffffff;
   font-size: 12px;
+}
+
+.skill-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.skill-card-actions button:first-child {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+.library-empty-state {
+  width: min(1060px, calc(100vw - 280px));
+  margin: 24px auto 0;
+  display: grid;
+  gap: 6px;
+  place-items: center;
+  padding: 34px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: #64748b;
+}
+
+.library-empty-state strong {
+  color: #0f172a;
+  font-size: 15px;
 }
 
 .tone-blue { background: linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(255, 255, 255, 0.86)); }

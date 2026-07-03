@@ -68,6 +68,69 @@ When adding an endpoint:
 
 ---
 
+## Scenario: External Skill Library API
+
+### 1. Scope / Trigger
+
+- Trigger: any change to `kaiwuback/skills-files/`, `server.config.SKILLS_DIR`, or `server/api/routes_skills.py`.
+- This is a cross-layer contract because the frontend skill library renders and filters fields returned by `/api/skills`.
+
+### 2. Signatures
+
+- `GET /api/skills` -> `list[SkillSummary]`
+- `GET /api/skills/{skill_id}` -> `SkillSummary | {"error": "Skill not found"}`
+- `SKILLS_DIR = Path(os.getenv("KAIWU_SKILLS_DIR", <repo>/kaiwuback/skills-files)).expanduser()`
+
+### 3. Contracts
+
+`SkillSummary` response fields:
+
+- `id: string` - stable directory id under `SKILLS_DIR`
+- `name: string` - display name from frontmatter `display_name`/`name`, fallback to directory name
+- `description: string` - frontmatter `description_zh`/`description`, body summary, or name
+- `category: string` - frontmatter `category`, fallback `方法论`
+- `version: string` - optional frontmatter value, empty string when absent
+- `source: "external"`
+- `entry_file: string` - path relative to `SKILLS_DIR`
+- `full_content: string` - raw skill markdown shown in the frontend detail modal
+
+### 4. Validation & Error Matrix
+
+- `SKILLS_DIR` missing -> `GET /api/skills` returns `[]`, not a 500.
+- Skill directory has no `SKILL.md` or top-level `.md` fallback -> skip that directory.
+- Unknown `skill_id` -> `{"error": "Skill not found"}` with status 404.
+- Invalid or partial frontmatter -> parse what is present and fall back field-by-field.
+
+### 5. Good/Base/Bad Cases
+
+- Good: `skills/<name>/SKILL.md` has frontmatter; API returns structured metadata plus full content.
+- Base: only `<skill_dir>/<name>.md` exists; API still returns a usable skill card.
+- Bad: hardcoding a developer-specific absolute path; this breaks Windows and multi-developer checkouts.
+
+### 6. Tests Required
+
+- Backend smoke: import `list_external_skills()` and assert repository-local skills are discovered.
+- Backend syntax: `python -m compileall kaiwuback/server`.
+- Cross-layer smoke: frontend skill page renders at least one skill from `/api/skills` when backend is running.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+SKILLS_DIR = Path("/Users/example/Desktop/kaiwuback/skills-files")
+```
+
+#### Correct
+
+```python
+SKILLS_DIR = Path(
+    os.getenv("KAIWU_SKILLS_DIR", str(Path(__file__).parent.parent / "skills-files"))
+).expanduser()
+```
+
+---
+
 ## Task Runtime Modules
 
 The task pipeline is the current backend backbone:

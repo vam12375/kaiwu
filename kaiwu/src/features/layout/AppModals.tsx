@@ -1,12 +1,17 @@
-﻿import { Search } from 'lucide-react';
+﻿import { useEffect, useState } from 'react';
+import { Search } from 'lucide-react';
 
-import { installedSkills, projectFolders, projectLibraryFiles, skillMarketItems, skillOptions } from '../../data';
+import { projectFolders, projectLibraryFiles, skillOptions } from '../../data';
+import type { CustomSkillInput, SkillLibraryItem } from '../../types';
 
 type AppModalsProps = Record<string, any>;
 
 export function AppModals(props: AppModalsProps) {
   const {
+    enabledSkillIds,
     fileIndex,
+    installSkill,
+    installedSkillIds,
     libraryModal,
     openProjectFile,
     previewImageIndex,
@@ -17,7 +22,7 @@ export function AppModals(props: AppModalsProps) {
     rechargeView,
     selectedFileIndex,
     selectedFolderIndex,
-    selectedSkillItemIndex,
+    saveCustomSkill,
     setFileIndex,
     setLibraryModal,
     setPreviewImageIndex,
@@ -31,7 +36,42 @@ export function AppModals(props: AppModalsProps) {
     skillIndex,
     skillModal,
     skillModalData,
+    toggleSkillEnabled,
+    uninstallSkill,
   } = props;
+
+  const [customSkillForm, setCustomSkillForm] = useState<CustomSkillInput>({
+    name: '',
+    category: '办公提效',
+    description: '',
+    connection: '',
+  });
+
+  const currentSkill = skillModalData as SkillLibraryItem | null;
+  const currentSkillInstalled = Boolean(currentSkill && installedSkillIds.includes(currentSkill.id));
+  const currentSkillEnabled = Boolean(currentSkill && enabledSkillIds.includes(currentSkill.id));
+
+  useEffect(() => {
+    if (skillModal === 'custom') {
+      setCustomSkillForm({
+        name: '',
+        category: '办公提效',
+        description: '',
+        connection: '',
+      });
+    }
+  }, [skillModal]);
+
+  const updateCustomSkillForm = (field: keyof CustomSkillInput, value: string) => {
+    setCustomSkillForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSaveCustomSkill = () => {
+    const saved = saveCustomSkill(customSkillForm);
+    if (!saved) return;
+    setSkillModalData(saved);
+    setSkillModal('detail');
+  };
 
   return (
     <>
@@ -55,64 +95,93 @@ export function AppModals(props: AppModalsProps) {
                   <header className="modal-header">
                     <div>
                       <div className="modal-kicker">技能库</div>
-                      <h2>{skillModal === 'custom' ? '添加自定义技能' : skillModal === 'detail' ? skillMarketItems[selectedSkillItemIndex].name : skillModal === 'install' ? '安装技能' : '管理技能'}</h2>
+                      <h2>{skillModal === 'custom' ? '添加自定义技能' : skillModal === 'install' ? '安装技能' : skillModal === 'manage' ? '管理技能' : currentSkill?.name || '技能详情'}</h2>
                     </div>
                     <button className="modal-close" onClick={() => setSkillModal(null)} type="button">×</button>
                   </header>
+
                   {skillModal === 'custom' && (
                     <div className="project-modal-body">
-                      <div className="form-field"><span>技能名称</span><input placeholder="例如：合同审阅助手" /></div>
-                      <div className="form-field"><span>分类</span><select><option>办公提效</option><option>研究分析</option><option>内容创意</option><option>开发自动化</option></select></div>
-                      <div className="form-field"><span>调用说明</span><textarea placeholder="描述这个技能什么时候被调用、输入什么、输出什么..." /></div>
-                      <div className="form-field"><span>连接方式</span><input placeholder="MCP / API / 本地脚本 / 浏览器动作" /></div>
-                      <div className="modal-actions"><button className="secondary-action" onClick={() => setSkillModal(null)} type="button">取消</button><button className="primary-action" type="button">保存技能</button></div>
+                      <div className="form-field">
+                        <span>技能名称</span>
+                        <input value={customSkillForm.name} onChange={(event) => updateCustomSkillForm('name', event.target.value)} placeholder="例如：合同审阅助手" />
+                      </div>
+                      <div className="form-field">
+                        <span>分类</span>
+                        <select value={customSkillForm.category} onChange={(event) => updateCustomSkillForm('category', event.target.value)}>
+                          <option>办公提效</option>
+                          <option>方法论</option>
+                          <option>研究分析</option>
+                          <option>内容创意</option>
+                          <option>开发自动化</option>
+                        </select>
+                      </div>
+                      <div className="form-field">
+                        <span>调用说明</span>
+                        <textarea value={customSkillForm.description} onChange={(event) => updateCustomSkillForm('description', event.target.value)} placeholder="描述这个技能什么时候被调用、输入什么、输出什么..." />
+                      </div>
+                      <div className="form-field">
+                        <span>连接方式</span>
+                        <input value={customSkillForm.connection} onChange={(event) => updateCustomSkillForm('connection', event.target.value)} placeholder="MCP / API / 本地脚本 / 浏览器动作" />
+                      </div>
+                      <div className="modal-actions">
+                        <button className="secondary-action" onClick={() => setSkillModal(null)} type="button">取消</button>
+                        <button className="primary-action" onClick={handleSaveCustomSkill} disabled={!customSkillForm.name.trim()} type="button">保存技能</button>
+                      </div>
                     </div>
                   )}
-                  {skillModal === 'detail' && installedSkills.includes(skillMarketItems[selectedSkillItemIndex].name) && (
+
+                  {skillModal !== 'custom' && currentSkill && (
                     <div className="project-modal-body">
                       <div className="skill-summary-card">
-                        <div className={`skill-summary-icon tone-${skillMarketItems[selectedSkillItemIndex].tone}`}>✦</div>
+                        <div className={`skill-summary-icon tone-${currentSkill.tone || 'slate'}`}>{currentSkillInstalled ? '✓' : '✦'}</div>
                         <div>
-                          <h3>{skillMarketItems[selectedSkillItemIndex].name}</h3>
-                          <p>{skillMarketItems[selectedSkillItemIndex].desc}</p>
-                          <span>{skillMarketItems[selectedSkillItemIndex].category} · 已安装</span>
+                          <h3>{currentSkill.name}</h3>
+                          <p>{currentSkill.description}</p>
+                          <span>{currentSkill.category} · {currentSkillInstalled ? (currentSkillEnabled ? '已启用' : '已停用') : '未安装'}</span>
                         </div>
                       </div>
-                      <div className="skill-raw-box">
-                        <div className="skill-raw-title">Skill 文本内容</div>
-                        <textarea
-                          readOnly
-                          value={`name: ${skillMarketItems[selectedSkillItemIndex].name}\n\ndescription: ${skillMarketItems[selectedSkillItemIndex].doc ?? skillMarketItems[selectedSkillItemIndex].desc}\n\ndescription_zh: 服务创业者和知识工作者，围绕具体任务提供结构化处理能力。\n\nversion: 1.0.0\n\ncategory: ${skillMarketItems[selectedSkillItemIndex].category}\n\nallowed-tools: Read, Search, ProjectFiles\n\ndisplay_name: ${skillMarketItems[selectedSkillItemIndex].name}`}
-                        />
+
+                      {skillModal === 'install' && (
+                        <>
+                          <p className="modal-desc">安装后，开物可以在对话中根据任务自动调用「{currentSkill.name}」。</p>
+                          <div className="file-detail-grid">
+                            <span>技能分类</span><strong>{currentSkill.category}</strong>
+                            <span>默认启用</span><strong>是</strong>
+                            <span>来源</span><strong>{currentSkill.source === 'custom' ? '自定义' : currentSkill.source === 'external' ? '技能包' : '内置市场'}</strong>
+                            <span>安装范围</span><strong>当前浏览器工作区</strong>
+                          </div>
+                        </>
+                      )}
+
+                      {skillModal === 'manage' && (
+                        <>
+                          <div className="setting-item">
+                            <div><strong>默认启用</strong><small>允许模型在合适任务中自动调用</small></div>
+                            <button className={currentSkillEnabled ? 'switch on' : 'switch'} onClick={() => toggleSkillEnabled(currentSkill.id)} type="button"><span /></button>
+                          </div>
+                          <div className="modal-subtle-actions">
+                            <button onClick={() => setSkillModal('detail')} type="button">查看文本</button>
+                            <button onClick={() => { uninstallSkill(currentSkill.id); setSkillModal(null); setSkillModalData(null); }} type="button">卸载技能</button>
+                          </div>
+                        </>
+                      )}
+
+                      {skillModal === 'detail' && (
+                        <div className="skill-raw-box">
+                          <div className="skill-raw-title">Skill 文本内容</div>
+                          <textarea readOnly value={currentSkill.full_content || currentSkill.doc || currentSkill.description} />
+                        </div>
+                      )}
+
+                      <div className="modal-actions">
+                        <button className="secondary-action" onClick={() => setSkillModal(null)} type="button">关闭</button>
+                        {currentSkillInstalled ? (
+                          <button className="primary-action" onClick={() => setSkillModal('manage')} type="button">管理技能</button>
+                        ) : (
+                          <button className="primary-action" onClick={() => { installSkill(currentSkill.id); setSkillModal('detail'); }} type="button">确认安装</button>
+                        )}
                       </div>
-                      <div className="modal-actions"><button className="secondary-action" onClick={() => setSkillModal(null)} type="button">关闭</button><button className="primary-action" onClick={() => setSkillModal('manage')} type="button">管理技能</button></div>
-                    </div>
-                  )}
-                  {skillModal === 'install' && (
-                    <div className="project-modal-body">
-                      <p className="modal-desc">安装后，开物可以在对话中根据任务自动调用「{skillMarketItems[selectedSkillItemIndex].name}」。</p>
-                      <div className="file-detail-grid"><span>技能分类</span><strong>{skillMarketItems[selectedSkillItemIndex].category}</strong><span>默认启用</span><strong>是</strong><span>所需权限</span><strong>读取对话、读取已选择文件</strong><span>安装范围</span><strong>当前工作区</strong></div>
-                      <div className="modal-actions"><button className="secondary-action" onClick={() => setSkillModal(null)} type="button">取消</button><button className="primary-action" type="button">确认安装</button></div>
-                    </div>
-                  )}
-                  {skillModal === 'manage' && (
-                    <div className="project-modal-body">
-                      <div className="setting-item"><div><strong>默认启用</strong><small>允许模型在合适任务中自动调用</small></div><button className="switch on" type="button"><span /></button></div>
-                      <div className="modal-subtle-actions"><button type="button">重命名</button><button type="button">卸载技能</button></div>
-                      <div className="modal-actions"><button className="secondary-action" onClick={() => setSkillModal(null)} type="button">取消</button><button className="primary-action" type="button">保存设置</button></div>
-                    </div>
-                  )}
-                  {skillModal === 'external' && skillModalData && (
-                    <div className="project-modal-body" style={{maxHeight:'60vh',overflow:'auto'}}>
-                      <div className="skill-summary-card">
-                        <div className="skill-summary-icon tone-indigo">◆</div>
-                        <div><h3>{skillModalData.name}</h3><p>{skillModalData.description}</p><span>方法论 · 已安装</span></div>
-                      </div>
-                      <div className="skill-raw-box">
-                        <div className="skill-raw-title">技能完整内容</div>
-                        <textarea readOnly value={skillModalData.full_content} style={{minHeight:'300px'}} />
-                      </div>
-                      <div className="modal-actions"><button className="secondary-action" onClick={() => { setSkillModal(null); setSkillModalData(null); }} type="button">关闭</button></div>
                     </div>
                   )}
                 </section>

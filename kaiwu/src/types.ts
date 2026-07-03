@@ -39,3 +39,27 @@ export type SkillModal = 'custom' | 'detail' | 'manage' | 'install' | 'external'
 export type SkillCategory = (typeof skillCategories)[number];
 export type PickerType = 'model' | null;
 export type LibraryModalType = 'file' | 'skill' | null;
+
+export type SkillSource = 'market' | 'external' | 'custom';
+
+export type SkillLibraryItem = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  full_content: string;
+  source: SkillSource;
+  tone?: string;
+  doc?: string;
+  version?: string;
+  entry_file?: string;
+  connection?: string;
+  created_at?: string;
+};
+
+export type CustomSkillInput = {
+  name: string;
+  category: string;
+  description: string;
+  connection: string;
+};

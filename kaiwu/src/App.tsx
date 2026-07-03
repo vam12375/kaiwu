@@ -78,6 +78,7 @@ import type {
   SkillCategory,
   PickerType,
   LibraryModalType,
+  SkillLibraryItem,
 } from './types';
 import {
   quickSkillsByDirection,
@@ -90,6 +91,7 @@ import { MainStage } from './features/layout/MainStage';
 import { type AgentMessage } from './hooks/agentEventReducer';
 import { useConversation } from './hooks/useConversation';
 import { useConversationTask, type ConversationTaskCacheEntry } from './hooks/useConversationTask';
+import { useSkillLibrary } from './hooks/useSkillLibrary';
 
 // =============================================================================
 // App Component
@@ -113,8 +115,7 @@ export function App() {
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [skillView, setSkillView] = useState<SkillView>('market');
   const [skillModal, setSkillModal] = useState<SkillModal>(null);
-  const [skillModalData, setSkillModalData] = useState<{ id: string; name: string; description: string; full_content: string } | null>(null);
-  const [selectedSkillItemIndex, setSelectedSkillItemIndex] = useState(0);
+  const [skillModalData, setSkillModalData] = useState<SkillLibraryItem | null>(null);
   const [activeSkillCategory, setActiveSkillCategory] = useState<SkillCategory>('全部');
   const [expertExpanded, setExpertExpanded] = useState(false);
   const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
@@ -134,7 +135,6 @@ export function App() {
   const [rechargeView, setRechargeView] = useState<'credits' | 'plans'>('credits');
   const [convHistory, setConvHistory] = useState<ConvHistory[]>([]);
   const [currentConvId, setCurrentConvId] = useState<number | null>(null);
-  const [externalSkills, setExternalSkills] = useState<{ id: string; name: string; description: string; full_content: string }[]>([]);
   const [projectImages, setProjectImages] = useState<{ name: string; url: string; size: number; modified: string }[]>([]);
   const [realProjectFiles, setRealProjectFiles] = useState<{ name: string; folder: string; type: string; size: number; modified: string; url: string }[]>([]);
   const [codingPreviewUrl, setCodingPreviewUrl] = useState<string>('');
@@ -154,6 +154,18 @@ export function App() {
   const [conversationTitle, setConversationTitle] = useState('新对话');
   const [nodeStatus, setNodeStatus] = useState<{ nodeId: string; nodeName: string; nodeIcon: string; progress: number; message: string } | null>(null);
   const [workflowPhase, setWorkflowPhase] = useState<'idle' | 'analyzing' | 'executing' | 'responding'>('idle');
+
+  const {
+    enabledSkillIds,
+    installedSkillIds,
+    installSkill,
+    saveCustomSkill,
+    setSkillSearchQuery,
+    skillItems,
+    skillSearchQuery,
+    toggleSkillEnabled,
+    uninstallSkill,
+  } = useSkillLibrary();
 
   // ---- Refs ----
   const homeTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -281,14 +293,6 @@ export function App() {
       .then(r => r.json()).then(() => setUploadedFiles(prev => prev.filter(f => f.name !== name))).catch(()=>{});
   };
 
-  // Load external skills
-  useEffect(() => {
-    fetch('http://localhost:5001/api/skills')
-      .then((r) => r.json())
-      .then((data) => setExternalSkills(data))
-      .catch(() => {});
-  }, []);
-
   // Load project images
   useEffect(() => {
     fetch('http://localhost:5001/api/project-images')
@@ -394,7 +398,7 @@ export function App() {
           conversationTitle={conversationTitle}
           convTextareaRef={convTextareaRef}
           countOpen={countOpen}
-          externalSkills={externalSkills}
+          enabledSkillIds={enabledSkillIds}
           fileIndex={fileIndex}
           followupNodeRef={followupNodeRef}
           handleSend={handleSend}
@@ -405,6 +409,7 @@ export function App() {
           imageRatio={imageRatio}
           imageSizeOpen={imageSizeOpen}
           inputText={inputText}
+          installedSkillIds={installedSkillIds}
           isComposingRef={isComposingRef}
           isImageMode={isImageMode}
           isLoading={isLoading}
@@ -447,9 +452,9 @@ export function App() {
           setReferenceImageIndexes={setReferenceImageIndexes}
           setSelectedFileIndex={setSelectedFileIndex}
           setSelectedFolderIndex={setSelectedFolderIndex}
-          setSelectedSkillItemIndex={setSelectedSkillItemIndex}
           setSkillModal={setSkillModal}
           setSkillModalData={setSkillModalData}
+          setSkillSearchQuery={setSkillSearchQuery}
           setSkillView={setSkillView}
           setSidebarCollapsed={setSidebarCollapsed}
           setSuggestedQuestions={setSuggestedQuestions}
@@ -457,6 +462,8 @@ export function App() {
           setVideoModelOpen={setVideoModelOpen}
           setVideoSettingOpen={setVideoSettingOpen}
           sidebarCollapsed={sidebarCollapsed}
+          skillItems={skillItems}
+          skillSearchQuery={skillSearchQuery}
           skillView={skillView}
           stopGeneration={stopGeneration}
           suggestedQuestions={suggestedQuestions}
@@ -469,7 +476,10 @@ export function App() {
       </div>
 
       <AppModals
+        enabledSkillIds={enabledSkillIds}
         fileIndex={fileIndex}
+        installSkill={installSkill}
+        installedSkillIds={installedSkillIds}
         libraryModal={libraryModal}
         openProjectFile={openProjectFile}
         previewImageIndex={previewImageIndex}
@@ -480,7 +490,7 @@ export function App() {
         rechargeView={rechargeView}
         selectedFileIndex={selectedFileIndex}
         selectedFolderIndex={selectedFolderIndex}
-        selectedSkillItemIndex={selectedSkillItemIndex}
+        saveCustomSkill={saveCustomSkill}
         setFileIndex={setFileIndex}
         setLibraryModal={setLibraryModal}
         setPreviewImageIndex={setPreviewImageIndex}
@@ -494,6 +504,8 @@ export function App() {
         skillIndex={skillIndex}
         skillModal={skillModal}
         skillModalData={skillModalData}
+        toggleSkillEnabled={toggleSkillEnabled}
+        uninstallSkill={uninstallSkill}
       />
     </div>
   );
