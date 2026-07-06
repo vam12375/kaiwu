@@ -145,6 +145,12 @@ cp .env.example .env
 DEEPSEEK_API_KEY=sk-your-deepseek-key-here
 DOUBAO_API_KEY=ark-your-doubao-key-here
 SEEDREAM_API_KEY=ark-your-seedream-key-here
+KAIWU_DB_HOST=localhost
+KAIWU_DB_PORT=3306
+KAIWU_DB_USER=
+KAIWU_DB_PASSWORD=
+KAIWU_DB_NAME=kaiwu
+KAIWU_DB_CHARSET=utf8mb4
 ```
 
 ### 2. 准备数据库
@@ -161,7 +167,7 @@ CREATE DATABASE IF NOT EXISTS kaiwu CHARACTER SET utf8mb4 COLLATE utf8mb4_unicod
 mysql -u root -p kaiwu < ..\docs\sql\2026-07-01-agent-tasks-events.sql
 ```
 
-后端的 `EventStore` 也会尝试自动创建 `agent_tasks` 与 `agent_events`。如果只调试任务 API，MySQL 不可用时会进入内存兜底；如果要使用会话历史和项目沉淀，请确保 `kaiwuback/server/config.py` 中的 `DB_CONFIG` 与本地 MySQL 一致，并准备好 `conversations` / `messages` 等会话表。
+后端的 `EventStore` 也会尝试自动创建 `agent_tasks` 与 `agent_events`。如果只调试任务 API，MySQL 不可用时会进入内存兜底；如果要使用会话历史和项目沉淀，请确保 `kaiwuback/.env` 中的 `KAIWU_DB_*` 配置与本地 MySQL 一致，并准备好 `conversations` / `messages` 等会话表。
 
 如果本地还没有会话表，可先使用下面的最小开发 schema：
 
@@ -280,13 +286,19 @@ python -m compileall server
 
 ### 后端环境变量
 
-后端会自动读取 `kaiwuback/.env`。
+后端会自动读取 `kaiwuback/.env.local` 和 `kaiwuback/.env`，系统环境变量优先。
 
 | 变量 | 用途 | 必填场景 |
 | --- | --- | --- |
 | `DEEPSEEK_API_KEY` | DeepSeek 对话、意图识别与部分生成能力 | 需要 DeepSeek 时 |
 | `DOUBAO_API_KEY` | 豆包 Seed 对话与报告生成能力 | 需要豆包生成时 |
 | `SEEDREAM_API_KEY` | Seedream 文生图能力 | 需要图片生成时 |
+| `KAIWU_DB_HOST` | MySQL 主机，默认 `localhost` | 需要 MySQL 持久化时 |
+| `KAIWU_DB_PORT` | MySQL 端口，默认 `3306` | 需要 MySQL 持久化时 |
+| `KAIWU_DB_USER` | MySQL 用户名，默认空 | 需要 MySQL 持久化时 |
+| `KAIWU_DB_PASSWORD` | MySQL 密码，默认空 | 需要 MySQL 持久化时 |
+| `KAIWU_DB_NAME` | MySQL 数据库名，默认 `kaiwu` | 需要 MySQL 持久化时 |
+| `KAIWU_DB_CHARSET` | MySQL 字符集，默认 `utf8mb4` | 需要 MySQL 持久化时 |
 
 安全约束：
 
@@ -463,7 +475,7 @@ flowchart TD
 任务事件存储有内存兜底；会话历史依赖 MySQL 的 `conversations` 和 `messages` 表。请检查：
 
 - MySQL 是否启动。
-- `kaiwuback/server/config.py` 中 `DB_CONFIG` 是否匹配本地数据库。
+- `kaiwuback/.env` 或系统环境变量中的 `KAIWU_DB_*` 是否匹配本地数据库。
 - 会话相关表是否已创建。
 
 ### 前端请求后端失败
