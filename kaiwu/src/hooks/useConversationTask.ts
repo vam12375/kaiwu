@@ -105,7 +105,7 @@ const REPORT_COMMAND_KEYWORDS = [
   '开始调研',
   '做商业方案',
   '产品设计',
-  '营销文案',
+  '营销素材',
   '品牌设计',
 ];
 
@@ -162,7 +162,7 @@ export function useConversationTask(options: UseConversationTaskOptions) {
     if (options.homeTextareaRef.current) options.homeTextareaRef.current.value = '';
     if (options.convTextareaRef.current) options.convTextareaRef.current.value = '';
     options.setInputText('');
-    options.setSuggestedQuestions([]);
+    // suggestedQuestions 由 runPrompt 按需清理——推进流程清，导出报告不清
 
     const nextConversationTitle = text.slice(0, 20) + (text.length > 20 ? '...' : '');
     const userMessage: AgentMessage = { role: 'user', content: text };

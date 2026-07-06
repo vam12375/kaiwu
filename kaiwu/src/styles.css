@@ -5077,9 +5077,9 @@ div:hover > .md-svg-save-btn {
   white-space: nowrap;
 }
 .suggested-question-chip:hover {
-  background: var(--brand-accent);
-  color: #fff;
-  border-color: var(--brand-accent);
+  background: var(--border);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
 }
 
 /* ── Uploaded file tags ── */

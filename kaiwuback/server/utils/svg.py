@@ -3,11 +3,15 @@ import re
 
 
 def generate_logo_svg(params: dict) -> str:
-    """Generate a clean SVG logo from structured parameters."""
+    """Generate a clean SVG logo from structured parameters.
+
+    params keys: shape, mainColor, accentColor, text (brand name, ≤8 chars),
+                 element (star/crown/leaf/heart/moon/gem/paw)
+    """
     shape = params.get("shape", "circle")
     main = params.get("mainColor", "#1a1a2e")
     accent = params.get("accentColor", "#e8b86d")
-    text = params.get("text", "")[:4]
+    text = params.get("text", "")[:8]
     element = params.get("element", "")
 
     cx, cy = 200, 200
@@ -48,6 +52,15 @@ def generate_logo_svg(params: dict) -> str:
     else:
         svg_parts.append(elements["star"])
 
+    # 品牌名文字
+    if text:
+        font_size = "36" if len(text) <= 4 else "28"
+        svg_parts.append(
+            f'<text x="{cx}" y="310" text-anchor="middle" '
+            f'font-family="sans-serif" font-size="{font_size}" '
+            f'font-weight="600" fill="{main}" letter-spacing="2">{text}</text>'
+        )
+
     svg_parts.append('</svg>')
     return '\n'.join(svg_parts)
 
@@ -56,11 +69,41 @@ def extract_logo_prompts(ai_text: str, node_id: str) -> list:
     """Extract logo prompts from AI response. Returns [(style, prompt), ...]"""
     prompts = []
     if node_id == "node3.1":
-        m = re.search(r'图片生成Prompt[：:]\s*(.+?)(?:\n|$)', ai_text)
-        if m:
+        # 格式1: 图片生成Prompt：直接跟内容
+        for m in re.finditer(r'图片生成Prompt[：:]\s*(.+?)(?:\n|$)', ai_text):
             prompt = m.group(1).strip()
             if prompt and len(prompt) > 10:
                 prompts.append(("用户图片", prompt))
+
+        # 格式2: 图片生成Prompt（注释）换行后 Prompt...：`内容` 或裸内容
+        if not prompts:
+            # 找到 "图片生成Prompt" 标题后的内容块
+            sections = re.split(r'#{1,4}\s*图片生成Prompt[^:\n]*?\n', ai_text)
+            for section in sections[1:]:
+                # 优先匹配反引号包裹的长内容（≥20字符）
+                for bt in re.finditer(r'`([^`]{20,})`', section):
+                    prompt = bt.group(1).strip()
+                    if prompt and len(prompt) > 10:
+                        prompts.append(("用户图片", prompt))
+                # 匹配包含 --ar 的行
+                if not prompts:
+                    for line in section.split('\n'):
+                        stripped = line.strip()
+                        if '--ar' in stripped and len(stripped) > 20:
+                            clean = re.sub(r'^[`*\s]+|[`*\s]+$', '', stripped)
+                            if len(clean) > 10:
+                                prompts.append(("用户图片", clean))
+                                break
+
+        # 格式3: 全文中任意包含 --ar 的英文行（最后兜底）
+        if not prompts:
+            for line in ai_text.split('\n'):
+                stripped = line.strip()
+                if re.search(r'--ar\s+\d+:\d+', stripped) and len(stripped) > 20:
+                    clean = re.sub(r'^[`*\s]+|[`*\s]+$', '', stripped)
+                    if len(clean) > 10:
+                        prompts.append(("用户图片", clean))
+
         return prompts[:3]
     for match in re.finditer(r'###\s*风格\d+[：:]\s*(.+?)\n.*?图片生成Prompt[：:]\s*(.+?)(?:\n|---|$)', ai_text, re.DOTALL):
         style = match.group(1).strip()

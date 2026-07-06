@@ -49,7 +49,7 @@ def register_file_routes(app):
                                 "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime('%Y-%m-%d %H:%M'),
                                 "url": f"http://localhost:5001/project-files/{quote(folder.name)}/{quote(f.name)}",
                             })
-        return files[:100]
+        return files[:500]
 
     @app.get("/project-files/{folder:path}/{filename:path}")
     def serve_project_file(folder: str, filename: str):

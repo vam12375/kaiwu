@@ -25,7 +25,6 @@ from server.orchestrator.handlers import handle_export, handle_summary
 from server.orchestrator.llm_engine import generate_ai_response
 from server.utils.common import (
     _extract_logo_prompts,
-    _generate_logo_svg,
     append_conversation_messages,
     image_ratio_to_size,
     save_conversation,
@@ -230,17 +229,44 @@ class AgentRuntime:
         # node0 完成后将 dialogue_brief.md 存入 AI 对话产出
         if node_id == "node0":
             import re as _re_md
+
+            # ⛔ 防线1：检测 LLM 是否在第6轮前提前输出 dialogue_brief.md
+            has_round_6 = bool(_re_md.search(r'第\s*6\s*轮', ai_text))
+            brief_idx = ai_text.find("# 品牌全案策略 · 对话信息摘要")
+            if brief_idx != -1 and not has_round_6:
+                print(f"[NODE0] ⛔ Premature dialogue_brief.md detected (no round 6), stripping", flush=True)
+                ai_text = ai_text[:brief_idx].strip()
+                _node_output_cache[node_id] = ai_text
+
+            # ⛔ 防线2：检测 LLM 是否在 node0 中混入了 Node1 调研内容，自动截断
+            node1_leak_markers = [
+                "报告一：深度市场调研报告", "一、市场规模分析", "二、核心驱动因素",
+                "三、竞争格局", "四、目标人群画像", "五、商业机会", "六、机会评估",
+                "七、建议方向", "🔮 解语", "## 报告一", "### 报告一",
+            ]
+            for marker in node1_leak_markers:
+                idx = ai_text.find(marker)
+                if idx != -1:
+                    print(f"[NODE0] ⛔ Truncated Node1 leak at marker: {marker[:30]}", flush=True)
+                    ai_text = ai_text[:idx].strip()
+                    _node_output_cache[node_id] = ai_text
+                    break
+
             m = _re_md.search(
                 r'(# 品牌全案策略 · 对话信息摘要.*?)(?:```\s*$|以上为 node0)',
                 ai_text, _re_md.DOTALL
             )
             brief_md = m.group(1).strip() if m else ""
             if brief_md:
+                _session_state["node0_complete"] = True
                 from server.config import PROJECT_LIB
                 (PROJECT_LIB / "AI 对话产出").mkdir(parents=True, exist_ok=True)
                 fname = f"dialogue_brief_{uuid.uuid4().hex[:6]}.md"
                 (PROJECT_LIB / "AI 对话产出" / fname).write_text(brief_md, encoding='utf-8')
                 print(f"[NODE0] dialogue_brief.md → AI 对话产出", flush=True)
+            else:
+                _session_state["node0_complete"] = False
+                print(f"[NODE0] Round in progress, node0_complete=False", flush=True)
 
         suggested_questions = self._suggested_questions(node_id)
 
@@ -252,9 +278,6 @@ class AgentRuntime:
             self.emit(task_id, "suggestions", {"items": suggested_questions[:3]})
 
         image_urls = []
-        if node_id == "node3.1":
-            self._generate_svg_logos(task_id)
-
         if node_id in ("node1.5", "node3.1"):
             image_urls = self._generate_images(task_id, node_id, ai_text, image_ratio, image_count)
 
@@ -288,25 +311,6 @@ class AgentRuntime:
                 return
             self.emit(task_id, "content", {"content": text[i : i + chunk_size]})
             time.sleep(0.006)
-
-    def _generate_svg_logos(self, task_id: str) -> list[dict[str, str]]:
-        self.emit(task_id, "svg_gen_start", {"count": 3})
-        svg_styles = [
-            ("极简符号", {"shape": "circle", "mainColor": "#1a1a2e", "accentColor": "#c9a96e", "element": "star"}),
-            ("古典徽章", {"shape": "shield", "mainColor": "#2d2d2d", "accentColor": "#d4a853", "element": "crown"}),
-            ("现代字体", {"shape": "roundrect", "mainColor": "#0f172a", "accentColor": "#6366f1", "element": "gem"}),
-        ]
-        results = []
-        for style, params in svg_styles:
-            if self._cancelled(task_id):
-                return results
-            try:
-                svg_code = _generate_logo_svg(params)
-                results.append({"style": style, "code": svg_code})
-                self.emit(task_id, "svg", {"style": style, "code": svg_code})
-            except Exception as exc:
-                print(f"[SVG] Failed for {style}: {exc}", flush=True)
-        return results
 
     def _generate_images(
         self,
@@ -484,6 +488,10 @@ class AgentRuntime:
         if last_node != "node0":
             return node_id
         if self._is_node0_transition(message):
+            # 6轮诊断未完成 → 锁定在 node0，不允许跳出
+            if not _session_state.get("node0_complete"):
+                print(f"[NODE0] Transition blocked: diagnosis not complete, forcing node0", flush=True)
+                return "node0"
             if any(keyword in message for keyword in ["开始调研", "生成报告"]):
                 return "node1"
             if any(keyword in message for keyword in ["做商业方案", "商业方案"]):
@@ -502,10 +510,16 @@ class AgentRuntime:
 
     @staticmethod
     def _suggested_questions(node_id: str) -> list[str]:
-        if node_id == "node2":
-            return ["能详细展开品牌定位部分吗？", "产品体系方面有什么建议？", "盈利模式如何落地执行？"]
+        if node_id == "node0":
+            return ["开始调研"] if _session_state.get("node0_complete") else []
         if node_id == "node1":
-            return ["这个市场的规模增速是多少？", "核心目标人群是谁？", "有哪些竞品值得关注？"]
+            return ["基于以上信息生成商业方案"]
+        if node_id == "node2":
+            return ["请设计具体的产品手册"]
+        if node_id == "node3":
+            return ["生成系统化内容营销解决方案"]
+        if node_id == "node4":
+            return ["生成营销素材"]
         return []
 
     def _cancelled(self, task_id: str) -> bool:

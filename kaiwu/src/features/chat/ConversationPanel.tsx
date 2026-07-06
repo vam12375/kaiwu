@@ -1,4 +1,4 @@
-import type { Dispatch, RefObject, SetStateAction } from 'react';
+import { useEffect, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUp, Bookmark, Bot, Box, ChevronDown, ChevronLeft, Copy } from 'lucide-react';
 
@@ -67,6 +67,7 @@ const NODE_ACTIONS: Record<string, { label: string; prompt: string }> = {
   node2: { label: '📋 生成品牌商业计划书', prompt: '帮我生成品牌商业计划书' },
   node3: { label: '📦 生成产品手册', prompt: '生成产品手册' },
   node4: { label: '📊 生成系统化内容营销解决方案', prompt: '生成系统化内容营销解决方案' },
+  node5: { label: '📦 生成营销素材', prompt: '生成营销素材' },
 };
 
 function saveToProject(content: string, title: string) {
@@ -119,10 +120,29 @@ export function ConversationPanel({
   suggestedQuestions,
   uploadedFiles,
 }: ConversationPanelProps) {
+  const [lastActionableNodeId, setLastActionableNodeId] = useState('');
+
+  // 只有业务节点（node1-4）完成时才记住，summary/export 等不会覆盖
+  useEffect(() => {
+    if (NODE_ACTIONS[activeNodeId]) {
+      setLastActionableNodeId(activeNodeId);
+    }
+  }, [activeNodeId]);
+
+  // 新会话开始时清理上一个会话遗留的按钮状态
+  useEffect(() => {
+    if (messages.length === 0) {
+      setLastActionableNodeId('');
+    }
+  }, [messages.length]);
+
   const runPrompt = (prompt: string, followupNode: string | null) => {
     if (convTextareaRef.current) convTextareaRef.current.value = prompt;
     setInputText(prompt);
-    setSuggestedQuestions([]);
+    // 节点操作按钮（导出报告）不消除建议问题，只有推进流程的点击才消除
+    if (followupNode !== null) {
+      setSuggestedQuestions([]);
+    }
     followupNodeRef.current = followupNode;
     window.setTimeout(() => {
       void handleSend();
@@ -130,7 +150,7 @@ export function ConversationPanel({
   };
 
   const lastAi = [...messages].reverse().find((message) => message.role === 'ai');
-  const nodeAction = NODE_ACTIONS[activeNodeId];
+  const nodeAction = NODE_ACTIONS[lastActionableNodeId];
 
   return (
     <section className="doubao-conversation">
@@ -276,6 +296,34 @@ export function ConversationPanel({
                       dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
                     />
                   )}
+                  {nodeAction && messageIndex === messages.length - 1 && (
+                    <div
+                      className="node-action-card"
+                      onClick={() => runPrompt(nodeAction.prompt, null)}
+                      style={{
+                        marginTop: 12,
+                        padding: '10px 14px',
+                        borderRadius: 8,
+                        background: 'var(--surface)',
+                        border: '1px solid var(--border)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--border)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'var(--surface)';
+                      }}
+                    >
+                      <span style={{ fontSize: 16, flexShrink: 0 }}>{nodeAction.label.slice(0, 2)}</span>
+                      <span style={{ fontSize: 13, color: 'var(--text-primary)', flex: 1 }}>{nodeAction.label.slice(3)}</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>→</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -379,19 +427,6 @@ export function ConversationPanel({
               {question}
             </button>
           ))}
-        </div>
-      )}
-
-      {nodeAction && !isLoading && messages.length > 0 && (
-        <div className="suggested-questions-bar">
-          <button
-            className="suggested-question-chip"
-            style={{ background: 'var(--brand-accent)', color: '#fff', borderColor: 'var(--brand-accent)', fontWeight: 600 }}
-            onClick={() => runPrompt(nodeAction.prompt, null)}
-            type="button"
-          >
-            {nodeAction.label}
-          </button>
         </div>
       )}
 
