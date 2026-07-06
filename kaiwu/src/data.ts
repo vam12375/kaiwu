@@ -29,7 +29,6 @@
  *
  * ## 5. 项目库
  * projectFolders —— 7 个项目文件夹配置
- * projectLibraryFiles —— 6 个示例项目文件
  *
  * ## 6. 通用数据
  * heroLines / heroText —— 首页打字机文案
@@ -124,15 +123,6 @@ export const projectFolders = [
   { name: 'AI 对话产出', count: '26 个文件', desc: '由对话生成的文档、表格和摘要', tone: 'purple' },
   { name: '产品设计', count: '12 个文件', desc: 'PRD、原型说明、功能清单', tone: 'green' },
   { name: '营销素材', count: '9 个文件', desc: '脚本、选题、投放复盘和内容规划', tone: 'rose' },
-];
-
-export const projectLibraryFiles = [
-  { name: '商业计划书初稿', type: 'MD', source: 'AI 对话生成', folder: '创业资料', updated: '今天 14:28', tone: 'blue' },
-  { name: '用户访谈纪要', type: 'PDF', source: '手动上传', folder: '创业资料', updated: '昨天 18:10', tone: 'amber' },
-  { name: '竞品功能清单', type: 'XLSX', source: 'AI 对话生成', folder: '产品设计', updated: '昨天 11:42', tone: 'green' },
-  { name: 'MVP 功能范围', type: 'MD', source: '手动创建', folder: '产品设计', updated: '3 天前', tone: 'purple' },
-  { name: '首批种子用户画像', type: 'JPG', source: 'AI 对话生成', folder: '创业资料', updated: '5 天前', tone: 'teal' },
-  { name: '短视频脚本合集', type: 'MD', source: 'AI 对话生成', folder: '营销素材', updated: '6 天前', tone: 'rose' },
 ];
 
 export interface IFeatureCard {

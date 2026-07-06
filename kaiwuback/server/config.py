@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# 自动加载 kaiwuback/.env（config.py 的上两级目录）
-_env_path = Path(__file__).parent.parent / ".env"
+# 自动加载 kaiwuback/.env.local（config.py 的上两级目录）
+_env_path = Path(__file__).parent.parent / ".env.local"
 if _env_path.exists():
     load_dotenv(_env_path)
 
