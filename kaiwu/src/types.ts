@@ -32,13 +32,41 @@ export type ConvHistory = { id: number; title: string; node_id: string; directio
 export type Direction = (typeof directions)[number];
 export type SettingsSection = (typeof settingsSections)[number];
 export type SidebarPage = 'home' | 'skills' | 'projects' | 'settings' | 'image' | 'video' | 'coding';
-export type ProjectView = 'home' | 'folder' | 'ai' | 'uploaded';
-export type ProjectModal = 'new-folder' | 'upload' | 'file-detail' | 'folder-detail' | null;
+export type CreativeMode = 'image' | 'video' | 'coding';
+export type ProjectView = 'home' | 'folder' | 'ai' | 'uploaded' | 'detail';
+export type ProjectModal = 'new-folder' | 'upload' | null;
 export type SkillView = 'market' | 'installed';
 export type SkillModal = 'custom' | 'detail' | 'manage' | 'install' | 'external' | null;
 export type SkillCategory = (typeof skillCategories)[number];
-export type PickerType = 'model' | null;
+export type PickerType = 'model' | 'image-mode' | 'image-model' | null;
 export type LibraryModalType = 'file' | 'skill' | null;
+
+export type ProjectFolder = {
+  name: string;
+  count?: string;
+  desc: string;
+  tone: string;
+  locked?: boolean;
+  deletable?: boolean;
+  modified?: string;
+};
+
+export type ProjectFile = {
+  name: string;
+  folder: string;
+  type: string;
+  size: number;
+  modified: string;
+  url: string;
+  source: 'manual_upload' | 'ai' | 'system' | string;
+};
+
+export type ProjectImage = {
+  name: string;
+  url: string;
+  size: number;
+  modified: string;
+};
 
 export type SkillSource = 'market' | 'external' | 'custom';
 

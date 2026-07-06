@@ -16,6 +16,7 @@ type SkillLibraryPageProps = {
   skillItems: SkillLibraryItem[];
   skillSearchQuery: string;
   skillView: SkillView;
+  onUseSkill: (skill: SkillLibraryItem) => void;
 };
 
 function getSourceLabel(skill: SkillLibraryItem) {
@@ -41,6 +42,7 @@ export function SkillLibraryPage({
   skillItems,
   skillSearchQuery,
   skillView,
+  onUseSkill,
 }: SkillLibraryPageProps) {
   const installedSet = new Set(installedSkillIds);
   const enabledSet = new Set(enabledSkillIds);
@@ -117,7 +119,7 @@ export function SkillLibraryPage({
                   <span>{installed ? (enabled ? '已启用' : '已停用') : getSourceLabel(skill)}</span>
                   <div className="skill-card-actions">
                     <button onClick={() => openSkillModal(skill, 'detail')} type="button">详情</button>
-                    <button onClick={() => openSkillModal(skill, installed ? 'manage' : 'install')} type="button">
+                    <button onClick={() => installed ? onUseSkill(skill) : openSkillModal(skill, 'install')} type="button">
                       {installed ? '去使用' : '安装'}
                     </button>
                   </div>

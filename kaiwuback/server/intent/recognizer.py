@@ -70,24 +70,11 @@ def recognize_intent(user_input: str, model: str = None) -> dict:
     # ════════════════════════════════════
     # 第一层：Node1 市场调研最高优先级强匹配
     # ════════════════════════════════════
-    # 创业意图通用检测：意图词 + 动作词 + 品类 → Node0
-    intent_words = ["想", "要", "准备", "打算", "考虑", "希望", "计划"]
-    action_words = ["做", "进入", "开", "搞", "干", "创业", "尝试", "往", "发展", "从事"]
-    has_intent = any(kw in lower_input for kw in intent_words)
-    has_action = any(kw in lower_input for kw in action_words)
-    has_entrepreneurial_intent = has_intent and has_action
-
     research_signal = ["调研", "行业", "赛道", "市场分析", "大盘研判", "行业报告"]
     has_research = any(kw in lower_input for kw in research_signal)
     # 具体品类词（可扩展）
     category_words = ["服装", "网球", "餐饮", "美妆", "宠物", "咖啡", "茶饮", "运动", "家居", "电子", "汽车", "教育", "医疗", "金融", "母婴", "零食", "酒", "鞋", "箱包", "香氛", "香水"]
     has_category = any(kw in lower_input for kw in category_words)
-
-    # 检测到品类 + 创业意图 → 优先 Node0
-    if has_category and has_entrepreneurial_intent:
-        print(f"[INTENT] Node0 priority: entrepreneurial intent detected, intent={has_intent}, action={has_action}", flush=True)
-        return {"node": "0", "topic": user_input[:30], "summary": user_input, "constraints": ""}
-    # 检测到调研关键词 + 品类，且无创业意图 → Node1
     if has_research and has_category:
         print(f"[INTENT] Node1 priority routing: research={has_research}, category={has_category}", flush=True)
         return {"node": "1", "topic": user_input[:30], "summary": user_input, "constraints": ""}
@@ -106,7 +93,7 @@ def recognize_intent(user_input: str, model: str = None) -> dict:
     # Node5（文案）优先判断，避免"如何做营销文案"被Node4关键词误拦截
     # 然后Node4（营销方案）拦截"如何做营销/如何去做营销"等变体
     # ════════════════════════════════════
-    copy_triggers = ["文案", "素材", "种草", "短视频脚本", "产品详情页", "私域话术", "宣传文案", "节日营销"]
+    copy_triggers = ["文案", "种草", "短视频脚本", "产品详情页", "私域话术", "宣传文案", "节日营销"]
     if any(kw in lower_input for kw in copy_triggers):
         return {"node": "5", "topic": user_input[:30], "summary": "已识别为营销文案创作需求，调度Node5", "constraints": ""}
     marketing_triggers = ["营销方案", "营销策划", "营销推广", "营销策略", "如何营销", "怎么营销", "怎么做营销", "做营销",
@@ -148,13 +135,13 @@ def recognize_intent(user_input: str, model: str = None) -> dict:
     # 第四层：关键词兜底匹配
     # ════════════════════════════════════
     kw_map = [
-        (["我想做", "我要做", "我想开", "我想创业", "创业方向", "有什么机会", "做什么赚钱", "有什么赛道", "推荐赛道", "适合做什么", "有没有什么好做的"], "0"),
+        (["我想做", "我要做", "想做", "想做一个", "我想开", "我想创业", "创业方向", "有什么机会", "做什么赚钱", "有什么赛道", "推荐赛道", "适合做什么", "有没有什么好做的"], "0"),
         (["商业方案", "商业底层", "商业计划", "生成商业", "设计商业", "商业定位", "产品矩阵", "盈利模式", "财务测算", "供应链", "风险评估"], "2"),
         (["PPT", "ppt", "演示文稿", "幻灯片", "PPT大纲", "营销方案", "营销策划", "营销推广"], "4"),
         (["生成图片", "生成图", "生成一张", "帮我生成一张", "文生图", "图片生成", "生成一个", "帮我画", "画出", "画一张", "出图", "设计品牌logo", "设计Logo", "设计LOGO", "品牌标志设计", "logo", "品牌logo", "设计logo"], "3.1"),
-        (["产品设计", "做什么产品", "做哪些产品", "做产品", "产品规划", "设计产品", "产品手册", "产品落地", "做什么服务", "做哪些服务", "做服务", "设计服务", "服务规划", "服务设计"], "3"),
+        (["产品设计", "做什么产品", "做哪些产品", "做产品", "产品规划", "设计产品", "做什么服务", "做哪些服务", "做服务", "设计服务", "服务规划", "服务设计"], "3"),
         (["确立品牌", "建立品牌", "打造品牌", "我的品牌", "品牌怎么", "品牌塑造", "品牌故事", "品牌屋", "品牌文化", "品牌理念", "品牌内核", "品牌符号", "品牌全案", "品牌策划"], "2"),
-        (["文案", "素材", "种草", "短视频脚本", "产品详情页", "私域话术", "小红书", "抖音", "B站", "营销素材", "宣传文案", "节日营销"], "5"),
+        (["文案", "种草", "短视频脚本", "产品详情页", "私域话术", "小红书", "抖音", "B站", "营销文案", "宣传文案", "节日营销"], "5"),
         (["调研", "调查", "分析", "评估", "市场", "行业", "赛道", "趋势", "竞品", "用户画像", "洞察", "市场规模", "TAM", "SAM"], "1"),
     ]
     for keywords, nid in kw_map:
