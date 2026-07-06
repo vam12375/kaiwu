@@ -32,12 +32,13 @@ export type ConvHistory = { id: number; title: string; node_id: string; directio
 export type Direction = (typeof directions)[number];
 export type SettingsSection = (typeof settingsSections)[number];
 export type SidebarPage = 'home' | 'skills' | 'projects' | 'settings' | 'image' | 'video' | 'coding';
-export type ProjectView = 'home' | 'folder' | 'ai' | 'uploaded';
+export type CreativeMode = 'image' | 'video' | 'coding';
+export type ProjectView = 'home' | 'folder' | 'ai' | 'uploaded' | 'detail';
 export type ProjectModal = 'new-folder' | 'upload' | null;
 export type SkillView = 'market' | 'installed';
 export type SkillModal = 'custom' | 'detail' | 'manage' | 'install' | 'external' | null;
 export type SkillCategory = (typeof skillCategories)[number];
-export type PickerType = 'model' | null;
+export type PickerType = 'model' | 'image-mode' | 'image-model' | null;
 export type LibraryModalType = 'file' | 'skill' | null;
 
 export type ProjectFolder = {

@@ -1,8 +1,9 @@
+import { useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { Box, ChevronDown, ChevronLeft, Search, Settings2 } from 'lucide-react';
 
 import { sidebarItems } from '../../data';
-import type { ConvHistory, SidebarPage } from '../../types';
+import type { ConvHistory, CreativeMode, SidebarPage } from '../../types';
 import { SidebarHistory } from '../chat/SidebarHistory';
 
 type ResetConversationOptions = {
@@ -15,6 +16,7 @@ type ResetConversationOptions = {
 
 type AppSidebarProps = {
   accountMenuOpen: boolean;
+  activeCreativeMode: CreativeMode | null;
   activePage: SidebarPage;
   convHistory: ConvHistory[];
   deleteConversation: (conversationId: number, event?: React.MouseEvent<HTMLButtonElement>) => void;
@@ -25,6 +27,7 @@ type AppSidebarProps = {
   renameConversation: (conversationId: number, title: string) => void;
   resetConversation: (options?: ResetConversationOptions) => void;
   setAccountMenuOpen: Dispatch<SetStateAction<boolean>>;
+  setActiveCreativeMode: Dispatch<SetStateAction<CreativeMode | null>>;
   setActivePage: Dispatch<SetStateAction<SidebarPage>>;
   setConversationOpen: Dispatch<SetStateAction<boolean>>;
   setExpertExpanded: Dispatch<SetStateAction<boolean>>;
@@ -35,6 +38,7 @@ type AppSidebarProps = {
 
 export function AppSidebar({
   accountMenuOpen,
+  activeCreativeMode,
   activePage,
   convHistory,
   deleteConversation,
@@ -45,6 +49,7 @@ export function AppSidebar({
   renameConversation,
   resetConversation,
   setAccountMenuOpen,
+  setActiveCreativeMode,
   setActivePage,
   setConversationOpen,
   setExpertExpanded,
@@ -52,6 +57,43 @@ export function AppSidebar({
   setRechargeModalOpen,
   setSidebarCollapsed,
 }: AppSidebarProps) {
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
+  const normalizedHistoryQuery = historySearchQuery.trim().toLocaleLowerCase();
+  const filteredConvHistory = useMemo(() => {
+    if (!normalizedHistoryQuery) return convHistory;
+    return convHistory.filter((conversation) => (
+      conversation.title.toLocaleLowerCase().includes(normalizedHistoryQuery)
+    ));
+  }, [convHistory, normalizedHistoryQuery]);
+  const historyEmptyMessage = normalizedHistoryQuery ? '未找到匹配对话' : '暂无对话记录';
+  const creativeSubnavItems: Array<{ key: CreativeMode; label: string; onSelect: () => void }> = [
+    {
+      key: 'image',
+      label: 'AI生图',
+      onSelect: () => {
+        setActiveCreativeMode('image');
+        resetConversation({ inputText: '', imageMode: true, open: true, activePage: 'home' });
+      },
+    },
+    {
+      key: 'video',
+      label: 'AI视频',
+      onSelect: () => {
+        setActiveCreativeMode('video');
+        resetConversation({ inputText: '帮我生成品牌宣传视频素材：', imageMode: false, open: true, activePage: 'home' });
+      },
+    },
+    {
+      key: 'coding',
+      label: 'AI编程',
+      onSelect: () => {
+        setActiveCreativeMode('coding');
+        setConversationOpen(false);
+        setActivePage('coding');
+      },
+    },
+  ];
+
   return (
     <aside className="sidebar">
       <div className="sidebar-top">
@@ -70,7 +112,14 @@ export function AppSidebar({
 
       <div className="sidebar-search">
         <Search size={14} />
-        <input placeholder="搜索对话和生成图片比例" />
+        <input
+          value={historySearchQuery}
+          onChange={(event) => {
+            setHistorySearchQuery(event.target.value);
+            setOpenHistoryMenu(null);
+          }}
+          placeholder="搜索对话历史"
+        />
       </div>
 
       <nav className="sidebar-nav">
@@ -83,6 +132,7 @@ export function AppSidebar({
                 className={isActive ? 'sidebar-item active' : 'sidebar-item'}
                 onClick={() => {
                   if (item.key === 'home') {
+                    setActiveCreativeMode(null);
                     openHomeConversation();
                     return;
                   }
@@ -91,6 +141,7 @@ export function AppSidebar({
                     return;
                   }
                   if (item.key === 'skills' || item.key === 'projects') {
+                    setActiveCreativeMode(null);
                     setConversationOpen(false);
                     setActivePage(item.key);
                   }
@@ -103,21 +154,16 @@ export function AppSidebar({
               </button>
               {item.key === 'expert' && expertExpanded && (
                 <div className="expert-subnav">
-                  <button onClick={() => resetConversation({ inputText: '帮我设计品牌Logo：', imageMode: true, open: true, activePage: 'home' })} type="button">
-                    AI生图
-                  </button>
-                  <button onClick={() => resetConversation({ inputText: '帮我生成品牌宣传视频素材：', imageMode: false, open: true, activePage: 'home' })} type="button">
-                    AI视频
-                  </button>
-                  <button
-                    onClick={() => {
-                      setConversationOpen(false);
-                      setActivePage('coding');
-                    }}
-                    type="button"
-                  >
-                    AI编程
-                  </button>
+                  {creativeSubnavItems.map((subItem) => (
+                    <button
+                      key={subItem.key}
+                      className={activeCreativeMode === subItem.key ? 'active' : ''}
+                      onClick={subItem.onSelect}
+                      type="button"
+                    >
+                      {subItem.label}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -126,7 +172,8 @@ export function AppSidebar({
       </nav>
 
       <SidebarHistory
-        conversations={convHistory}
+        conversations={filteredConvHistory}
+        emptyMessage={historyEmptyMessage}
         openHistoryMenu={openHistoryMenu}
         setOpenHistoryMenu={setOpenHistoryMenu}
         loadConversation={loadConversation}
@@ -150,6 +197,7 @@ export function AppSidebar({
               onClick={() => {
                 setAccountMenuOpen(false);
                 setConversationOpen(false);
+                setActiveCreativeMode(null);
                 setActivePage('settings');
               }}
               type="button"
@@ -186,6 +234,7 @@ export function AppSidebar({
               onClick={() => {
                 localStorage.clear();
                 setAccountMenuOpen(false);
+                setActiveCreativeMode(null);
                 resetConversation({ activePage: 'home' });
               }}
               type="button"

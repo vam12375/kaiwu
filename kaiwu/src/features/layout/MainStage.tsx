@@ -1,4 +1,4 @@
-﻿import { ArrowUp, Bot, Brain, ChevronDown, ChevronRight, Cpu, FileStack, HelpCircle, Search, Settings2, UserRound } from 'lucide-react';
+import { ArrowLeft, ArrowUp, Bot, Brain, ChevronDown, ChevronRight, Cpu, Download, ExternalLink, FileStack, FileText, HelpCircle, Search, Settings2, UserRound } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { Check, Trash2 } from 'lucide-react';
@@ -12,6 +12,26 @@ import { FeatureCards } from '../home/FeatureCards';
 import { FreeMode } from '../home/FreeMode';
 
 type MainStageProps = Record<string, any>;
+
+const RECENT_PROJECT_FILES_LIMIT = 10;
+const PROJECT_FILE_PREVIEW_TYPES = new Set(['HTML', 'HTM', 'PDF', 'TXT', 'MD', 'CSV', 'JSON']);
+
+type ProjectFileLike = {
+  name: string;
+  folder: string;
+  type: string;
+  modified: string;
+  url: string;
+  source?: string;
+  size?: number;
+};
+
+function formatProjectFileSize(size?: number) {
+  if (typeof size !== 'number') return '未知大小';
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
 
 export function MainStage(props: MainStageProps) {
   const {
@@ -61,6 +81,7 @@ export function MainStage(props: MainStageProps) {
     removeUploadedFile,
     resetConversation,
     selectedFolderIndex,
+    selectedProjectFile,
     setActiveDirection,
     setActivePage,
     setActiveSettingsSection,
@@ -81,6 +102,7 @@ export function MainStage(props: MainStageProps) {
     setPreviewImageIndex,
     setProjectModal,
     setProjectSearchQuery,
+    setSelectedProjectFile,
     setProjectView,
     setRatioOpen,
     setReferenceImageIndexes,
@@ -107,6 +129,8 @@ export function MainStage(props: MainStageProps) {
     videoSettingOpen,
     selectedCardImage,
     setSelectedCardImage,
+    selectedComposerSkill,
+    setSelectedComposerSkill,
   } = props;
 
   const [folderEditMode, setFolderEditMode] = useState(false);
@@ -125,11 +149,59 @@ export function MainStage(props: MainStageProps) {
       return true;
     })
     .filter((file: { name: string }) => matchesProjectName(file.name));
+  const projectFileTableItems = projectView === 'home'
+    ? visibleRealProjectFiles.slice(0, RECENT_PROJECT_FILES_LIMIT)
+    : visibleRealProjectFiles;
   const visibleProjectImages = projectImages.filter((image: { name: string }) => matchesProjectName(image.name));
+  const selectedProjectFileType = selectedProjectFile?.type?.toUpperCase() || '';
+  const canPreviewSelectedProjectFile = PROJECT_FILE_PREVIEW_TYPES.has(selectedProjectFileType);
   const getProjectFileSourceLabel = (file: { source?: string; folder: string }) => {
     if (file.source === 'manual_upload') return '手动上传';
     if (file.source === 'ai' || file.folder === 'AI 对话产出') return 'AI 对话产出';
     return '项目文件';
+  };
+  const projectHeaderTitle = projectView === 'home'
+    ? '项目库'
+    : projectView === 'folder'
+      ? activeProjectFolder?.name
+      : projectView === 'ai'
+        ? 'AI 产出文件'
+        : projectView === 'uploaded'
+          ? '我上传的文件'
+          : selectedProjectFile?.name || '文件详情';
+  const projectHeaderDescription = projectView === 'home'
+    ? '集中管理 AI 对话产出的文件和你在项目中创建、上传的资料。'
+    : projectView === 'detail'
+      ? '查看文件预览、来源信息和快捷操作。'
+      : '管理项目文件、文件夹和资料来源。';
+  const returnToProjectLibrary = () => {
+    setSelectedProjectFile?.(null);
+    setProjectView('home');
+  };
+  const openSelectedProjectFile = () => {
+    if (!selectedProjectFile) return;
+    window.open(selectedProjectFile.url, '_blank', 'noopener,noreferrer');
+  };
+  const downloadSelectedProjectFile = () => {
+    if (!selectedProjectFile) return;
+    fetch(selectedProjectFile.url)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = selectedProjectFile.name;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      })
+      .catch(openSelectedProjectFile);
+  };
+  const useSkillInComposer = (skill: any) => {
+    setSelectedComposerSkill?.(skill);
+    setConversationOpen(false);
+    setActivePage('home');
+    window.setTimeout(() => {
+      homeTextareaRef.current?.focus();
+    }, 0);
   };
   const toggleProjectFolderSelection = (folderName: string) => {
     setSelectedProjectFolderNames((current) => (
@@ -255,19 +327,19 @@ export function MainStage(props: MainStageProps) {
                     <button className="settings-close" onClick={() => setActivePage('home')} type="button">×</button>
                     <h2>{activeSettingsSection}</h2>
                     <div className="settings-rule" />
-    
+
                     {activeSettingsSection === '系统设置' && <div className="wb-setting-list"><div className="wb-setting-row"><div><strong>发送消息</strong><p>设置聊天输入框中发送消息的快捷键。</p></div><button className="select-button" type="button">Enter <ChevronDown size={14} /></button></div><div className="wb-setting-row"><div><strong>技能自动更新</strong><p>开启后将自动更新已安装的技能为最新版本。</p></div><button className="switch on" type="button"><span /></button></div><div className="wb-setting-row"><div><strong>沙箱安全</strong><p>保护您的数据，AI 对工作空间以外的修改和删除操作需要授权。</p></div><button className="switch on" type="button"><span /></button></div><div className="wb-path-row"><strong>默认工作空间存储路径</strong><p>新建任务、工作空间时将自动存放在该路径下。</p><div><span>C:\Users\user\KaiwuAI</span><button type="button">更改</button></div></div></div>}
-    
+
                     {activeSettingsSection === '智能体设置' && <div className="wb-setting-list"><div className="wb-setting-row"><div><strong>禁用全部插件</strong><p>开启后禁用全部技能、MCP 和插件。当前状态：技能、MCP、插件可被正常使用。</p></div><button className="switch" type="button"><span /></button></div><div className="wb-setting-row"><div><strong>禁用智能体团队</strong><p>禁用后，智能体不会自动组建团队来完成任务。使用专家模式时可自动开启。</p></div><button className="switch" type="button"><span /></button></div></div>}
-    
+
                     {activeSettingsSection === '记忆' && <div className="wb-setting-list"><p className="settings-desc">记忆让曜势科技记住你的偏好和习惯，对话越多，它就越懂你。</p><div className="wb-setting-row"><div><strong>生成对话记忆</strong><p>允许曜势科技从对话中提取并记住相关上下文，以便在未来对话中提供更连续、个性化的回应。</p></div><button className="switch on" type="button"><span /></button></div><div className="memory-card"><p>**工作背景** 用户正在开发"曜势科技"，这是一款面向 OPC 创业者的 0-1 创业产品。</p><div><strong>来自对话的记忆</strong><span>1 天前从对话中更新</span></div></div><div className="import-memory-row"><div><strong>从其他AI导入记忆</strong><p>一键同步你在其他 AI 上的使用习惯。</p></div><button type="button">导入</button></div></div>}
-    
+
                     {activeSettingsSection === '模型' && <div className="wb-setting-list"><h3>自定义模型</h3><div className="wb-setting-row"><div><strong>本地配置文件</strong><p>管理写入到 %USERPROFILE%\.kaiwu\models.json 的本地自定义模型配置。</p></div><button type="button">+ 添加模型</button></div><h3>已保存模型</h3><div className="model-saved-row"><span>◆</span><div><strong>DeepSeek-V4 Pro</strong><p>深度求索</p></div><button type="button">⌕</button><button type="button">⌫</button></div></div>}
-    
+
                     {activeSettingsSection === '软件配置' && <div className="wb-setting-list"><h3>工作空间依赖项</h3><div className="wb-setting-row"><div><strong>内置运行时</strong><p>允许使用随包提供的 Node.js、Python 和 Git Bash 工具。</p></div><button className="switch on" type="button"><span /></button></div><h3>运行时列表</h3><div className="runtime-table"><div><strong>工具</strong><strong>说明</strong><strong>状态</strong></div><div><span>🟢 Node.js</span><span>基于 Chrome V8 引擎的 JavaScript 运行时，用于服务端开发</span><button className="switch on" type="button"><span /></button></div><div><span>🐍 Python</span><span>通用编程语言，适用于脚本编写、自动化和数据处理</span><button className="switch on" type="button"><span /></button></div><div><span>🔶 Git Bash</span><span>在 Windows 上提供类 Unix 命令行环境</span><button className="switch on" type="button"><span /></button></div></div></div>}
-    
+
                     {activeSettingsSection === '帮助与反馈' && <div className="wb-setting-list help-list"><button type="button"><span>▣ 帮助文档</span><span>↗</span></button><button type="button"><span>▤ 意见反馈</span></button><button type="button"><span>↔ 联系我们</span><span>↗</span></button><div className="policy-links">隐私政策　|　服务协议</div></div>}
-    
+
                     {activeSettingsSection === '账户管理' && <div className="wb-setting-list"><div className="account-profile-card"><div className="account-large-avatar">曜</div><div><strong>OPC创业者</strong><p>曜势科技 创业工作区账户</p></div><button type="button">更换头像</button></div><div className="wb-setting-row"><div><strong>账户名称</strong><p>用于侧边栏、项目协作和对话归档显示。</p></div><button type="button">OPC创业者</button></div><div className="wb-setting-row"><div><strong>登录密码</strong><p>定期更新密码以保护创业项目资料和生成图片比例。</p></div><button type="button">修改密码</button></div><div className="wb-setting-row"><div><strong>绑定邮箱</strong><p>op****@kaiwu.ai</p></div><button type="button">更换邮箱</button></div></div>}
                   </main>
                 </section>
@@ -284,31 +356,110 @@ export function MainStage(props: MainStageProps) {
                   skillItems={skillItems}
                   skillSearchQuery={skillSearchQuery}
                   skillView={skillView}
+                  onUseSkill={useSkillInComposer}
                 />
               ) : activePage === 'projects' ? (
                 <section className="library-page project-page">
                   <header className="library-header">
                     <div>
                       <div className="settings-kicker">Project Files</div>
-                      <h2>{projectView === 'home' ? '项目库' : projectView === 'folder' ? activeProjectFolder?.name : projectView === 'ai' ? 'AI 产出文件' : '我上传的文件'}</h2>
-                      <p>{projectView === 'home' ? '集中管理 AI 对话产出的文件和你在项目中创建、上传的资料。' : '管理项目文件、文件夹和资料来源。'}</p>
+                      <h2>{projectHeaderTitle}</h2>
+                      <p>{projectHeaderDescription}</p>
                     </div>
-                    <div className="project-actions">
-                      <button className="secondary-action" onClick={() => setProjectModal('new-folder')} type="button">新建文件夹</button>
-                      <button className="primary-action" onClick={() => setProjectModal('upload')} type="button">上传文件</button>
-                    </div>
+                    {projectView !== 'detail' && (
+                      <div className="project-actions">
+                        <button className="secondary-action" onClick={() => setProjectModal('new-folder')} type="button">新建文件夹</button>
+                        <button className="primary-action" onClick={() => setProjectModal('upload')} type="button">上传文件</button>
+                      </div>
+                    )}
                   </header>
-                  <div className="library-toolbar">
-                    <label className="library-search">
-                      <Search size={15} />
-                      <input
-                        value={projectSearchQuery}
-                        onChange={(event) => setProjectSearchQuery(event.target.value)}
-                        placeholder="按照名称搜索文件夹或文件"
-                      />
-                    </label>
-                    <div className="library-tabs"><button className={projectView === 'home' ? 'active' : ''} onClick={() => setProjectView('home')} type="button">全部文件</button><button className={projectView === 'ai' ? 'active' : ''} onClick={() => setProjectView('ai')} type="button">AI 产出</button><button className={projectView === 'uploaded' ? 'active' : ''} onClick={() => setProjectView('uploaded')} type="button">我上传的</button></div>
-                  </div>
+                  {projectView !== 'detail' && (
+                    <div className="library-toolbar">
+                      <label className="library-search">
+                        <Search size={15} />
+                        <input
+                          value={projectSearchQuery}
+                          onChange={(event) => setProjectSearchQuery(event.target.value)}
+                          placeholder="按照名称搜索文件夹或文件"
+                        />
+                      </label>
+                      <div className="library-tabs"><button className={projectView === 'home' ? 'active' : ''} onClick={() => setProjectView('home')} type="button">全部文件</button><button className={projectView === 'ai' ? 'active' : ''} onClick={() => setProjectView('ai')} type="button">AI 产出</button><button className={projectView === 'uploaded' ? 'active' : ''} onClick={() => setProjectView('uploaded')} type="button">我上传的</button></div>
+                    </div>
+                  )}
+                  {projectView === 'detail' && (
+                    <section className="project-section project-file-detail">
+                      <div className="project-file-detail-top">
+                        <button className="library-back-button project-detail-back" onClick={returnToProjectLibrary} type="button">
+                          <ArrowLeft size={15} />
+                          返回项目库
+                        </button>
+                        {selectedProjectFile && (
+                          <div className="project-detail-actions">
+                            <button onClick={openSelectedProjectFile} type="button">
+                              <ExternalLink size={14} />
+                              新窗口打开
+                            </button>
+                            <button className="primary-action" onClick={downloadSelectedProjectFile} type="button">
+                              <Download size={14} />
+                              下载文件
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      {selectedProjectFile ? (
+                        <div className="project-file-detail-shell">
+                          <aside className="project-file-info-panel">
+                            <div className="project-file-icon">
+                              <FileText size={24} />
+                            </div>
+                            <div>
+                              <span className="project-file-eyebrow">{selectedProjectFile.type || 'FILE'}</span>
+                              <h3>{selectedProjectFile.name}</h3>
+                              <p>{selectedProjectFile.folder} · {getProjectFileSourceLabel(selectedProjectFile)}</p>
+                            </div>
+                            <dl className="project-file-meta">
+                              <div>
+                                <dt>文件夹</dt>
+                                <dd>{selectedProjectFile.folder}</dd>
+                              </div>
+                              <div>
+                                <dt>来源</dt>
+                                <dd>{getProjectFileSourceLabel(selectedProjectFile)}</dd>
+                              </div>
+                              <div>
+                                <dt>更新时间</dt>
+                                <dd>{selectedProjectFile.modified}</dd>
+                              </div>
+                              <div>
+                                <dt>大小</dt>
+                                <dd>{formatProjectFileSize(selectedProjectFile.size)}</dd>
+                              </div>
+                            </dl>
+                          </aside>
+                          <div className="project-file-preview-panel">
+                            <div className="project-file-preview-head">
+                              <div>
+                                <span>文件预览</span>
+                                <strong>{selectedProjectFile.name}</strong>
+                              </div>
+                              <span className="project-file-type-chip">{selectedProjectFile.type || 'FILE'}</span>
+                            </div>
+                            {canPreviewSelectedProjectFile ? (
+                              <iframe src={selectedProjectFile.url} title={`预览 ${selectedProjectFile.name}`} />
+                            ) : (
+                              <div className="project-file-preview-empty">
+                                <FileText size={32} />
+                                <strong>此文件类型暂不支持内嵌预览</strong>
+                                <p>可以使用新窗口打开或下载到本地查看。</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="file-empty-state">未找到要查看的文件</div>
+                      )}
+                    </section>
+                  )}
                   {projectView === 'folder' && activeProjectFolder && (
                     <section className="project-section folder-detail-panel">
                       <button className="library-back-button" onClick={() => setProjectView('home')} type="button">返回项目库</button>
@@ -331,7 +482,7 @@ export function MainStage(props: MainStageProps) {
                         )
                       ) : (
                         <div className="file-table">
-                          {visibleRealProjectFiles.map((file: { name: string; folder: string; type: string; modified: string; url: string; source?: string }, i: number) => (
+                          {visibleRealProjectFiles.map((file: ProjectFileLike, i: number) => (
                             <button key={`folder-real-${i}`} className="file-row" onClick={() => openProjectFile(file)} type="button">
                               <span className="file-type tone-slate">{file.type}</span>
                               <span className="file-main"><strong>{file.name}</strong><small>{file.folder} · {getProjectFileSourceLabel(file)}</small></span>
@@ -413,11 +564,11 @@ export function MainStage(props: MainStageProps) {
                       )}
                     </section>
                   )}
-                  {projectView !== 'folder' && (
+                  {projectView !== 'folder' && projectView !== 'detail' && (
                     <section className="project-section">
                       <div className="section-title-row"><h3>{projectView === 'ai' ? 'AI 产出文件' : projectView === 'uploaded' ? '我上传的文件' : '最近文件'}</h3><span>点击文件查看详情</span></div>
                       <div className="file-table">
-                        {visibleRealProjectFiles.map((file: { name: string; folder: string; type: string; modified: string; url: string; source?: string }, i: number) => (
+                        {projectFileTableItems.map((file: ProjectFileLike, i: number) => (
                           <button key={`real-${i}`} className="file-row" onClick={() => openProjectFile(file)} type="button">
                             <span className="file-type tone-slate">{file.type}</span>
                             <span className="file-main"><strong>{file.name}</strong><small>{file.folder} · {getProjectFileSourceLabel(file)}</small></span>
@@ -425,7 +576,7 @@ export function MainStage(props: MainStageProps) {
                             <span className="file-action">查看</span>
                           </button>
                         ))}
-                        {visibleRealProjectFiles.length === 0 && <div className="file-empty-state">暂无匹配文件</div>}
+                        {projectFileTableItems.length === 0 && <div className="file-empty-state">暂无匹配文件</div>}
                       </div>
                     </section>
                   )}
@@ -438,6 +589,8 @@ export function MainStage(props: MainStageProps) {
                     <ChatInput
                       activeDirection={activeDirection}
                       quickSkills={quickSkills}
+                      selectedSkill={selectedComposerSkill}
+                      onSelectedSkillRemove={() => setSelectedComposerSkill?.(null)}
                       presetImage={selectedCardImage}
                       onPresetConsumed={() => setSelectedCardImage?.(undefined)}
                       homeTextareaRef={homeTextareaRef}
@@ -472,4 +625,3 @@ export function MainStage(props: MainStageProps) {
             </main>
   );
 }
-

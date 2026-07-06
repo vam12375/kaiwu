@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, Mic, MicOff, ArrowUp, Bot, ChevronDown, X } from 'lucide-react';
+import { Plus, Mic, MicOff, ArrowUp, Bot, ChevronDown, Sparkles, X } from 'lucide-react';
 import { modelOptions } from '../../data';
+import type { SkillLibraryItem } from '../../types';
 
 type ChatInputProps = {
   activeDirection: string;
   quickSkills: string[];
   presetImage?: string;
   onPresetConsumed?: () => void;
+  selectedSkill?: SkillLibraryItem | null;
+  onSelectedSkillRemove?: () => void;
   // kaiwu integration
   homeTextareaRef: React.RefObject<HTMLTextAreaElement | null>;
   inputText: string;
@@ -23,6 +26,8 @@ export function ChatInput({
   quickSkills,
   presetImage,
   onPresetConsumed,
+  selectedSkill,
+  onSelectedSkillRemove,
   homeTextareaRef,
   inputText,
   setInputText,
@@ -112,6 +117,21 @@ export function ChatInput({
               <img src={previewImage} alt="" />
               <button className="chat-preview-remove" onClick={() => setPreviewImage(undefined)} aria-label="移除图片">
                 <X size={12} />
+              </button>
+            </div>
+          )}
+
+          {selectedSkill && (
+            <div className="chat-skill-card">
+              <span className="chat-skill-card-icon">
+                <Sparkles size={15} />
+              </span>
+              <div>
+                <strong>{selectedSkill.name}</strong>
+                <span>{selectedSkill.category} · {selectedSkill.description}</span>
+              </div>
+              <button className="chat-skill-card-remove" onClick={onSelectedSkillRemove} type="button" aria-label="移除技能">
+                <X size={13} />
               </button>
             </div>
           )}

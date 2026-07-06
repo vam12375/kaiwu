@@ -1,4 +1,4 @@
-﻿/**
+/**
  * =============================================================================
  * # 角色
  * 主组件层 —— 曜势科技 App 的根组件。
@@ -68,6 +68,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type {
   ConvHistory,
+  CreativeMode,
   Direction,
   SettingsSection,
   SidebarPage,
@@ -153,8 +154,10 @@ export function App() {
   const [skillView, setSkillView] = useState<SkillView>('market');
   const [skillModal, setSkillModal] = useState<SkillModal>(null);
   const [skillModalData, setSkillModalData] = useState<SkillLibraryItem | null>(null);
+  const [selectedComposerSkill, setSelectedComposerSkill] = useState<SkillLibraryItem | null>(null);
   const [activeSkillCategory, setActiveSkillCategory] = useState<SkillCategory>('全部');
   const [expertExpanded, setExpertExpanded] = useState(false);
+  const [activeCreativeMode, setActiveCreativeMode] = useState<CreativeMode | null>(null);
   const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
   const [imageModelOpen, setImageModelOpen] = useState(false);
   const [imageSizeOpen, setImageSizeOpen] = useState(false);
@@ -176,6 +179,7 @@ export function App() {
   const [projectFolders, setProjectFolders] = useState<ProjectFolder[]>(projectFolderTemplates);
   const [projectImages, setProjectImages] = useState<ProjectImage[]>([]);
   const [realProjectFiles, setRealProjectFiles] = useState<ProjectFile[]>([]);
+  const [selectedProjectFile, setSelectedProjectFile] = useState<ProjectFile | null>(null);
   const [codingPreviewUrl, setCodingPreviewUrl] = useState<string>('');
   const [selectedCardImage, setSelectedCardImage] = useState<string | undefined>();
   const [imageRatio, setImageRatio] = useState<string>('1:1');
@@ -282,6 +286,21 @@ export function App() {
     setOpenHistoryMenu,
   });
 
+  const resetConversationOutsideCreative = useCallback((options?: Parameters<typeof resetConversation>[0]) => {
+    setActiveCreativeMode(null);
+    resetConversation(options);
+  }, [resetConversation]);
+
+  const openHomeConversationOutsideCreative = useCallback(() => {
+    setActiveCreativeMode(null);
+    openHomeConversation();
+  }, [openHomeConversation]);
+
+  const loadConversationOutsideCreative = useCallback((conversationId: number) => {
+    setActiveCreativeMode(null);
+    loadConversation(conversationId);
+  }, [loadConversation]);
+
   // ---- Effects ----
   // Auto-scroll to bottom
   useEffect(() => {
@@ -366,6 +385,7 @@ export function App() {
     try {
       await Promise.all(deletableNames.map((folderName) => deleteProjectFolder(folderName)));
       setRealProjectFiles((current) => current.filter((file) => !deletableNames.includes(file.folder)));
+      setSelectedProjectFile((current) => current && deletableNames.includes(current.folder) ? null : current);
       if (deletableNames.includes('图片库')) {
         setProjectImages([]);
       }
@@ -430,15 +450,12 @@ export function App() {
     };
   }, []);
 
-  const openProjectFile = (file: { name: string; folder: string; type: string; url: string }) => {
-    if (file.type === 'HTML') {
-      setCodingPreviewUrl(file.url);
-      setCodingMode('preview');
-      setActivePage('coding');
-      setProjectModal(null);
-    } else {
-      window.open(file.url, '_blank');
-    }
+  const openProjectFile = (file: ProjectFile) => {
+    setActiveCreativeMode(null);
+    setSelectedProjectFile(file);
+    setProjectView('detail');
+    setActivePage('projects');
+    setProjectModal(null);
   };
 
   // =============================================================================
@@ -454,12 +471,14 @@ export function App() {
             activePage={activePage}
             convHistory={convHistory}
             deleteConversation={deleteConversation}
+            activeCreativeMode={activeCreativeMode}
             expertExpanded={expertExpanded}
-            loadConversation={loadConversation}
+            loadConversation={loadConversationOutsideCreative}
             openHistoryMenu={openHistoryMenu}
-            openHomeConversation={openHomeConversation}
+            openHomeConversation={openHomeConversationOutsideCreative}
             renameConversation={renameConversation}
             resetConversation={resetConversation}
+            setActiveCreativeMode={setActiveCreativeMode}
             setAccountMenuOpen={setAccountMenuOpen}
             setActivePage={setActivePage}
             setConversationOpen={setConversationOpen}
@@ -515,8 +534,9 @@ export function App() {
           refreshProjectFiles={refreshProjectFiles}
           referenceImageIndexes={referenceImageIndexes}
           removeUploadedFile={removeUploadedFile}
-          resetConversation={resetConversation}
+          resetConversation={resetConversationOutsideCreative}
           selectedFolderIndex={selectedFolderIndex}
+          selectedProjectFile={selectedProjectFile}
           setActiveDirection={setActiveDirection}
           setActivePage={setActivePage}
           setActiveSettingsSection={setActiveSettingsSection}
@@ -537,6 +557,7 @@ export function App() {
           setPreviewImageIndex={setPreviewImageIndex}
           setProjectModal={setProjectModal}
           setProjectSearchQuery={setProjectSearchQuery}
+          setSelectedProjectFile={setSelectedProjectFile}
           setProjectView={setProjectView}
           setRatioOpen={setRatioOpen}
           setReferenceImageIndexes={setReferenceImageIndexes}
@@ -563,6 +584,8 @@ export function App() {
           videoSettingOpen={videoSettingOpen}
           selectedCardImage={selectedCardImage}
           setSelectedCardImage={setSelectedCardImage}
+          selectedComposerSkill={selectedComposerSkill}
+          setSelectedComposerSkill={setSelectedComposerSkill}
         />
       </div>
 
@@ -600,5 +623,3 @@ export function App() {
     </div>
   );
 }
-
-
