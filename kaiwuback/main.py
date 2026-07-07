@@ -12,6 +12,7 @@ from server.api.routes_events import register_event_routes
 from server.api.routes_files import register_file_routes
 from server.api.routes_skills import register_skills_routes
 from server.api.routes_tasks import register_task_routes
+from server.config import PUBLIC_BASE_URL
 from server.nodes.prompts import NODES
 
 
@@ -65,5 +66,6 @@ async def chat_compat(request: Request):
 if __name__ == "__main__":
     import uvicorn
 
-    print("Kaiwu Backend (FastAPI) starting on http://localhost:5001")
+    public_label = PUBLIC_BASE_URL or "relative same-origin URLs"
+    print(f"Kaiwu Backend (FastAPI) starting; public base: {public_label}")
     uvicorn.run(app, host="0.0.0.0", port=5001)

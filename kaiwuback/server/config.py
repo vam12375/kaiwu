@@ -44,6 +44,15 @@ SEEDREAM_API_KEY = os.getenv("SEEDREAM_API_KEY", "")
 SEEDREAM_URL = "https://ark.cn-beijing.volces.com/api/v3/images/generations"
 SEEDREAM_MODEL = "doubao-seedream-5-0-lite-260128"
 
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").strip().rstrip("/")
+
+
+def public_url(path: str) -> str:
+    normalized_path = "/" + path.lstrip("/")
+    if not PUBLIC_BASE_URL:
+        return normalized_path
+    return f"{PUBLIC_BASE_URL}{normalized_path}"
+
 # ═══════════════════════════════════════
 # 差异性技能库 & 报告模板
 # ═══════════════════════════════════════
