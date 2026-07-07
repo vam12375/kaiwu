@@ -65,6 +65,16 @@ export const modelOptions = [
   { name: 'Doubao-Seed-2.0-Lite', desc: '快速生成方案与草稿', id: 'doubao-seed-2-0-lite-260215' },
 ];
 
+export const imageModelOptions = [
+  'doubao-seedream-5-0-260128',
+  'doubao-seedream-5-0-lite-260128',
+  'doubao-seedream-4-5-251128',
+  'doubao-seedream-4-0-250828',
+] as const;
+
+export const imageRatioOptions = ['21:9', '16:9', '3:2', '4:3', '1:1', '3:4', '2:3', '9:16'] as const;
+export const imageResolutionOptions = ['2K', '4K'] as const;
+
 export const projectFiles = [
   { name: '商业计划书初稿', desc: '文档 · 更新于今天', meta: 'BP / 12 页' },
   { name: '用户访谈纪要', desc: '研究资料 · 18 条访谈', meta: '调研 / 32 KB' },

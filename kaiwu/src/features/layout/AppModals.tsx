@@ -3,9 +3,11 @@ import { Search } from 'lucide-react';
 
 import { skillOptions } from '../../data';
 import { createProjectFolder, uploadProjectFile } from '../../api/projectFiles';
-import type { CustomSkillInput, SkillLibraryItem } from '../../types';
+import type { CustomSkillInput, ProjectFile, ProjectFolder, ShowToast, SkillLibraryItem } from '../../types';
 
-type AppModalsProps = Record<string, any>;
+type AppModalsProps = Record<string, any> & {
+  showToast: ShowToast;
+};
 
 export function AppModals(props: AppModalsProps) {
   const {
@@ -15,6 +17,9 @@ export function AppModals(props: AppModalsProps) {
     installedSkillIds,
     libraryModal,
     previewImageIndex,
+    projectFolderEditTarget,
+    projectFileEditTarget,
+    projectUploadTargetFolder,
     projectFolders,
     projectModal,
     realProjectFiles,
@@ -22,6 +27,8 @@ export function AppModals(props: AppModalsProps) {
     rechargeView,
     refreshProjectFiles,
     refreshProjectFolders,
+    renameProjectFolder,
+    renameProjectFile,
     saveCustomSkill,
     setFileIndex,
     setLibraryModal,
@@ -38,6 +45,7 @@ export function AppModals(props: AppModalsProps) {
     skillModalData,
     toggleSkillEnabled,
     uninstallSkill,
+    showToast,
   } = props;
 
   const [customSkillForm, setCustomSkillForm] = useState<CustomSkillInput>({
@@ -48,11 +56,13 @@ export function AppModals(props: AppModalsProps) {
   });
   const [projectFolderName, setProjectFolderName] = useState('');
   const [projectFolderDesc, setProjectFolderDesc] = useState('');
+  const [projectFileName, setProjectFileName] = useState('');
   const [projectModalStatus, setProjectModalStatus] = useState('');
   const [selectedProjectFile, setSelectedProjectFile] = useState<File | null>(null);
   const [selectedUploadFolder, setSelectedUploadFolder] = useState('');
   const [uploadDragging, setUploadDragging] = useState(false);
   const [uploadingProjectFile, setUploadingProjectFile] = useState(false);
+  const [renamingProjectItem, setRenamingProjectItem] = useState(false);
   const projectUploadInputRef = useRef<HTMLInputElement>(null);
 
   const currentSkill = skillModalData as SkillLibraryItem | null;
@@ -60,7 +70,24 @@ export function AppModals(props: AppModalsProps) {
   const currentSkillEnabled = Boolean(currentSkill && enabledSkillIds.includes(currentSkill.id));
   const uploadExcludedFolders = new Set(['图片库', '视频库', '最近文件']);
   const selectableProjectFolders = (projectFolders || []).filter((folder: { name: string }) => !uploadExcludedFolders.has(folder.name));
-  const defaultUploadFolder = selectableProjectFolders.find((folder: { name: string }) => folder.name === '创业资料')?.name || selectableProjectFolders[0]?.name || '';
+  const lockedUploadFolder = projectUploadTargetFolder && selectableProjectFolders.some((folder: { name: string }) => folder.name === projectUploadTargetFolder.name)
+    ? projectUploadTargetFolder as ProjectFolder
+    : null;
+  const defaultUploadFolder = lockedUploadFolder?.name
+    || selectableProjectFolders.find((folder: { name: string }) => folder.name === '创业资料')?.name
+    || selectableProjectFolders[0]?.name
+    || '';
+  const folderEditTarget = projectFolderEditTarget as ProjectFolder | null;
+  const fileEditTarget = projectFileEditTarget as ProjectFile | null;
+  const projectModalTitle = projectModal === 'new-folder'
+    ? '新建文件夹'
+    : projectModal === 'upload'
+      ? '上传文件'
+      : projectModal === 'rename-folder'
+        ? '重命名文件夹'
+        : projectModal === 'rename-file'
+          ? '重命名文件'
+          : '项目库';
 
   useEffect(() => {
     if (skillModal === 'custom') {
@@ -79,13 +106,24 @@ export function AppModals(props: AppModalsProps) {
       setProjectFolderDesc('');
       setProjectModalStatus('');
     }
+    if (projectModal === 'rename-folder') {
+      setProjectFolderName(folderEditTarget?.name || '');
+      setProjectFolderDesc(folderEditTarget?.desc || '');
+      setProjectModalStatus('');
+      setRenamingProjectItem(false);
+    }
+    if (projectModal === 'rename-file') {
+      setProjectFileName(fileEditTarget?.name || '');
+      setProjectModalStatus('');
+      setRenamingProjectItem(false);
+    }
     if (projectModal === 'upload') {
       setProjectModalStatus('');
       setSelectedProjectFile(null);
       setSelectedUploadFolder(defaultUploadFolder);
       setUploadDragging(false);
     }
-  }, [projectModal, defaultUploadFolder]);
+  }, [projectModal, defaultUploadFolder, folderEditTarget, fileEditTarget]);
 
   useEffect(() => {
     if (projectModal !== 'upload') return;
@@ -104,12 +142,14 @@ export function AppModals(props: AppModalsProps) {
     if (!saved) return;
     setSkillModalData(saved);
     setSkillModal('detail');
+    showToast({ message: '自定义技能已保存', variant: 'success' });
   };
 
   const handleCreateProjectFolder = async () => {
     const name = projectFolderName.trim();
     if (!name) {
       setProjectModalStatus('请输入文件夹名称');
+      showToast({ message: '请输入文件夹名称', variant: 'info' });
       return;
     }
 
@@ -118,8 +158,52 @@ export function AppModals(props: AppModalsProps) {
       await createProjectFolder({ name, desc: projectFolderDesc.trim() });
       await refreshProjectFolders?.();
       setProjectModal(null);
+      showToast({ message: '文件夹已创建', variant: 'success' });
     } catch {
       setProjectModalStatus('创建失败，请检查名称是否重复');
+      showToast({ message: '创建失败，请检查名称是否重复', variant: 'error' });
+    }
+  };
+
+  const handleRenameProjectFolder = async () => {
+    if (!folderEditTarget || !renameProjectFolder) return;
+    const name = projectFolderName.trim();
+    if (!name) {
+      setProjectModalStatus('请输入文件夹名称');
+      showToast({ message: '请输入文件夹名称', variant: 'info' });
+      return;
+    }
+
+    try {
+      setRenamingProjectItem(true);
+      setProjectModalStatus('正在保存...');
+      const renamed = await renameProjectFolder(folderEditTarget, { name, desc: projectFolderDesc.trim() });
+      if (!renamed) {
+        setProjectModalStatus('保存失败，请检查名称是否重复');
+      }
+    } finally {
+      setRenamingProjectItem(false);
+    }
+  };
+
+  const handleRenameProjectFile = async () => {
+    if (!fileEditTarget || !renameProjectFile) return;
+    const name = projectFileName.trim();
+    if (!name) {
+      setProjectModalStatus('请输入文件名称');
+      showToast({ message: '请输入文件名称', variant: 'info' });
+      return;
+    }
+
+    try {
+      setRenamingProjectItem(true);
+      setProjectModalStatus('正在保存...');
+      const renamed = await renameProjectFile(fileEditTarget, name);
+      if (!renamed) {
+        setProjectModalStatus('保存失败，请检查名称是否重复');
+      }
+    } finally {
+      setRenamingProjectItem(false);
     }
   };
 
@@ -133,10 +217,12 @@ export function AppModals(props: AppModalsProps) {
   const handleUploadProjectFile = async () => {
     if (!selectedProjectFile) {
       setProjectModalStatus('请选择要上传的文件');
+      showToast({ message: '请选择要上传的文件', variant: 'info' });
       return;
     }
     if (!selectedUploadFolder) {
       setProjectModalStatus('请先创建一个可保存文件的文件夹');
+      showToast({ message: '请先创建一个可保存文件的文件夹', variant: 'info' });
       return;
     }
 
@@ -147,8 +233,10 @@ export function AppModals(props: AppModalsProps) {
       await refreshProjectFiles?.();
       await refreshProjectFolders?.();
       setProjectModal(null);
+      showToast({ message: '文件已上传', variant: 'success' });
     } catch {
       setProjectModalStatus('上传失败，请稍后重试');
+      showToast({ message: '上传失败，请稍后重试', variant: 'error' });
     } finally {
       setUploadingProjectFile(false);
     }
@@ -239,11 +327,20 @@ export function AppModals(props: AppModalsProps) {
                         <>
                           <div className="setting-item">
                             <div><strong>默认启用</strong><small>允许模型在合适任务中自动调用</small></div>
-                            <button className={currentSkillEnabled ? 'switch on' : 'switch'} onClick={() => toggleSkillEnabled(currentSkill.id)} type="button"><span /></button>
+                            <button
+                              className={currentSkillEnabled ? 'switch on' : 'switch'}
+                              onClick={() => {
+                                toggleSkillEnabled(currentSkill.id);
+                                showToast({ message: currentSkillEnabled ? '技能已停用' : '技能已启用', variant: 'success' });
+                              }}
+                              type="button"
+                            >
+                              <span />
+                            </button>
                           </div>
                           <div className="modal-subtle-actions">
                             <button onClick={() => setSkillModal('detail')} type="button">查看文本</button>
-                            <button onClick={() => { uninstallSkill(currentSkill.id); setSkillModal(null); setSkillModalData(null); }} type="button">卸载技能</button>
+                            <button onClick={() => { uninstallSkill(currentSkill.id); setSkillModal(null); setSkillModalData(null); showToast({ message: '技能已卸载', variant: 'success' }); }} type="button">卸载技能</button>
                           </div>
                         </>
                       )}
@@ -260,7 +357,7 @@ export function AppModals(props: AppModalsProps) {
                         {currentSkillInstalled ? (
                           <button className="primary-action" onClick={() => setSkillModal('manage')} type="button">管理技能</button>
                         ) : (
-                          <button className="primary-action" onClick={() => { installSkill(currentSkill.id); setSkillModal('detail'); }} type="button">确认安装</button>
+                          <button className="primary-action" onClick={() => { installSkill(currentSkill.id); setSkillModal('detail'); showToast({ message: '技能已安装', variant: 'success' }); }} type="button">确认安装</button>
                         )}
                       </div>
                     </div>
@@ -276,11 +373,11 @@ export function AppModals(props: AppModalsProps) {
                   <header className="modal-header">
                     <div>
                       <div className="modal-kicker">项目库</div>
-                      <h2>{projectModal === 'new-folder' ? '新建文件夹' : '上传文件'}</h2>
+                      <h2>{projectModalTitle}</h2>
                     </div>
                     <button className="modal-close" onClick={() => setProjectModal(null)} type="button">×</button>
                   </header>
-                  {projectModal === 'new-folder' && (
+                  {(projectModal === 'new-folder' || projectModal === 'rename-folder') && (
                     <div className="project-modal-body">
                       <div className="form-field">
                         <span>文件夹名称</span>
@@ -293,7 +390,35 @@ export function AppModals(props: AppModalsProps) {
                       {projectModalStatus && <div className="modal-status">{projectModalStatus}</div>}
                       <div className="modal-actions">
                         <button className="secondary-action" onClick={() => setProjectModal(null)} type="button">取消</button>
-                        <button className="primary-action" onClick={handleCreateProjectFolder} type="button">创建文件夹</button>
+                        <button
+                          className="primary-action"
+                          onClick={projectModal === 'rename-folder' ? handleRenameProjectFolder : handleCreateProjectFolder}
+                          disabled={renamingProjectItem}
+                          type="button"
+                        >
+                          {projectModal === 'rename-folder' ? (renamingProjectItem ? '保存中...' : '保存修改') : '创建文件夹'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {projectModal === 'rename-file' && (
+                    <div className="project-modal-body">
+                      <div className="form-field">
+                        <span>文件名称</span>
+                        <input value={projectFileName} onChange={(event) => setProjectFileName(event.target.value)} placeholder="例如：商业计划书.pdf" />
+                      </div>
+                      {fileEditTarget && (
+                        <div className="file-detail-grid">
+                          <span>所在文件夹</span><strong>{fileEditTarget.folder}</strong>
+                          <span>当前类型</span><strong>{fileEditTarget.type || 'FILE'}</strong>
+                        </div>
+                      )}
+                      {projectModalStatus && <div className="modal-status">{projectModalStatus}</div>}
+                      <div className="modal-actions">
+                        <button className="secondary-action" onClick={() => setProjectModal(null)} type="button">取消</button>
+                        <button className="primary-action" onClick={handleRenameProjectFile} disabled={renamingProjectItem} type="button">
+                          {renamingProjectItem ? '保存中...' : '保存修改'}
+                        </button>
                       </div>
                     </div>
                   )}
@@ -325,14 +450,21 @@ export function AppModals(props: AppModalsProps) {
                         <strong>{selectedProjectFile ? selectedProjectFile.name : '拖拽文件到这里'}</strong>
                         <span>{selectedProjectFile ? `${Math.ceil(selectedProjectFile.size / 1024)} KB` : '或点击选择本地文件'}</span>
                       </div>
-                      <div className="form-field">
-                        <span>保存到文件夹</span>
-                        <select value={selectedUploadFolder} onChange={(event) => setSelectedUploadFolder(event.target.value)}>
-                          {selectableProjectFolders.map((folder: { name: string }) => (
-                            <option key={folder.name} value={folder.name}>{folder.name}</option>
-                          ))}
-                        </select>
-                      </div>
+                      {lockedUploadFolder ? (
+                        <div className="upload-target-note">
+                          <span>保存到当前文件夹</span>
+                          <strong>{lockedUploadFolder.name}</strong>
+                        </div>
+                      ) : (
+                        <div className="form-field">
+                          <span>保存到文件夹</span>
+                          <select value={selectedUploadFolder} onChange={(event) => setSelectedUploadFolder(event.target.value)}>
+                            {selectableProjectFolders.map((folder: { name: string }) => (
+                              <option key={folder.name} value={folder.name}>{folder.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                       {selectableProjectFolders.length === 0 && <div className="modal-status">请先创建一个文件夹再上传</div>}
                       {projectModalStatus && <div className="modal-status">{projectModalStatus}</div>}
                       <div className="modal-actions">
@@ -355,7 +487,7 @@ export function AppModals(props: AppModalsProps) {
                   </header>
                   <div className="recharge-tabs"><button className={rechargeView === 'credits' ? 'active' : ''} onClick={() => setRechargeView('credits')} type="button">充值积分</button><button className={rechargeView === 'plans' ? 'active' : ''} onClick={() => setRechargeView('plans')} type="button">套餐升级</button></div>
                   {rechargeView === 'credits' ? <><div className="recharge-options three"><button className="recharge-card" type="button"><span>轻量补充</span><strong>¥ 19</strong><small>2,000 积分 · 适合对话、文档生成</small></button><button className="recharge-card active" type="button"><span>标准补充</span><strong>¥ 49</strong><small>6,000 积分 · 适合调研、生图和方案生成</small></button><button className="recharge-card" type="button"><span>高频补充</span><strong>¥ 99</strong><small>15,000 积分 · 适合视频、编程和批量产物生成</small></button></div><div className="recharge-plan-tip"><div><strong>需要更稳定的月度额度？</strong><span>升级创业套餐，获得每月固定积分、项目库扩容和更高并发。</span></div><button onClick={() => setRechargeView('plans')} type="button">查看套餐</button></div></> : <div className="recharge-options plan-options"><button className="recharge-card plan-card" type="button"><span>Starter 创业起步版</span><strong>¥ 39/月</strong><small>每月 8,000 积分 · 3 个创业项目 · 基础项目库容量 · 适合想法验证和轻量调研</small></button><button className="recharge-card plan-card active" type="button"><span>Pro 创业加速版</span><strong>¥ 99/月</strong><small>每月 25,000 积分 · 20 个创业项目 · 项目库扩容 · 生图/视频/编程优先队列</small></button></div>}
-                  <div className="modal-actions"><button className="secondary-action" onClick={() => setRechargeModalOpen(false)} type="button">取消</button><button className="primary-action" type="button">{rechargeView === 'credits' ? '确认充值' : '确认升级'}</button></div>
+                  <div className="modal-actions"><button className="secondary-action" onClick={() => setRechargeModalOpen(false)} type="button">取消</button><button className="primary-action" onClick={() => { setRechargeModalOpen(false); showToast({ message: rechargeView === 'credits' ? '充值已提交' : '升级已提交', variant: 'success' }); }} type="button">{rechargeView === 'credits' ? '确认充值' : '确认升级'}</button></div>
                 </section>
               </div>
             )}

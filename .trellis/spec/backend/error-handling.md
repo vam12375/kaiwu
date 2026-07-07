@@ -25,6 +25,64 @@ Keep error messages concise. Do not include API keys, request headers, full prom
 
 ---
 
+## Scenario: Image Download API
+
+### 1. Scope / Trigger
+
+- Trigger: any change to `GET /api/download-image`.
+- This endpoint bridges frontend download buttons to local project images and optional remote image URLs.
+
+### 2. Signatures
+
+- `GET /api/download-image?url=<image-url>` -> image bytes as an attachment, or `{"error": "<message>"}`.
+
+### 3. Contracts
+
+- `url` is required.
+- Local generated images must use `/project-images/<filename>` on `localhost`, `127.0.0.1`, `::1`, or a relative `/project-images/...` URL.
+- Local project images are read from `IMG_STORE` directly rather than fetched through HTTP.
+- Attachment responses must use an ASCII-safe `Content-Disposition` header with `filename*` for non-ASCII names.
+
+### 4. Validation & Error Matrix
+
+- Missing `url` -> `400 {"error": "url required"}`.
+- Unsupported or unsafe local URL -> `400 {"error": "unsupported image url"}`.
+- Local project image missing -> `404 {"error": "image not found"}`.
+- Remote image fetch failure -> `502 {"error": "<truncated upstream error>"}`.
+
+### 5. Good/Base/Bad Cases
+
+- Good: `http://localhost:5001/project-images/AI%E7%94%9F%E5%9B%BE_x.jpg` returns `200` with `filename*=UTF-8''...`.
+- Base: `http://localhost:5001/project-images/missing.jpg` returns `404`, not a server error.
+- Bad: `http://localhost:5001/api/conversations` is rejected instead of being proxied as an image download.
+
+### 6. Tests Required
+
+- Smoke or integration test a non-ASCII local filename and assert status `200`, byte length, and `filename*=UTF-8''` in `Content-Disposition`.
+- Assert a missing local image returns `404`.
+- Assert an invalid URL returns `400`.
+- Run `python -m compileall kaiwuback/server`.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+headers={"Content-Disposition": f"attachment; filename={filename}"}
+```
+
+#### Correct
+
+```python
+headers={
+    "Content-Disposition": (
+        f'attachment; filename="{ascii_fallback}"; filename*=UTF-8\'\'{encoded_name}'
+    )
+}
+```
+
+---
+
 ## Task Runtime Failures
 
 Task execution failures must be visible through task state and SSE events.

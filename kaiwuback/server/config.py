@@ -3,10 +3,23 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# 自动加载 kaiwuback/.env.local（config.py 的上两级目录）
-_env_path = Path(__file__).parent.parent / ".env.local"
-if _env_path.exists():
-    load_dotenv(_env_path)
+_BACKEND_ROOT = Path(__file__).parent.parent
+
+# 自动加载 kaiwuback/.env.local 和 kaiwuback/.env；系统环境变量优先。
+for _env_name in (".env.local", ".env"):
+    _env_path = _BACKEND_ROOT / _env_name
+    if _env_path.exists():
+        load_dotenv(_env_path, override=False)
+
+
+def _env_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value in (None, ""):
+        return default
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be an integer") from exc
 
 # ═══════════════════════════════════════
 # DeepSeek 客户端
@@ -35,18 +48,18 @@ SEEDREAM_MODEL = "doubao-seedream-5-0-lite-260128"
 # 差异性技能库 & 报告模板
 # ═══════════════════════════════════════
 SKILLS_DIR = Path(
-    os.getenv("KAIWU_SKILLS_DIR", str(Path(__file__).parent.parent / "skills-files"))
+    os.getenv("KAIWU_SKILLS_DIR", str(_BACKEND_ROOT / "skills-files"))
 ).expanduser()
-REPORT_TEMPLATES_DIR = Path(__file__).parent.parent / "report_templates"
+REPORT_TEMPLATES_DIR = _BACKEND_ROOT / "report_templates"
 
 # ═══════════════════════════════════════
 # 存储路径
 # ═══════════════════════════════════════
-MD_STORE = Path(__file__).parent.parent / "conversations"
+MD_STORE = _BACKEND_ROOT / "conversations"
 MD_STORE.mkdir(parents=True, exist_ok=True)
-IMG_STORE = Path(__file__).parent.parent / "project-images"
+IMG_STORE = _BACKEND_ROOT / "project-images"
 IMG_STORE.mkdir(parents=True, exist_ok=True)
-PROJECT_LIB = Path(__file__).parent.parent / "project-files"
+PROJECT_LIB = _BACKEND_ROOT / "project-files"
 for folder in ["编程文件库", "AI 对话产出", "创业资料", "产品设计", "营销素材", "最近文件"]:
     (PROJECT_LIB / folder).mkdir(parents=True, exist_ok=True)
 
@@ -54,11 +67,12 @@ for folder in ["编程文件库", "AI 对话产出", "创业资料", "产品设�
 # MySQL 数据库
 # ═══════════════════════════════════════
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "password",
-    "database": "kaiwu",
-    "charset": "utf8mb4",
+    "host": os.getenv("KAIWU_DB_HOST", "localhost"),
+    "port": _env_int("KAIWU_DB_PORT", 3306),
+    "user": os.getenv("KAIWU_DB_USER", ""),
+    "password": os.getenv("KAIWU_DB_PASSWORD", ""),
+    "database": os.getenv("KAIWU_DB_NAME", "kaiwu"),
+    "charset": os.getenv("KAIWU_DB_CHARSET", "utf8mb4"),
 }
 
 # ═══════════════════════════════════════

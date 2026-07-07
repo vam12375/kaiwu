@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowUp, Bot, Brain, ChevronDown, ChevronRight, Cpu, Download, ExternalLink, FileStack, FileText, HelpCircle, Search, Settings2, UserRound } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
-import { Check, Trash2 } from 'lucide-react';
+import { Check, Pencil, Trash2 } from 'lucide-react';
 import { directions, modelOptions, settingsSections } from '../../data';
 import { ConversationPanel } from '../chat/ConversationPanel';
 import { SkillLibraryPage } from './SkillLibraryPage';
@@ -54,8 +54,10 @@ export function MainStage(props: MainStageProps) {
     homeTextareaRef,
     imageCount,
     imageLibraryOpen,
+    imageModel,
     imageModelOpen,
     imageRatio,
+    imageResolution,
     imageSizeOpen,
     inputText,
     installedSkillIds,
@@ -69,6 +71,7 @@ export function MainStage(props: MainStageProps) {
     openPicker,
     openProjectFile,
     deleteProjectFolders,
+    deleteProjectFile,
     projectFolders,
     projectImages,
     projectSearchQuery,
@@ -92,8 +95,10 @@ export function MainStage(props: MainStageProps) {
     setCountOpen,
     setImageCount,
     setImageLibraryOpen,
+    setImageModel,
     setImageModelOpen,
     setImageRatio,
+    setImageResolution,
     setImageSizeOpen,
     setInputText,
     setLibraryModal,
@@ -101,6 +106,9 @@ export function MainStage(props: MainStageProps) {
     setOpenPicker,
     setPreviewImageIndex,
     setProjectModal,
+    setProjectFolderEditTarget,
+    setProjectFileEditTarget,
+    setProjectUploadTargetFolder,
     setProjectSearchQuery,
     setSelectedProjectFile,
     setProjectView,
@@ -131,6 +139,7 @@ export function MainStage(props: MainStageProps) {
     setSelectedCardImage,
     selectedComposerSkill,
     setSelectedComposerSkill,
+    showToast,
   } = props;
 
   const [folderEditMode, setFolderEditMode] = useState(false);
@@ -192,8 +201,12 @@ export function MainStage(props: MainStageProps) {
         link.download = selectedProjectFile.name;
         link.click();
         URL.revokeObjectURL(link.href);
+        showToast?.({ message: '文件已开始下载', variant: 'success' });
       })
-      .catch(openSelectedProjectFile);
+      .catch(() => {
+        showToast?.({ message: '下载失败，已尝试新窗口打开', variant: 'error' });
+        openSelectedProjectFile();
+      });
   };
   const useSkillInComposer = (skill: any) => {
     setSelectedComposerSkill?.(skill);
@@ -219,6 +232,27 @@ export function MainStage(props: MainStageProps) {
     const deleted = await deleteProjectFolders(selectedProjectFolderNames);
     if (!deleted) return;
     cancelProjectFolderEdit();
+  };
+  const handleRenameSelectedProjectFolder = () => {
+    if (selectedProjectFolderNames.length !== 1) return;
+    const target = projectFolders.find((folder: { name: string }) => folder.name === selectedProjectFolderNames[0]);
+    if (!target) return;
+    setProjectFolderEditTarget?.(target);
+    setProjectModal('rename-folder');
+    cancelProjectFolderEdit();
+  };
+  const handleRenameSelectedProjectFile = () => {
+    if (!selectedProjectFile) return;
+    setProjectFileEditTarget?.(selectedProjectFile);
+    setProjectModal('rename-file');
+  };
+  const handleDeleteSelectedProjectFile = () => {
+    if (!selectedProjectFile) return;
+    deleteProjectFile?.(selectedProjectFile);
+  };
+  const handleOpenProjectUpload = () => {
+    setProjectUploadTargetFolder?.(projectView === 'folder' ? activeProjectFolder : null);
+    setProjectModal('upload');
   };
 
   useEffect(() => {
@@ -259,7 +293,9 @@ export function MainStage(props: MainStageProps) {
                   followupNodeRef={followupNodeRef}
                   handleSend={handleSend}
                   imageCount={imageCount}
+                  imageModel={imageModel}
                   imageRatio={imageRatio}
+                  imageResolution={imageResolution}
                   inputText={inputText}
                   isComposingRef={isComposingRef}
                   isImageMode={isImageMode}
@@ -274,7 +310,9 @@ export function MainStage(props: MainStageProps) {
                   resetConversation={resetConversation}
                   setCountOpen={setCountOpen}
                   setImageCount={setImageCount}
+                  setImageModel={setImageModel}
                   setImageRatio={setImageRatio}
+                  setImageResolution={setImageResolution}
                   setInputText={setInputText}
                   setLibraryModal={setLibraryModal}
                   setModelIndex={setModelIndex}
@@ -285,6 +323,7 @@ export function MainStage(props: MainStageProps) {
                   stopGeneration={stopGeneration}
                   suggestedQuestions={suggestedQuestions}
                   uploadedFiles={uploadedFiles}
+                  showToast={showToast}
                 />
               ) : activePage === 'coding' ? (
                 <section className="coding-page">
@@ -369,7 +408,7 @@ export function MainStage(props: MainStageProps) {
                     {projectView !== 'detail' && (
                       <div className="project-actions">
                         <button className="secondary-action" onClick={() => setProjectModal('new-folder')} type="button">新建文件夹</button>
-                        <button className="primary-action" onClick={() => setProjectModal('upload')} type="button">上传文件</button>
+                        <button className="primary-action" onClick={handleOpenProjectUpload} type="button">上传文件</button>
                       </div>
                     )}
                   </header>
@@ -395,9 +434,17 @@ export function MainStage(props: MainStageProps) {
                         </button>
                         {selectedProjectFile && (
                           <div className="project-detail-actions">
+                            <button onClick={handleRenameSelectedProjectFile} type="button">
+                              <Pencil size={14} />
+                              重命名
+                            </button>
                             <button onClick={openSelectedProjectFile} type="button">
                               <ExternalLink size={14} />
                               新窗口打开
+                            </button>
+                            <button className="danger-action" onClick={handleDeleteSelectedProjectFile} type="button">
+                              <Trash2 size={14} />
+                              删除
                             </button>
                             <button className="primary-action" onClick={downloadSelectedProjectFile} type="button">
                               <Download size={14} />
@@ -504,6 +551,15 @@ export function MainStage(props: MainStageProps) {
                             <>
                               <button className="folder-edit-button" onClick={cancelProjectFolderEdit} type="button">取消</button>
                               <button
+                                className="folder-edit-button"
+                                disabled={selectedProjectFolderNames.length !== 1}
+                                onClick={handleRenameSelectedProjectFolder}
+                                type="button"
+                              >
+                                <Pencil size={14} />
+                                重命名
+                              </button>
+                              <button
                                 className="folder-delete-selected-button"
                                 disabled={selectedProjectFolderNames.length === 0}
                                 onClick={handleDeleteSelectedProjectFolders}
@@ -598,9 +654,11 @@ export function MainStage(props: MainStageProps) {
                       setInputText={setInputText}
                       isComposingRef={isComposingRef}
                       handleSend={handleSend}
+                      stopGeneration={stopGeneration}
                       isLoading={isLoading}
                       modelIndex={modelIndex}
                       setModelIndex={setModelIndex}
+                      showToast={showToast}
                     />
 
                     <section className="workflow-cards-section">
