@@ -3467,6 +3467,63 @@ button {
   margin-top: 14px;
 }
 
+.generated-image-preview-backdrop {
+  z-index: 120;
+}
+
+.generated-image-preview-modal {
+  width: min(960px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 40px 100px rgba(15, 23, 42, 0.28);
+}
+
+.generated-image-preview-header {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 2px 10px;
+}
+
+.generated-image-preview-header strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.generated-image-preview-frame {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.generated-image-preview-frame img {
+  max-width: 100%;
+  max-height: calc(100vh - 190px);
+  display: block;
+  object-fit: contain;
+}
+
+.generated-image-download-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .coding-page {
   position: relative;
   z-index: 4;
@@ -5563,9 +5620,9 @@ button {
 
 .doubao-images-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 8px;
-  padding: 4px 0;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 320px));
+  gap: 12px;
+  padding: 8px 0 0 42px;
 }
 
 .doubao-image-card {
@@ -5596,9 +5653,30 @@ button {
   border-top: 1px solid #f1f5f9;
 }
 
+.generated-image-card {
+  max-width: 320px;
+}
+
+.generated-image-thumb {
+  width: 100%;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff;
+  cursor: zoom-in;
+}
+
+.generated-image-thumb img {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #ffffff;
+}
+
 @media (max-width: 900px) {
   .doubao-images-grid {
     padding-left: 0;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }
 }
 

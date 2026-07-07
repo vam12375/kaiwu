@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react';
 import type { Dispatch, MouseEvent, SetStateAction } from 'react';
 
 import { apiJson } from '../api/client';
-import type { ConvHistory, ShowToast, SidebarPage } from '../types';
+import type { ConvHistory, CreativeMode, ShowToast, SidebarPage } from '../types';
 import type { AgentMessage } from './agentEventReducer';
 import type { ConversationTaskCacheEntry } from './useConversationTask';
 
@@ -43,6 +43,7 @@ type UseConversationOptions = {
   workflowPhase: WorkflowPhase;
   nodeStatus: NodeStatus | null;
   conversationTitle: string;
+  isImageMode: boolean;
   convIdRef: MutableRef<number | null>;
   sseConvIdRef: MutableRef<number | null>;
   suggestedQuestionsRef: MutableRef<string[]>;
@@ -58,16 +59,22 @@ type UseConversationOptions = {
   setSuggestedQuestions: (items: string[]) => void;
   setActiveNodeId: Dispatch<SetStateAction<string>>;
   setActivePage: Dispatch<SetStateAction<SidebarPage>>;
+  setActiveCreativeMode: Dispatch<SetStateAction<CreativeMode | null>>;
   setInputText: Dispatch<SetStateAction<string>>;
   setConvHistory: Dispatch<SetStateAction<ConvHistory[]>>;
   setOpenHistoryMenu: Dispatch<SetStateAction<number | null>>;
   showToast?: ShowToast;
 };
 
+function hasGeneratedImages(messages: AgentMessage[]) {
+  return messages.some((message) => message.role === 'ai' && Boolean(message.images?.length));
+}
+
 function parseConversationMessages(messages: { role: string; content: string }[] = []) {
   let loadedSuggestions: string[] = [];
 
   const parsedMessages = messages.map((message): AgentMessage => {
+    const role = message.role === 'user' ? 'user' : 'ai';
     let content = message.content;
     const suggestionsMatch = content.match(/<!--suggestions:(\[.*?\])-->/);
     if (suggestionsMatch) {
@@ -85,9 +92,12 @@ function parseConversationMessages(messages: { role: string; content: string }[]
     while ((match = imageRegex.exec(content)) !== null) {
       images.push({ style: match[1], url: match[2], prompt: '' });
     }
+    if (role === 'ai' && images.length > 0) {
+      content = content.replace(/!\[[^\]]*]\([^)]+\)/g, '').replace(/\n{3,}/g, '\n\n').trim();
+    }
 
     return {
-      role: message.role === 'user' ? 'user' : 'ai',
+      role,
       content,
       images: images.length > 0 ? images : undefined,
     };
@@ -114,6 +124,7 @@ export function useConversation(options: UseConversationOptions) {
     options.convCacheRef.current.set(conversationId, {
       messages: [...options.messages],
       isLoading: options.isLoading,
+      isImageMode: options.isImageMode || hasGeneratedImages(options.messages),
       workflowPhase: options.workflowPhase,
       nodeStatus: options.nodeStatus ? { ...options.nodeStatus } : null,
       conversationTitle: options.conversationTitle,
@@ -124,6 +135,7 @@ export function useConversation(options: UseConversationOptions) {
     options.conversationTitle,
     options.currentConvId,
     options.isLoading,
+    options.isImageMode,
     options.messages,
     options.nodeStatus,
     options.sseConvIdRef,
@@ -132,6 +144,7 @@ export function useConversation(options: UseConversationOptions) {
   ]);
 
   const restoreCachedConversation = useCallback((conversationId: number, cached: ConversationTaskCacheEntry) => {
+    const nextIsImageMode = cached.isImageMode ?? hasGeneratedImages(cached.messages);
     options.setMessages(cached.messages);
     options.setIsLoading(cached.isLoading);
     options.setWorkflowPhase(cached.workflowPhase);
@@ -141,13 +154,15 @@ export function useConversation(options: UseConversationOptions) {
     options.setCurrentConvId(conversationId);
     options.convIdRef.current = conversationId;
     options.sseConvIdRef.current = conversationId;
-    options.setIsImageMode(false);
+    options.setIsImageMode(nextIsImageMode);
+    options.setActiveCreativeMode(nextIsImageMode ? 'image' : null);
     options.setSuggestedQuestions(cached.suggestedQuestions || []);
     options.setActivePage('home');
   }, [
     options.convIdRef,
     options.sseConvIdRef,
     options.setActivePage,
+    options.setActiveCreativeMode,
     options.setConversationOpen,
     options.setConversationTitle,
     options.setCurrentConvId,
@@ -245,6 +260,7 @@ export function useConversation(options: UseConversationOptions) {
 
         const parsed = parseConversationMessages(conversation.messages);
         const cachedSuggestions = options.convCacheRef.current.get(conversation.id)?.suggestedQuestions;
+        const nextIsImageMode = conversation.node_id === 'image_generation' || hasGeneratedImages(parsed.messages);
 
         options.setMessages(parsed.messages);
         options.setConversationOpen(true);
@@ -255,7 +271,8 @@ export function useConversation(options: UseConversationOptions) {
         options.setIsLoading(false);
         options.setWorkflowPhase('idle');
         options.setNodeStatus(null);
-        options.setIsImageMode(false);
+        options.setIsImageMode(nextIsImageMode);
+        options.setActiveCreativeMode(nextIsImageMode ? 'image' : null);
         options.setSuggestedQuestions(cachedSuggestions || parsed.suggestedQuestions);
         options.setActiveNodeId(conversation.node_id || '');
         options.setActivePage('home');
@@ -269,6 +286,7 @@ export function useConversation(options: UseConversationOptions) {
     options.messages.length,
     options.setActiveNodeId,
     options.setActivePage,
+    options.setActiveCreativeMode,
     options.setConversationOpen,
     options.setConversationTitle,
     options.setCurrentConvId,
