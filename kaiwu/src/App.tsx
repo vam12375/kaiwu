@@ -98,6 +98,7 @@ import { deleteProjectFolder, fetchProjectFiles, fetchProjectFolders } from './a
 import { AppSidebar } from './features/layout/AppSidebar';
 import { AppModals } from './features/layout/AppModals';
 import { MainStage } from './features/layout/MainStage';
+import { ConfirmProvider, useConfirm } from './features/toast/ConfirmProvider';
 import { ToastProvider, useToast } from './features/toast/ToastProvider';
 import { type AgentMessage } from './hooks/agentEventReducer';
 import { useConversation } from './hooks/useConversation';
@@ -143,13 +144,16 @@ function mergeProjectFolders(serverFolders: Array<Omit<ProjectFolder, 'tone'>>):
 export function App() {
   return (
     <ToastProvider>
-      <AppShell />
+      <ConfirmProvider>
+        <AppShell />
+      </ConfirmProvider>
     </ToastProvider>
   );
 }
 
 function AppShell() {
   const { showToast } = useToast();
+  const { requestConfirm } = useConfirm();
 
   // ---- State ----
   const [modelIndex, setModelIndex] = useState(0);
@@ -406,7 +410,13 @@ function AppShell() {
     if (deletableNames.length === 0) return false;
 
     const folderLabel = deletableNames.length === 1 ? `“${deletableNames[0]}”` : `${deletableNames.length} 个`;
-    const confirmed = window.confirm(`确定删除${folderLabel}文件夹吗？文件夹内的文件也会一起删除。`);
+    const confirmed = await requestConfirm({
+      title: '删除文件夹',
+      message: `确定删除${folderLabel}文件夹吗？文件夹内的文件也会一起删除。`,
+      confirmLabel: '删除',
+      cancelLabel: '取消',
+      variant: 'danger',
+    });
     if (!confirmed) return false;
 
     try {
@@ -426,7 +436,7 @@ function AppShell() {
       showToast({ message: '删除失败，请稍后重试', variant: 'error' });
       return false;
     }
-  }, [projectFolders, refreshProjectFiles, refreshProjectFolders, showToast]);
+  }, [projectFolders, refreshProjectFiles, refreshProjectFolders, requestConfirm, showToast]);
 
   // Load project images
   useEffect(() => {

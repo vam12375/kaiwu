@@ -60,7 +60,7 @@ showToast({ message: '文件已上传', variant: 'success' });
 showToast({ message: '上传失败，请稍后重试', variant: 'error' });
 ```
 
-Keep destructive confirmations as blocking dialogs when the user must explicitly approve an irreversible action, but do not use `alert()` for non-blocking status feedback. Hooks should receive `showToast` as an option or callback and keep toast types imported from `src/types.ts`, not from feature component paths.
+Use `ConfirmProvider` for destructive confirmations when the user must explicitly approve an irreversible action. Do not use browser-native `alert()` or `window.confirm()` for product UI. Hooks should receive `showToast` as an option or callback and keep toast types imported from `src/types.ts`, not from feature component paths.
 
 ---
 
