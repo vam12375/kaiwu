@@ -11,10 +11,14 @@ type CreateProjectFolderResponse = {
   folder: Omit<ProjectFolder, 'tone'>;
 };
 
+type RenameProjectFolderResponse = CreateProjectFolderResponse;
+
 type UploadProjectFileResponse = {
   status: string;
   file: ProjectFile;
 };
+
+type RenameProjectFileResponse = UploadProjectFileResponse;
 
 function readFileAsBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -54,6 +58,13 @@ export function deleteProjectFolder(folder: string) {
   });
 }
 
+export function renameProjectFolder(folder: string, payload: ProjectFolderPayload) {
+  return apiJson<RenameProjectFolderResponse>(`/api/project-folders/${encodeURIComponent(folder)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function uploadProjectFile(file: File, folder: string) {
   const content = await readFileAsBase64(file);
   return apiJson<UploadProjectFileResponse>('/api/project-library/upload', {
@@ -63,6 +74,27 @@ export async function uploadProjectFile(file: File, folder: string) {
       folder,
       content,
       base64: true,
+    }),
+  });
+}
+
+export function renameProjectFile(file: ProjectFile, name: string) {
+  return apiJson<RenameProjectFileResponse>('/api/project-files', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      folder: file.folder,
+      filename: file.name,
+      name,
+    }),
+  });
+}
+
+export function deleteProjectFile(file: ProjectFile) {
+  return apiJson<{ status: string; folder: string; filename: string }>('/api/project-files', {
+    method: 'DELETE',
+    body: JSON.stringify({
+      folder: file.folder,
+      filename: file.name,
     }),
   });
 }

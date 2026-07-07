@@ -1,8 +1,9 @@
 import { useEffect, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, Bookmark, Bot, Box, ChevronDown, ChevronLeft, Copy, ImagePlus, Square, X } from 'lucide-react';
+import { ArrowUp, Bookmark, Bot, Box, ChevronDown, ChevronLeft, Copy, Download, ImagePlus, Square, X } from 'lucide-react';
 
 import { imageModelOptions, imageRatioOptions, imageResolutionOptions, modelOptions, projectFolders } from '../../data';
+import { API_BASE_URL } from '../../api/client';
 import type { Direction, ImageModelId, ImageRatio, ImageResolution, LibraryModalType, PickerType, ShowToast } from '../../types';
 import { renderMarkdown } from '../../utils';
 import type { AgentMessage } from '../../hooks/agentEventReducer';
@@ -27,6 +28,11 @@ type UploadedFile = {
 };
 
 type ReferenceImagePreview = ImageReferenceInput & {
+  url: string;
+};
+
+type GeneratedImagePreview = {
+  style: string;
   url: string;
 };
 
@@ -75,6 +81,20 @@ type ConversationPanelProps = {
 
 const MAX_REFERENCE_IMAGES = 4;
 const MAX_REFERENCE_IMAGE_SIZE = 8 * 1024 * 1024;
+
+function stripRenderedMarkdownImages(content: string) {
+  return content
+    .replace(/!\[[^\]]*]\([^)]+\)/g, '')
+    .split('\n')
+    .filter((line) => !/^\s*图片生成(完成|#?\d*)\s*$/.test(line.trim()))
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function imageDownloadUrl(imageUrl: string) {
+  return `${API_BASE_URL}/api/download-image?url=${encodeURIComponent(imageUrl)}`;
+}
 
 const NODE_ACTIONS: Record<string, { label: string; prompt: string }> = {
   node1: { label: '📄 生成深度商业调研报告', prompt: '生成深度商业调研报告' },
@@ -167,6 +187,7 @@ export function ConversationPanel({
   showToast,
 }: ConversationPanelProps) {
   const [referenceImages, setReferenceImages] = useState<ReferenceImagePreview[]>([]);
+  const [previewImage, setPreviewImage] = useState<GeneratedImagePreview | null>(null);
 
   useEffect(() => () => {
     referenceImages.forEach((image) => {
@@ -203,6 +224,10 @@ export function ConversationPanel({
 
   const clearReferenceImages = () => {
     setReferenceImages([]);
+  };
+
+  const downloadImage = (image: GeneratedImagePreview) => {
+    window.open(imageDownloadUrl(image.url), '_blank');
   };
 
   const sendImageGeneration = () => {
@@ -356,7 +381,7 @@ export function ConversationPanel({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.4 }}
-                      dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(message.images?.length ? stripRenderedMarkdownImages(message.content) : message.content) }}
                     />
                   )}
                 </div>
@@ -368,11 +393,7 @@ export function ConversationPanel({
                     const image = message.images?.find((item) => item.style === logo.style);
                     const saveImage = () => {
                       if (image) {
-                        const anchor = document.createElement('a');
-                        anchor.href = image.url;
-                        anchor.download = `logo-${image.style}.jpg`;
-                        anchor.target = '_blank';
-                        anchor.click();
+                        downloadImage(image);
                         return;
                       }
 
@@ -391,16 +412,22 @@ export function ConversationPanel({
                     return (
                       <div key={logoIndex} className="md-svg-container">
                         {image ? (
-                          <img src={image.url} alt={logo.style} style={{ width: '100%', aspectRatio: '1', objectFit: 'contain', display: 'block', background: '#fff' }} />
+                          <button
+                            className="generated-image-thumb"
+                            onClick={() => setPreviewImage(image)}
+                            type="button"
+                            title="预览图片"
+                          >
+                            <img src={image.url} alt={logo.style} />
+                          </button>
                         ) : (
                           <div id={`svg-logo-${messageIndex}-${logoIndex}`} dangerouslySetInnerHTML={{ __html: logo.code }} />
                         )}
-                        <button className="md-svg-save-btn" onClick={saveImage} title="保存图片">
-                          ⬇
-                        </button>
-                        <div style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 600, color: '#475569', textAlign: 'center', borderTop: '1px solid #f1f5f9' }}>
-                          {logo.style}
-                        </div>
+                        {!image && (
+                          <button className="md-svg-save-btn" onClick={saveImage} title="保存图片" type="button">
+                            <Download size={15} />
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -408,16 +435,17 @@ export function ConversationPanel({
               )}
 
               {message.role === 'ai' && message.images && message.images.length > 0 && (!message.svgLogos || message.svgLogos.length === 0) && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px', padding: '8px 0 0 42px' }}>
+                <div className="doubao-images-grid">
                   {message.images.map((image, imageIndex) => (
-                    <div key={imageIndex} className="md-svg-container">
-                      <img src={image.url} alt={image.style} style={{ width: '100%', aspectRatio: '1', objectFit: 'contain', display: 'block', background: '#fff' }} />
-                      <button className="md-svg-save-btn" onClick={() => window.open(`http://localhost:5001/api/download-image?url=${encodeURIComponent(image.url)}`, '_blank')} title="保存图片">
-                        ⬇
+                    <div key={imageIndex} className="md-svg-container generated-image-card">
+                      <button
+                        className="generated-image-thumb"
+                        onClick={() => setPreviewImage(image)}
+                        type="button"
+                        title="预览图片"
+                      >
+                        <img src={image.url} alt={image.style} />
                       </button>
-                      <div style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 600, color: '#475569', textAlign: 'center', borderTop: '1px solid #f1f5f9' }}>
-                        {image.style}
-                      </div>
                     </div>
                   ))}
                 </div>
@@ -798,6 +826,35 @@ export function ConversationPanel({
           </div>
         </div>
       </div>
+
+      {previewImage && (
+        <div className="modal-backdrop generated-image-preview-backdrop" onClick={() => setPreviewImage(null)}>
+          <section
+            className="generated-image-preview-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="图片预览"
+          >
+            <header className="generated-image-preview-header">
+              <strong>{previewImage.style}</strong>
+              <button className="modal-close" onClick={() => setPreviewImage(null)} type="button" aria-label="关闭预览" title="关闭预览">
+                <X size={17} />
+              </button>
+            </header>
+            <div className="generated-image-preview-frame">
+              <img src={previewImage.url} alt={previewImage.style} />
+            </div>
+            <div className="preview-actions">
+              <button className="secondary-action" onClick={() => setPreviewImage(null)} type="button">关闭</button>
+              <button className="primary-action generated-image-download-action" onClick={() => downloadImage(previewImage)} type="button">
+                <Download size={14} />
+                下载图片
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }

@@ -4,7 +4,8 @@ import re
 import shutil
 from binascii import Error as BinasciiError
 from datetime import datetime
-from urllib.parse import quote
+from pathlib import Path
+from urllib.parse import quote, unquote, urlparse
 
 from fastapi import Request
 from fastapi.responses import JSONResponse, FileResponse
@@ -138,6 +139,17 @@ def _project_file_entry(folder_name: str, f, meta: dict[str, dict] | None = None
     }
 
 
+def _project_folder_entry(folder_path: Path, desc: str = "") -> dict:
+    file_count = sum(1 for f in folder_path.iterdir() if f.is_file() and not f.name.startswith("."))
+    return {
+        "name": folder_path.name,
+        "desc": desc,
+        "count": f"{file_count} 个文件",
+        "modified": datetime.fromtimestamp(folder_path.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
+        "deletable": True,
+    }
+
+
 def _unique_file_path(folder_path, filename: str):
     candidate = folder_path / filename
     stem = candidate.stem
@@ -153,6 +165,148 @@ def _count_project_images() -> int:
     if not IMG_STORE.exists():
         return 0
     return sum(1 for f in IMG_STORE.iterdir() if f.is_file() and f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'))
+
+
+def _rewrite_folder_file_meta(old_folder: str, new_folder: str) -> None:
+    meta = _read_file_meta()
+    prefix = f"{old_folder}/"
+    changed = False
+    next_meta = {}
+    for key, value in meta.items():
+        if key.startswith(prefix):
+            next_meta[f"{new_folder}/{key[len(prefix):]}"] = value
+            changed = True
+            continue
+        next_meta[key] = value
+    if changed:
+        _write_file_meta(next_meta)
+
+
+def _move_file_meta(old_folder: str, old_filename: str, new_folder: str, new_filename: str) -> dict[str, dict]:
+    meta = _read_file_meta()
+    old_key = _file_meta_key(old_folder, old_filename)
+    new_key = _file_meta_key(new_folder, new_filename)
+    if old_key in meta:
+        meta[new_key] = meta.pop(old_key)
+        _write_file_meta(meta)
+    return meta
+
+
+def _remove_file_meta(folder_name: str, filename: str) -> None:
+    meta = _read_file_meta()
+    key = _file_meta_key(folder_name, filename)
+    if key not in meta:
+        return
+    meta.pop(key, None)
+    _write_file_meta(meta)
+
+
+def _rename_project_file(folder: str, filename: str, new_name: str):
+    folder_name, folder_error = _validate_leaf_name(folder, "folder")
+    if folder_error:
+        return folder_error
+    old_filename, old_filename_error = _validate_leaf_name(filename, "filename")
+    if old_filename_error:
+        return old_filename_error
+    new_filename, new_filename_error = _validate_leaf_name(new_name, "filename")
+    if new_filename_error:
+        return new_filename_error
+
+    folder_path = _resolve_project_folder(folder_name)
+    if folder_path is None or not folder_path.is_dir():
+        return JSONResponse({"error": "folder not found"}, status_code=404)
+    old_path = folder_path / old_filename
+    if not old_path.is_file():
+        return JSONResponse({"error": "file not found"}, status_code=404)
+
+    if old_filename != new_filename:
+        new_path = folder_path / new_filename
+        if new_path.exists():
+            return JSONResponse({"error": "file already exists"}, status_code=409)
+        try:
+            old_path.rename(new_path)
+        except Exception as e:
+            print(f"[FILE] File rename failed: {str(e)[:120]}", flush=True)
+            return JSONResponse({"error": "rename failed"}, status_code=500)
+    else:
+        new_path = old_path
+
+    try:
+        meta = _move_file_meta(folder_name, old_filename, folder_name, new_path.name)
+    except Exception as e:
+        print(f"[FILE] File metadata rename failed: {str(e)[:120]}", flush=True)
+        meta = _read_file_meta()
+
+    print(f"[FILE] File renamed: {folder_name}/{old_filename} -> {new_path.name}", flush=True)
+    return {"status": "ok", "file": _project_file_entry(folder_name, new_path, meta)}
+
+
+def _delete_project_file(folder: str, filename: str):
+    folder_name, folder_error = _validate_leaf_name(folder, "folder")
+    if folder_error:
+        return folder_error
+    safe_filename, filename_error = _validate_leaf_name(filename, "filename")
+    if filename_error:
+        return filename_error
+
+    folder_path = _resolve_project_folder(folder_name)
+    if folder_path is None or not folder_path.is_dir():
+        return JSONResponse({"error": "folder not found"}, status_code=404)
+    file_path = folder_path / safe_filename
+    if not file_path.is_file():
+        return JSONResponse({"error": "file not found"}, status_code=404)
+
+    try:
+        file_path.unlink()
+    except Exception as e:
+        print(f"[FILE] File delete failed: {str(e)[:120]}", flush=True)
+        return JSONResponse({"error": "delete failed"}, status_code=500)
+
+    try:
+        _remove_file_meta(folder_name, safe_filename)
+    except Exception as e:
+        print(f"[FILE] File metadata cleanup failed: {str(e)[:120]}", flush=True)
+
+    print(f"[FILE] File deleted: {folder_name}/{safe_filename}", flush=True)
+    return {"status": "ok", "folder": folder_name, "filename": safe_filename}
+
+
+LOCAL_IMAGE_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
+
+def _attachment_headers(filename: str) -> dict[str, str]:
+    fallback = "".join(
+        ch if 32 <= ord(ch) < 127 and ch not in {'"', "\\", ";"} else "_"
+        for ch in filename
+    ).strip() or "image.jpg"
+    encoded = quote(filename, safe="")
+    return {
+        "Content-Disposition": (
+            f'attachment; filename="{fallback}"; filename*=UTF-8\'\'{encoded}'
+        )
+    }
+
+
+def _project_image_path_from_url(url: str) -> Path | None:
+    parsed = urlparse(url)
+    is_local_project_image = (
+        parsed.path.startswith("/project-images/")
+        and (not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS)
+    )
+    if not is_local_project_image:
+        return None
+
+    filename = unquote(parsed.path.removeprefix("/project-images/"))
+    if not filename:
+        return None
+
+    root = IMG_STORE.resolve()
+    image_path = (root / filename).resolve()
+    try:
+        image_path.relative_to(root)
+    except ValueError:
+        return None
+    return image_path
 
 
 def register_file_routes(app):
@@ -280,6 +434,65 @@ def register_file_routes(app):
             },
         }
 
+    @app.patch("/api/project-folders/{folder:path}")
+    async def api_rename_project_folder(folder: str, request: Request):
+        data = await request.json()
+        old_name, old_error = _validate_leaf_name(folder, "folder name")
+        if old_error:
+            return old_error
+        new_name, new_error = _validate_leaf_name(data.get("name", ""), "folder name")
+        if new_error:
+            return new_error
+        if new_name in VIRTUAL_PROJECT_FOLDERS:
+            return JSONResponse({"error": "folder name is reserved"}, status_code=400)
+
+        folder_path = _resolve_project_folder(old_name)
+        if folder_path is None or not folder_path.is_dir():
+            return JSONResponse({"error": "folder not found"}, status_code=404)
+
+        old_meta = _read_folder_meta()
+        desc = str(data.get("desc", old_meta.get(old_name, "")) or "").strip()[:200]
+
+        if old_name != new_name:
+            new_path = _resolve_project_folder(new_name)
+            if new_path is None:
+                return JSONResponse({"error": "invalid folder name"}, status_code=400)
+            if new_path.exists():
+                return JSONResponse({"error": "folder already exists"}, status_code=409)
+            try:
+                folder_path.rename(new_path)
+                folder_path = new_path
+            except Exception as e:
+                print(f"[FILE] Folder rename failed: {str(e)[:120]}", flush=True)
+                return JSONResponse({"error": "rename failed"}, status_code=500)
+
+        folder_meta = _read_folder_meta()
+        folder_meta.pop(old_name, None)
+        if desc:
+            folder_meta[new_name] = desc
+        try:
+            _write_folder_meta(folder_meta)
+        except Exception as e:
+            print(f"[FILE] Folder metadata rename failed: {str(e)[:120]}", flush=True)
+
+        if old_name != new_name:
+            try:
+                _rewrite_folder_file_meta(old_name, new_name)
+            except Exception as e:
+                print(f"[FILE] File metadata folder rename failed: {str(e)[:120]}", flush=True)
+            try:
+                state = _read_folder_state()
+                hidden = set(state.get("hidden", []))
+                if old_name in hidden:
+                    hidden.remove(old_name)
+                    hidden.add(new_name)
+                    _write_folder_state({"hidden": sorted(hidden)})
+            except Exception as e:
+                print(f"[FILE] Folder state rename failed: {str(e)[:120]}", flush=True)
+
+        print(f"[FILE] Folder renamed: {old_name} -> {new_name}", flush=True)
+        return {"status": "ok", "folder": _project_folder_entry(folder_path, desc)}
+
     @app.delete("/api/project-folders/{folder:path}")
     def api_delete_project_folder(folder: str):
         folder_name, error = _validate_leaf_name(folder, "folder name")
@@ -379,6 +592,25 @@ def register_file_routes(app):
         print(f"[FILE] Uploaded: {folder_name}/{file_path.name}", flush=True)
         return {"status": "ok", "file": _project_file_entry(folder_name, file_path, meta)}
 
+    @app.patch("/api/project-files/{folder}/{filename}")
+    async def api_rename_project_file(folder: str, filename: str, request: Request):
+        data = await request.json()
+        return _rename_project_file(folder, filename, data.get("name", ""))
+
+    @app.patch("/api/project-files")
+    async def api_rename_project_file_body(request: Request):
+        data = await request.json()
+        return _rename_project_file(data.get("folder", ""), data.get("filename", ""), data.get("name", ""))
+
+    @app.delete("/api/project-files/{folder}/{filename}")
+    def api_delete_project_file(folder: str, filename: str):
+        return _delete_project_file(folder, filename)
+
+    @app.delete("/api/project-files")
+    async def api_delete_project_file_body(request: Request):
+        data = await request.json()
+        return _delete_project_file(data.get("folder", ""), data.get("filename", ""))
+
     @app.get("/project-files/{folder:path}/{filename:path}")
     def serve_project_file(folder: str, filename: str):
         folder_name, folder_error = _validate_leaf_name(folder, "folder")
@@ -397,18 +629,30 @@ def register_file_routes(app):
 
     @app.get("/api/download-image")
     def api_download_image(url: str = ""):
-        import io
         if not url:
             return JSONResponse({"error": "url required"}, status_code=400)
+
+        parsed = urlparse(url)
+        local_path = _project_image_path_from_url(url)
+        if local_path is not None:
+            if not local_path.is_file():
+                return JSONResponse({"error": "image not found"}, status_code=404)
+            return FileResponse(local_path, headers=_attachment_headers(local_path.name))
+        if not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS:
+            return JSONResponse({"error": "unsupported image url"}, status_code=400)
+
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            return JSONResponse({"error": "unsupported image url"}, status_code=400)
+
         try:
             import requests as req
             resp = req.get(url, timeout=30)
             resp.raise_for_status()
-            filename = url.split('/')[-1].split('?')[0] or 'image.jpg'
+            filename = Path(unquote(parsed.path)).name or 'image.jpg'
             return Response(content=resp.content, media_type=resp.headers.get('content-type', 'image/jpeg'),
-                            headers={"Content-Disposition": f"attachment; filename={filename}"})
+                            headers=_attachment_headers(filename))
         except Exception as e:
-            return JSONResponse({"error": str(e)[:200]}, status_code=500)
+            return JSONResponse({"error": str(e)[:200]}, status_code=502)
 
     # ── 文件上传 API ──
     @app.post("/api/upload-file")

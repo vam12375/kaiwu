@@ -31,6 +31,7 @@ type ProjectImage = {
 export type ConversationTaskCacheEntry = {
   messages: AgentMessage[];
   isLoading: boolean;
+  isImageMode?: boolean;
   workflowPhase: WorkflowPhase;
   nodeStatus: NodeStatus | null;
   conversationTitle: string;
@@ -278,6 +279,7 @@ export function useConversationTask(options: UseConversationTaskOptions) {
         options.convCacheRef.current.set(cachedConversationId, {
           messages: [...latestMessages],
           isLoading: false,
+          isImageMode: isImageTask,
           workflowPhase: 'idle',
           nodeStatus: null,
           conversationTitle: eventState.conversationTitle || nextConversationTitle,
