@@ -39,7 +39,8 @@ Use `src/api/client.ts` and `src/api/tasks.ts` for JSON API calls and task types
 Current pattern:
 
 - `apiJson<T>()` centralizes JSON requests.
-- `API_BASE_URL` reads `VITE_API_BASE_URL` and falls back to `http://localhost:5001`.
+- `API_BASE_URL` reads `VITE_API_BASE_URL`; when it is empty, calls use same-origin relative `/api/...` URLs.
+- Local split-origin development should set `VITE_API_BASE_URL=http://localhost:5001` in `kaiwu/.env.local`; production source code must not hardcode localhost.
 - `tasks.ts` owns `AgentTaskStatus`, `CreateTaskPayload`, `AgentTaskEvent`, and `/api/tasks` helpers.
 
 ### Hook Layer

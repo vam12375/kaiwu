@@ -68,6 +68,143 @@ When adding an endpoint:
 
 ---
 
+## Scenario: Project Image Library Metadata
+
+### 1. Scope / Trigger
+
+- Trigger: any change to generated project images, `GET /api/project-images`, or frontend project image preview fields.
+- This is a cross-layer contract because `AgentRuntime` writes image metadata, `routes_files.py` serializes it, and the frontend `ProjectImage` type renders it.
+
+### 2. Signatures
+
+- `GET /api/project-images` -> `list[ProjectImageSummary]`
+- `save_image_to_library(image_url: str, style: str, metadata: dict[str, Any] | None = None) -> str`
+- Sidecar storage: `kaiwuback/project-images/.image-meta.json`, keyed by saved image filename.
+
+### 3. Contracts
+
+`ProjectImageSummary` required response fields:
+
+- `name: string` - actual filename from `IMG_STORE`.
+- `url: string` - local `/project-images/<filename>` URL.
+- `size: number` - file size from the filesystem.
+- `modified: string` - filesystem modified time formatted as `YYYY-MM-DD HH:mm`.
+
+Optional metadata fields:
+
+- `prompt: string`
+- `style: string`
+- `model: string`
+- `ratio: string`
+- `resolution: string`
+- `source: string`
+- `reference_count: number`
+- `created_at: string`
+
+Core filesystem fields (`name`, `url`, `size`, `modified`) must win over metadata fields when merging. Metadata is display-only and must not contain API keys, provider tokens, or raw request headers.
+
+### 4. Validation & Error Matrix
+
+- Missing `.image-meta.json` -> return image entries with required fields only.
+- Malformed `.image-meta.json` -> log a short `[IMG] Metadata read failed` message and return required fields only.
+- Missing metadata for a filename -> return required fields only.
+- Unsupported file suffix in `IMG_STORE` -> skip it.
+- Corrupt metadata that attempts to override `name`, `url`, `size`, or `modified` -> ignore the override by merging filesystem fields last.
+
+### 5. Good/Base/Bad Cases
+
+- Good: a newly generated image appears with `prompt`, `ratio`, `resolution`, and `source`, so the frontend preview can show generation details.
+- Base: an older image has no metadata and still previews with filename, time, and size.
+- Bad: route code reads metadata once per image or lets metadata override the local file URL.
+
+### 6. Tests Required
+
+- Backend syntax: `python -m compileall kaiwuback/server`.
+- Frontend type/build: `Set-Location kaiwu; npm run build` when `ProjectImage` fields or preview UI changes.
+- API smoke: `GET http://localhost:5001/api/project-images` returns `200` and JSON parse succeeds.
+- Manual UI smoke: open project library -> 图片库, click an image, confirm the app opens the preview modal instead of a new browser tab.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+images.append({
+    "name": f.name,
+    "url": local_url,
+    **metadata,  # metadata can override name/url
+})
+```
+
+#### Correct
+
+```python
+images.append({
+    **metadata,
+    "name": f.name,
+    "url": local_url,
+    "size": f.stat().st_size,
+    "modified": modified,
+})
+```
+
+---
+
+## Scenario: Public File And Image URLs
+
+### 1. Scope / Trigger
+
+- Trigger: any change to URLs returned for `project-files`, `project-images`, generated image SSE events, frontend API base configuration, or deployment env wiring.
+- This is a cross-layer contract because the backend serializes URLs, task events persist them into conversations, and the browser fetches/renders/downloads those URLs.
+
+### 2. Signatures
+
+- Backend env: `PUBLIC_BASE_URL=<optional absolute origin>`.
+- Frontend env: `VITE_API_BASE_URL=<optional absolute origin>`.
+- Backend helper: `public_url(path: str) -> str`.
+- Frontend helper: `API_BASE_URL` from `src/api/client.ts`.
+
+### 3. Contracts
+
+- `PUBLIC_BASE_URL` is optional. When empty, `public_url("/project-images/a.png")` returns `/project-images/a.png` for same-origin deployments.
+- When `PUBLIC_BASE_URL=https://example.com`, `public_url("/project-images/a.png")` returns `https://example.com/project-images/a.png`.
+- `VITE_API_BASE_URL` is optional. When empty, frontend API calls use same-origin `/api/...`; when set, all API/SSE/download calls use that origin.
+- Runtime source must not hardcode `http://localhost:5001`; localhost belongs only in `.env.example` or local `.env.local` files.
+
+### 4. Validation & Error Matrix
+
+- Empty `PUBLIC_BASE_URL` + same-origin deployment -> return relative URLs.
+- Empty `PUBLIC_BASE_URL` + split-origin local development -> images/files require local `.env.local` override.
+- Public-domain `/project-images/...` download URL matching `PUBLIC_BASE_URL` -> resolve from `IMG_STORE` directly.
+- Public-domain non-image API URL passed to `/api/download-image` -> reject with `400 {"error": "unsupported image url"}`.
+
+### 5. Good/Base/Bad Cases
+
+- Good: production sets `PUBLIC_BASE_URL=https://app.example.com` and users receive public file/image URLs.
+- Base: same-origin deployment leaves both env vars empty and uses relative `/api` plus `/project-images` paths.
+- Bad: frontend or backend source code embeds `http://localhost:5001`, causing a deployed browser to call the user's own machine.
+
+### 6. Tests Required
+
+- `rg "localhost:5001" kaiwu/src kaiwuback/server kaiwuback/main.py -g "!*.bak"` returns no production-code matches.
+- `python -m compileall kaiwuback/server` passes after backend URL changes.
+- `npm run build` passes after frontend API base changes.
+- Smoke `public_url("/project-images/demo.png")` with empty and configured `PUBLIC_BASE_URL`.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+"url": f"http://localhost:5001/project-images/{filename}"
+```
+
+#### Correct
+
+```python
+"url": public_url(f"/project-images/{quote(filename, safe='')}")
+```
+
 ## Scenario: External Skill Library API
 
 ### 1. Scope / Trigger
