@@ -1337,6 +1337,12 @@ button {
   box-shadow: 0 14px 26px rgba(15, 23, 42, 0.16);
 }
 
+.primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  box-shadow: none;
+}
+
 .library-header-action {
   display: inline-flex;
   align-items: center;
@@ -1492,6 +1498,12 @@ button {
   background: #0f172a;
   color: #ffffff;
   border-color: transparent;
+}
+
+.project-detail-actions .danger-action {
+  color: #dc2626;
+  background: #fff1f2;
+  border-color: rgba(220, 38, 38, 0.18);
 }
 
 .project-file-detail-shell {
@@ -1807,6 +1819,9 @@ button {
 .folder-delete-selected-button {
   height: 30px;
   padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border-radius: 10px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(255, 255, 255, 0.86);
@@ -1816,14 +1831,12 @@ button {
 }
 
 .folder-delete-selected-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   color: #dc2626;
   background: #fff1f2;
   border-color: rgba(220, 38, 38, 0.18);
 }
 
+.folder-edit-button:disabled,
 .folder-delete-selected-button:disabled {
   cursor: not-allowed;
   color: #94a3b8;
@@ -2852,6 +2865,31 @@ button {
   color: #64748b;
   font-size: 13px;
   line-height: 1.6;
+}
+
+.upload-target-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.upload-target-note span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.upload-target-note strong {
+  min-width: 0;
+  color: #0f172a;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .modal-status {

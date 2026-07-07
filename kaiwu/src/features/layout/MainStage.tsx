@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowUp, Bot, Brain, ChevronDown, ChevronRight, Cpu, Download, ExternalLink, FileStack, FileText, HelpCircle, Search, Settings2, UserRound } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
-import { Check, Trash2 } from 'lucide-react';
+import { Check, Pencil, Trash2 } from 'lucide-react';
 import { directions, modelOptions, settingsSections } from '../../data';
 import { ConversationPanel } from '../chat/ConversationPanel';
 import { SkillLibraryPage } from './SkillLibraryPage';
@@ -71,6 +71,7 @@ export function MainStage(props: MainStageProps) {
     openPicker,
     openProjectFile,
     deleteProjectFolders,
+    deleteProjectFile,
     projectFolders,
     projectImages,
     projectSearchQuery,
@@ -105,6 +106,9 @@ export function MainStage(props: MainStageProps) {
     setOpenPicker,
     setPreviewImageIndex,
     setProjectModal,
+    setProjectFolderEditTarget,
+    setProjectFileEditTarget,
+    setProjectUploadTargetFolder,
     setProjectSearchQuery,
     setSelectedProjectFile,
     setProjectView,
@@ -228,6 +232,27 @@ export function MainStage(props: MainStageProps) {
     const deleted = await deleteProjectFolders(selectedProjectFolderNames);
     if (!deleted) return;
     cancelProjectFolderEdit();
+  };
+  const handleRenameSelectedProjectFolder = () => {
+    if (selectedProjectFolderNames.length !== 1) return;
+    const target = projectFolders.find((folder: { name: string }) => folder.name === selectedProjectFolderNames[0]);
+    if (!target) return;
+    setProjectFolderEditTarget?.(target);
+    setProjectModal('rename-folder');
+    cancelProjectFolderEdit();
+  };
+  const handleRenameSelectedProjectFile = () => {
+    if (!selectedProjectFile) return;
+    setProjectFileEditTarget?.(selectedProjectFile);
+    setProjectModal('rename-file');
+  };
+  const handleDeleteSelectedProjectFile = () => {
+    if (!selectedProjectFile) return;
+    deleteProjectFile?.(selectedProjectFile);
+  };
+  const handleOpenProjectUpload = () => {
+    setProjectUploadTargetFolder?.(projectView === 'folder' ? activeProjectFolder : null);
+    setProjectModal('upload');
   };
 
   useEffect(() => {
@@ -383,7 +408,7 @@ export function MainStage(props: MainStageProps) {
                     {projectView !== 'detail' && (
                       <div className="project-actions">
                         <button className="secondary-action" onClick={() => setProjectModal('new-folder')} type="button">新建文件夹</button>
-                        <button className="primary-action" onClick={() => setProjectModal('upload')} type="button">上传文件</button>
+                        <button className="primary-action" onClick={handleOpenProjectUpload} type="button">上传文件</button>
                       </div>
                     )}
                   </header>
@@ -409,9 +434,17 @@ export function MainStage(props: MainStageProps) {
                         </button>
                         {selectedProjectFile && (
                           <div className="project-detail-actions">
+                            <button onClick={handleRenameSelectedProjectFile} type="button">
+                              <Pencil size={14} />
+                              重命名
+                            </button>
                             <button onClick={openSelectedProjectFile} type="button">
                               <ExternalLink size={14} />
                               新窗口打开
+                            </button>
+                            <button className="danger-action" onClick={handleDeleteSelectedProjectFile} type="button">
+                              <Trash2 size={14} />
+                              删除
                             </button>
                             <button className="primary-action" onClick={downloadSelectedProjectFile} type="button">
                               <Download size={14} />
@@ -517,6 +550,15 @@ export function MainStage(props: MainStageProps) {
                           {folderEditMode ? (
                             <>
                               <button className="folder-edit-button" onClick={cancelProjectFolderEdit} type="button">取消</button>
+                              <button
+                                className="folder-edit-button"
+                                disabled={selectedProjectFolderNames.length !== 1}
+                                onClick={handleRenameSelectedProjectFolder}
+                                type="button"
+                              >
+                                <Pencil size={14} />
+                                重命名
+                              </button>
                               <button
                                 className="folder-delete-selected-button"
                                 disabled={selectedProjectFolderNames.length === 0}

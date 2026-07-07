@@ -94,7 +94,15 @@ import {
   heroText,
   projectFolders as projectFolderTemplates,
 } from './data';
-import { deleteProjectFolder, fetchProjectFiles, fetchProjectFolders } from './api/projectFiles';
+import {
+  deleteProjectFile as deleteProjectFileApi,
+  deleteProjectFolder,
+  fetchProjectFiles,
+  fetchProjectFolders,
+  renameProjectFile as renameProjectFileApi,
+  renameProjectFolder as renameProjectFolderApi,
+  type ProjectFolderPayload,
+} from './api/projectFiles';
 import { AppSidebar } from './features/layout/AppSidebar';
 import { AppModals } from './features/layout/AppModals';
 import { MainStage } from './features/layout/MainStage';
@@ -199,6 +207,9 @@ function AppShell() {
   const [projectImages, setProjectImages] = useState<ProjectImage[]>([]);
   const [realProjectFiles, setRealProjectFiles] = useState<ProjectFile[]>([]);
   const [selectedProjectFile, setSelectedProjectFile] = useState<ProjectFile | null>(null);
+  const [projectFolderEditTarget, setProjectFolderEditTarget] = useState<ProjectFolder | null>(null);
+  const [projectFileEditTarget, setProjectFileEditTarget] = useState<ProjectFile | null>(null);
+  const [projectUploadTargetFolder, setProjectUploadTargetFolder] = useState<ProjectFolder | null>(null);
   const [codingPreviewUrl, setCodingPreviewUrl] = useState<string>('');
   const [selectedCardImage, setSelectedCardImage] = useState<string | undefined>();
   const [imageModel, setImageModel] = useState<ImageModelId>(imageModelOptions[0]);
@@ -291,6 +302,7 @@ function AppShell() {
     workflowPhase,
     nodeStatus,
     conversationTitle,
+    isImageMode,
     convIdRef,
     sseConvIdRef,
     suggestedQuestionsRef,
@@ -306,6 +318,7 @@ function AppShell() {
     setSuggestedQuestions,
     setActiveNodeId,
     setActivePage,
+    setActiveCreativeMode,
     setInputText,
     setConvHistory,
     setOpenHistoryMenu,
@@ -323,7 +336,6 @@ function AppShell() {
   }, [openHomeConversation]);
 
   const loadConversationOutsideCreative = useCallback((conversationId: number) => {
-    setActiveCreativeMode(null);
     loadConversation(conversationId);
   }, [loadConversation]);
 
@@ -367,6 +379,13 @@ function AppShell() {
     return () => document.removeEventListener('click', handler);
   }, []);
 
+  useEffect(() => {
+    if (projectModal) return;
+    setProjectFolderEditTarget(null);
+    setProjectFileEditTarget(null);
+    setProjectUploadTargetFolder(null);
+  }, [projectModal]);
+
   // Load uploaded files on mount
   useEffect(() => {
     fetch('http://localhost:5001/api/uploaded-files')
@@ -404,6 +423,52 @@ function AppShell() {
       .catch(() => {});
   }, []);
 
+  const handleRenameProjectFolder = useCallback(async (folder: ProjectFolder, payload: ProjectFolderPayload) => {
+    const name = payload.name.trim();
+    if (!name) return false;
+
+    try {
+      await renameProjectFolderApi(folder.name, {
+        name,
+        desc: payload.desc.trim(),
+      });
+      setSelectedProjectFile((current) => current && current.folder === folder.name ? null : current);
+      setProjectView('home');
+      setSelectedFolderIndex(0);
+      await refreshProjectFolders();
+      await refreshProjectFiles();
+      setProjectFolderEditTarget(null);
+      setProjectModal(null);
+      showToast({ message: '文件夹已重命名', variant: 'success' });
+      return true;
+    } catch {
+      showToast({ message: '重命名失败，请检查名称是否重复', variant: 'error' });
+      return false;
+    }
+  }, [refreshProjectFiles, refreshProjectFolders, showToast]);
+
+  const handleRenameProjectFile = useCallback(async (file: ProjectFile, name: string) => {
+    const nextName = name.trim();
+    if (!nextName) return false;
+
+    try {
+      const response = await renameProjectFileApi(file, nextName);
+      setRealProjectFiles((current) => current.map((item) => (
+        item.folder === file.folder && item.name === file.name ? response.file : item
+      )));
+      setSelectedProjectFile(response.file);
+      await refreshProjectFiles();
+      await refreshProjectFolders();
+      setProjectFileEditTarget(null);
+      setProjectModal(null);
+      showToast({ message: '文件已重命名', variant: 'success' });
+      return true;
+    } catch {
+      showToast({ message: '重命名失败，请检查名称是否重复', variant: 'error' });
+      return false;
+    }
+  }, [refreshProjectFiles, refreshProjectFolders, showToast]);
+
   const handleDeleteProjectFolders = useCallback(async (folderNames: string | string[]) => {
     const names = Array.isArray(folderNames) ? folderNames : [folderNames];
     const deletableNames = names.filter((folderName) => projectFolders.some((item) => item.name === folderName));
@@ -437,6 +502,31 @@ function AppShell() {
       return false;
     }
   }, [projectFolders, refreshProjectFiles, refreshProjectFolders, requestConfirm, showToast]);
+
+  const handleDeleteProjectFile = useCallback(async (file: ProjectFile) => {
+    const confirmed = await requestConfirm({
+      title: '删除文件',
+      message: `确定删除“${file.name}”吗？此操作无法撤销。`,
+      confirmLabel: '删除',
+      cancelLabel: '取消',
+      variant: 'danger',
+    });
+    if (!confirmed) return false;
+
+    try {
+      await deleteProjectFileApi(file);
+      setRealProjectFiles((current) => current.filter((item) => !(item.folder === file.folder && item.name === file.name)));
+      setSelectedProjectFile((current) => current && current.folder === file.folder && current.name === file.name ? null : current);
+      setProjectView('home');
+      await refreshProjectFiles();
+      await refreshProjectFolders();
+      showToast({ message: '文件已删除', variant: 'success' });
+      return true;
+    } catch {
+      showToast({ message: '删除文件失败，请稍后重试', variant: 'error' });
+      return false;
+    }
+  }, [refreshProjectFiles, refreshProjectFolders, requestConfirm, showToast]);
 
   // Load project images
   useEffect(() => {
@@ -564,6 +654,7 @@ function AppShell() {
           openPicker={openPicker}
           openProjectFile={openProjectFile}
           deleteProjectFolders={handleDeleteProjectFolders}
+          deleteProjectFile={handleDeleteProjectFile}
           projectFolders={projectFolders}
           projectImages={projectImages}
           projectSearchQuery={projectSearchQuery}
@@ -598,6 +689,9 @@ function AppShell() {
           setOpenPicker={setOpenPicker}
           setPreviewImageIndex={setPreviewImageIndex}
           setProjectModal={setProjectModal}
+          setProjectFolderEditTarget={setProjectFolderEditTarget}
+          setProjectFileEditTarget={setProjectFileEditTarget}
+          setProjectUploadTargetFolder={setProjectUploadTargetFolder}
           setProjectSearchQuery={setProjectSearchQuery}
           setSelectedProjectFile={setSelectedProjectFile}
           setProjectView={setProjectView}
@@ -640,12 +734,17 @@ function AppShell() {
         libraryModal={libraryModal}
         previewImageIndex={previewImageIndex}
         projectFolders={projectFolders}
+        projectFolderEditTarget={projectFolderEditTarget}
+        projectFileEditTarget={projectFileEditTarget}
+        projectUploadTargetFolder={projectUploadTargetFolder}
         projectModal={projectModal}
         realProjectFiles={realProjectFiles}
         rechargeModalOpen={rechargeModalOpen}
         rechargeView={rechargeView}
         refreshProjectFiles={refreshProjectFiles}
         refreshProjectFolders={refreshProjectFolders}
+        renameProjectFolder={handleRenameProjectFolder}
+        renameProjectFile={handleRenameProjectFile}
         saveCustomSkill={saveCustomSkill}
         setFileIndex={setFileIndex}
         setLibraryModal={setLibraryModal}
