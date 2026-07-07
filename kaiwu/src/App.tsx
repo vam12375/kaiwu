@@ -8,10 +8,10 @@
  *
  * # 输入
  * ## 1. 外部数据源
- * - http://localhost:5001/api/conversations —— 对话历史列表
- * - http://localhost:5001/api/skills —— 外部技能列表
- * - http://localhost:5001/api/project-images —— 项目图片库
- * - http://localhost:5001/api/project-files —— 项目文件库
+ * - API_BASE_URL/api/conversations —— 对话历史列表
+ * - API_BASE_URL/api/skills —— 外部技能列表
+ * - API_BASE_URL/api/project-images —— 项目图片库
+ * - API_BASE_URL/api/project-files —— 项目文件库
  *
  * ## 2. 用户交互
  * - 文本输入（创业想法 / 追问 / 指令）
@@ -103,6 +103,7 @@ import {
   renameProjectFolder as renameProjectFolderApi,
   type ProjectFolderPayload,
 } from './api/projectFiles';
+import { apiJson } from './api/client';
 import { AppSidebar } from './features/layout/AppSidebar';
 import { AppModals } from './features/layout/AppModals';
 import { MainStage } from './features/layout/MainStage';
@@ -388,13 +389,14 @@ function AppShell() {
 
   // Load uploaded files on mount
   useEffect(() => {
-    fetch('http://localhost:5001/api/uploaded-files')
-      .then(r => r.json()).then(d => d.files && setUploadedFiles(d.files)).catch(()=>{});
+    apiJson<{ files?: { name: string; size: number }[] }>('/api/uploaded-files')
+      .then((data) => data.files && setUploadedFiles(data.files))
+      .catch(() => {});
   }, []);
 
   const removeUploadedFile = (name: string) => {
-    fetch(`http://localhost:5001/api/uploaded-files/${encodeURIComponent(name)}`, {method:'DELETE'})
-      .then(r => r.json()).then(() => {
+    apiJson<{ status?: string }>(`/api/uploaded-files/${encodeURIComponent(name)}`, { method: 'DELETE' })
+      .then(() => {
         setUploadedFiles(prev => prev.filter(f => f.name !== name));
         showToast({ message: '文件已移除', variant: 'success' });
       }).catch(() => {
@@ -530,8 +532,7 @@ function AppShell() {
 
   // Load project images
   useEffect(() => {
-    fetch('http://localhost:5001/api/project-images')
-      .then((r) => r.json())
+    apiJson<ProjectImage[]>('/api/project-images')
       .then((data) => setProjectImages(data))
       .catch(() => {});
   }, [messages.length]);
