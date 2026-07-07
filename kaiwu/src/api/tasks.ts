@@ -33,11 +33,22 @@ export type AgentTaskDebug = {
   error?: string | null;
 };
 
+export type ImageReferenceInput = {
+  name: string;
+  mime_type: string;
+  size: number;
+  data_url: string;
+};
+
 export type CreateTaskPayload = {
   message: string;
   history?: unknown[];
+  task_type?: 'chat' | 'image_generation';
+  image_model?: string;
   image_ratio?: string;
+  image_resolution?: string;
   image_count?: number;
+  reference_images?: ImageReferenceInput[];
   followup_node?: string | null;
   model?: string;
   conversation_id?: number | null;

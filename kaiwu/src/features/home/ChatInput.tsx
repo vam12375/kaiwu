@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, Mic, MicOff, ArrowUp, Bot, ChevronDown, Sparkles, X } from 'lucide-react';
+import { Plus, Mic, MicOff, ArrowUp, Bot, ChevronDown, Sparkles, Square, X } from 'lucide-react';
 import { modelOptions } from '../../data';
-import type { SkillLibraryItem } from '../../types';
+import type { ShowToast, SkillLibraryItem } from '../../types';
 
 type ChatInputProps = {
   activeDirection: string;
@@ -16,9 +16,11 @@ type ChatInputProps = {
   setInputText: (v: string) => void;
   isComposingRef: React.MutableRefObject<boolean>;
   handleSend: () => void;
+  stopGeneration: () => void;
   isLoading: boolean;
   modelIndex: number;
   setModelIndex: (v: number) => void;
+  showToast: ShowToast;
 };
 
 export function ChatInput({
@@ -33,9 +35,11 @@ export function ChatInput({
   setInputText,
   isComposingRef,
   handleSend,
+  stopGeneration,
   isLoading,
   modelIndex,
   setModelIndex,
+  showToast,
 }: ChatInputProps) {
   const [modelOpen, setModelOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -63,7 +67,7 @@ export function ChatInput({
   const handleVoice = useCallback(() => {
     const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) {
-      alert('当前浏览器不支持语音输入');
+      showToast({ message: '当前浏览器不支持语音输入', variant: 'info' });
       return;
     }
     if (isListening) {
@@ -85,12 +89,21 @@ export function ChatInput({
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
-  }, [isListening, inputText, setInputText]);
+  }, [isListening, inputText, setInputText, showToast]);
 
   const onSend = () => {
+    if (isLoading) return;
     if (!inputText.trim()) return;
     handleSend();
     setPreviewImage(undefined);
+  };
+
+  const handleSendButtonClick = () => {
+    if (isLoading) {
+      stopGeneration();
+      return;
+    }
+    onSend();
   };
 
   return (
@@ -182,7 +195,7 @@ export function ChatInput({
             <div className="toolbar-right">
               <input ref={fileInputRef} type="file" className="hidden-input" onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) alert(`已选择文件：${file.name}`);
+                if (file) showToast({ message: `已选择文件：${file.name}`, variant: 'success' });
               }} />
               <button className="icon-action" onClick={() => fileInputRef.current?.click()} aria-label="添加附件">
                 <Plus size={16} />
@@ -195,12 +208,14 @@ export function ChatInput({
                 {isListening ? <MicOff size={16} /> : <Mic size={16} />}
               </button>
               <button
-                className={`icon-action send-action ${isLoading ? 'send-disabled' : ''}`}
-                onClick={onSend}
-                disabled={isLoading}
-                aria-label="发送"
+                className={`icon-action send-action ${isLoading ? 'send-stop-action' : !inputText.trim() ? 'send-disabled' : ''}`}
+                onClick={handleSendButtonClick}
+                disabled={!isLoading && !inputText.trim()}
+                aria-label={isLoading ? '停止生成' : '发送'}
+                title={isLoading ? '停止生成' : '发送'}
+                type="button"
               >
-                <ArrowUp size={17} />
+                {isLoading ? <Square size={12} fill="currentColor" strokeWidth={2.4} /> : <ArrowUp size={17} />}
               </button>
             </div>
           </div>

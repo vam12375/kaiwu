@@ -26,10 +26,28 @@
  * =============================================================================
  */
 
-import type { directions, settingsSections, skillCategories } from './data';
+import type {
+  directions,
+  imageModelOptions,
+  imageRatioOptions,
+  imageResolutionOptions,
+  settingsSections,
+  skillCategories,
+} from './data';
 
 export type ConvHistory = { id: number; title: string; node_id: string; direction: string; message_count: number; created_at: string; updated_at: string };
 export type Direction = (typeof directions)[number];
+export type ImageModelId = (typeof imageModelOptions)[number];
+export type ImageRatio = (typeof imageRatioOptions)[number];
+export type ImageResolution = (typeof imageResolutionOptions)[number];
+export type ToastVariant = 'success' | 'error' | 'info';
+export type ToastInput = {
+  message: string;
+  title?: string;
+  variant?: ToastVariant;
+  duration?: number;
+};
+export type ShowToast = (toast: ToastInput | string) => void;
 export type SettingsSection = (typeof settingsSections)[number];
 export type SidebarPage = 'home' | 'skills' | 'projects' | 'settings' | 'image' | 'video' | 'coding';
 export type CreativeMode = 'image' | 'video' | 'coding';

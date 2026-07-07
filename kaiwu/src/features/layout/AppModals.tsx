@@ -3,9 +3,11 @@ import { Search } from 'lucide-react';
 
 import { skillOptions } from '../../data';
 import { createProjectFolder, uploadProjectFile } from '../../api/projectFiles';
-import type { CustomSkillInput, SkillLibraryItem } from '../../types';
+import type { CustomSkillInput, ShowToast, SkillLibraryItem } from '../../types';
 
-type AppModalsProps = Record<string, any>;
+type AppModalsProps = Record<string, any> & {
+  showToast: ShowToast;
+};
 
 export function AppModals(props: AppModalsProps) {
   const {
@@ -38,6 +40,7 @@ export function AppModals(props: AppModalsProps) {
     skillModalData,
     toggleSkillEnabled,
     uninstallSkill,
+    showToast,
   } = props;
 
   const [customSkillForm, setCustomSkillForm] = useState<CustomSkillInput>({
@@ -104,6 +107,7 @@ export function AppModals(props: AppModalsProps) {
     if (!saved) return;
     setSkillModalData(saved);
     setSkillModal('detail');
+    showToast({ message: '自定义技能已保存', variant: 'success' });
   };
 
   const handleCreateProjectFolder = async () => {
@@ -118,8 +122,10 @@ export function AppModals(props: AppModalsProps) {
       await createProjectFolder({ name, desc: projectFolderDesc.trim() });
       await refreshProjectFolders?.();
       setProjectModal(null);
+      showToast({ message: '文件夹已创建', variant: 'success' });
     } catch {
       setProjectModalStatus('创建失败，请检查名称是否重复');
+      showToast({ message: '创建失败，请检查名称是否重复', variant: 'error' });
     }
   };
 
@@ -147,8 +153,10 @@ export function AppModals(props: AppModalsProps) {
       await refreshProjectFiles?.();
       await refreshProjectFolders?.();
       setProjectModal(null);
+      showToast({ message: '文件已上传', variant: 'success' });
     } catch {
       setProjectModalStatus('上传失败，请稍后重试');
+      showToast({ message: '上传失败，请稍后重试', variant: 'error' });
     } finally {
       setUploadingProjectFile(false);
     }
@@ -239,11 +247,20 @@ export function AppModals(props: AppModalsProps) {
                         <>
                           <div className="setting-item">
                             <div><strong>默认启用</strong><small>允许模型在合适任务中自动调用</small></div>
-                            <button className={currentSkillEnabled ? 'switch on' : 'switch'} onClick={() => toggleSkillEnabled(currentSkill.id)} type="button"><span /></button>
+                            <button
+                              className={currentSkillEnabled ? 'switch on' : 'switch'}
+                              onClick={() => {
+                                toggleSkillEnabled(currentSkill.id);
+                                showToast({ message: currentSkillEnabled ? '技能已停用' : '技能已启用', variant: 'success' });
+                              }}
+                              type="button"
+                            >
+                              <span />
+                            </button>
                           </div>
                           <div className="modal-subtle-actions">
                             <button onClick={() => setSkillModal('detail')} type="button">查看文本</button>
-                            <button onClick={() => { uninstallSkill(currentSkill.id); setSkillModal(null); setSkillModalData(null); }} type="button">卸载技能</button>
+                            <button onClick={() => { uninstallSkill(currentSkill.id); setSkillModal(null); setSkillModalData(null); showToast({ message: '技能已卸载', variant: 'success' }); }} type="button">卸载技能</button>
                           </div>
                         </>
                       )}
@@ -260,7 +277,7 @@ export function AppModals(props: AppModalsProps) {
                         {currentSkillInstalled ? (
                           <button className="primary-action" onClick={() => setSkillModal('manage')} type="button">管理技能</button>
                         ) : (
-                          <button className="primary-action" onClick={() => { installSkill(currentSkill.id); setSkillModal('detail'); }} type="button">确认安装</button>
+                          <button className="primary-action" onClick={() => { installSkill(currentSkill.id); setSkillModal('detail'); showToast({ message: '技能已安装', variant: 'success' }); }} type="button">确认安装</button>
                         )}
                       </div>
                     </div>
@@ -355,7 +372,7 @@ export function AppModals(props: AppModalsProps) {
                   </header>
                   <div className="recharge-tabs"><button className={rechargeView === 'credits' ? 'active' : ''} onClick={() => setRechargeView('credits')} type="button">充值积分</button><button className={rechargeView === 'plans' ? 'active' : ''} onClick={() => setRechargeView('plans')} type="button">套餐升级</button></div>
                   {rechargeView === 'credits' ? <><div className="recharge-options three"><button className="recharge-card" type="button"><span>轻量补充</span><strong>¥ 19</strong><small>2,000 积分 · 适合对话、文档生成</small></button><button className="recharge-card active" type="button"><span>标准补充</span><strong>¥ 49</strong><small>6,000 积分 · 适合调研、生图和方案生成</small></button><button className="recharge-card" type="button"><span>高频补充</span><strong>¥ 99</strong><small>15,000 积分 · 适合视频、编程和批量产物生成</small></button></div><div className="recharge-plan-tip"><div><strong>需要更稳定的月度额度？</strong><span>升级创业套餐，获得每月固定积分、项目库扩容和更高并发。</span></div><button onClick={() => setRechargeView('plans')} type="button">查看套餐</button></div></> : <div className="recharge-options plan-options"><button className="recharge-card plan-card" type="button"><span>Starter 创业起步版</span><strong>¥ 39/月</strong><small>每月 8,000 积分 · 3 个创业项目 · 基础项目库容量 · 适合想法验证和轻量调研</small></button><button className="recharge-card plan-card active" type="button"><span>Pro 创业加速版</span><strong>¥ 99/月</strong><small>每月 25,000 积分 · 20 个创业项目 · 项目库扩容 · 生图/视频/编程优先队列</small></button></div>}
-                  <div className="modal-actions"><button className="secondary-action" onClick={() => setRechargeModalOpen(false)} type="button">取消</button><button className="primary-action" type="button">{rechargeView === 'credits' ? '确认充值' : '确认升级'}</button></div>
+                  <div className="modal-actions"><button className="secondary-action" onClick={() => setRechargeModalOpen(false)} type="button">取消</button><button className="primary-action" onClick={() => { setRechargeModalOpen(false); showToast({ message: rechargeView === 'credits' ? '充值已提交' : '升级已提交', variant: 'success' }); }} type="button">{rechargeView === 'credits' ? '确认充值' : '确认升级'}</button></div>
                 </section>
               </div>
             )}

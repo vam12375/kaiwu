@@ -54,8 +54,10 @@ export function MainStage(props: MainStageProps) {
     homeTextareaRef,
     imageCount,
     imageLibraryOpen,
+    imageModel,
     imageModelOpen,
     imageRatio,
+    imageResolution,
     imageSizeOpen,
     inputText,
     installedSkillIds,
@@ -92,8 +94,10 @@ export function MainStage(props: MainStageProps) {
     setCountOpen,
     setImageCount,
     setImageLibraryOpen,
+    setImageModel,
     setImageModelOpen,
     setImageRatio,
+    setImageResolution,
     setImageSizeOpen,
     setInputText,
     setLibraryModal,
@@ -131,6 +135,7 @@ export function MainStage(props: MainStageProps) {
     setSelectedCardImage,
     selectedComposerSkill,
     setSelectedComposerSkill,
+    showToast,
   } = props;
 
   const [folderEditMode, setFolderEditMode] = useState(false);
@@ -192,8 +197,12 @@ export function MainStage(props: MainStageProps) {
         link.download = selectedProjectFile.name;
         link.click();
         URL.revokeObjectURL(link.href);
+        showToast?.({ message: '文件已开始下载', variant: 'success' });
       })
-      .catch(openSelectedProjectFile);
+      .catch(() => {
+        showToast?.({ message: '下载失败，已尝试新窗口打开', variant: 'error' });
+        openSelectedProjectFile();
+      });
   };
   const useSkillInComposer = (skill: any) => {
     setSelectedComposerSkill?.(skill);
@@ -259,7 +268,9 @@ export function MainStage(props: MainStageProps) {
                   followupNodeRef={followupNodeRef}
                   handleSend={handleSend}
                   imageCount={imageCount}
+                  imageModel={imageModel}
                   imageRatio={imageRatio}
+                  imageResolution={imageResolution}
                   inputText={inputText}
                   isComposingRef={isComposingRef}
                   isImageMode={isImageMode}
@@ -274,7 +285,9 @@ export function MainStage(props: MainStageProps) {
                   resetConversation={resetConversation}
                   setCountOpen={setCountOpen}
                   setImageCount={setImageCount}
+                  setImageModel={setImageModel}
                   setImageRatio={setImageRatio}
+                  setImageResolution={setImageResolution}
                   setInputText={setInputText}
                   setLibraryModal={setLibraryModal}
                   setModelIndex={setModelIndex}
@@ -285,6 +298,7 @@ export function MainStage(props: MainStageProps) {
                   stopGeneration={stopGeneration}
                   suggestedQuestions={suggestedQuestions}
                   uploadedFiles={uploadedFiles}
+                  showToast={showToast}
                 />
               ) : activePage === 'coding' ? (
                 <section className="coding-page">
@@ -598,9 +612,11 @@ export function MainStage(props: MainStageProps) {
                       setInputText={setInputText}
                       isComposingRef={isComposingRef}
                       handleSend={handleSend}
+                      stopGeneration={stopGeneration}
                       isLoading={isLoading}
                       modelIndex={modelIndex}
                       setModelIndex={setModelIndex}
+                      showToast={showToast}
                     />
 
                     <section className="workflow-cards-section">

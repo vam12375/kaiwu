@@ -79,6 +79,9 @@ import type {
   SkillCategory,
   PickerType,
   LibraryModalType,
+  ImageModelId,
+  ImageRatio,
+  ImageResolution,
   ProjectFile,
   ProjectFolder,
   ProjectImage,
@@ -87,6 +90,7 @@ import type {
 import {
   quickSkillsByDirection,
   modelOptions,
+  imageModelOptions,
   heroText,
   projectFolders as projectFolderTemplates,
 } from './data';
@@ -94,6 +98,7 @@ import { deleteProjectFolder, fetchProjectFiles, fetchProjectFolders } from './a
 import { AppSidebar } from './features/layout/AppSidebar';
 import { AppModals } from './features/layout/AppModals';
 import { MainStage } from './features/layout/MainStage';
+import { ToastProvider, useToast } from './features/toast/ToastProvider';
 import { type AgentMessage } from './hooks/agentEventReducer';
 import { useConversation } from './hooks/useConversation';
 import { useConversationTask, type ConversationTaskCacheEntry } from './hooks/useConversationTask';
@@ -136,6 +141,16 @@ function mergeProjectFolders(serverFolders: Array<Omit<ProjectFolder, 'tone'>>):
 // =============================================================================
 
 export function App() {
+  return (
+    <ToastProvider>
+      <AppShell />
+    </ToastProvider>
+  );
+}
+
+function AppShell() {
+  const { showToast } = useToast();
+
   // ---- State ----
   const [modelIndex, setModelIndex] = useState(0);
   const [fileIndex, setFileIndex] = useState<number | null>(null);
@@ -182,7 +197,9 @@ export function App() {
   const [selectedProjectFile, setSelectedProjectFile] = useState<ProjectFile | null>(null);
   const [codingPreviewUrl, setCodingPreviewUrl] = useState<string>('');
   const [selectedCardImage, setSelectedCardImage] = useState<string | undefined>();
-  const [imageRatio, setImageRatio] = useState<string>('1:1');
+  const [imageModel, setImageModel] = useState<ImageModelId>(imageModelOptions[0]);
+  const [imageRatio, setImageRatio] = useState<ImageRatio>('1:1');
+  const [imageResolution, setImageResolution] = useState<ImageResolution>('2K');
   const [imageCount, setImageCount] = useState<number>(1);
   const [ratioOpen, setRatioOpen] = useState(false);
   const [countOpen, setCountOpen] = useState(false);
@@ -234,7 +251,10 @@ export function App() {
     messages,
     activeNodeId,
     conversationTitle,
+    isImageMode,
+    imageModel,
     imageRatio,
+    imageResolution,
     imageCount,
     modelId: modelOptions[modelIndex].id,
     setInputText,
@@ -251,6 +271,7 @@ export function App() {
     setProjectImages,
     setActivePage,
     setCodingMode,
+    showToast,
   });
   const {
     deleteConversation,
@@ -284,6 +305,7 @@ export function App() {
     setInputText,
     setConvHistory,
     setOpenHistoryMenu,
+    showToast,
   });
 
   const resetConversationOutsideCreative = useCallback((options?: Parameters<typeof resetConversation>[0]) => {
@@ -349,7 +371,12 @@ export function App() {
 
   const removeUploadedFile = (name: string) => {
     fetch(`http://localhost:5001/api/uploaded-files/${encodeURIComponent(name)}`, {method:'DELETE'})
-      .then(r => r.json()).then(() => setUploadedFiles(prev => prev.filter(f => f.name !== name))).catch(()=>{});
+      .then(r => r.json()).then(() => {
+        setUploadedFiles(prev => prev.filter(f => f.name !== name));
+        showToast({ message: '文件已移除', variant: 'success' });
+      }).catch(() => {
+        showToast({ message: '移除失败，请稍后重试', variant: 'error' });
+      });
   };
 
   const refreshProjectFolders = useCallback(() => {
@@ -393,12 +420,13 @@ export function App() {
       setSelectedFolderIndex(0);
       await refreshProjectFolders();
       await refreshProjectFiles();
+      showToast({ message: `已删除${deletableNames.length === 1 ? '文件夹' : `${deletableNames.length} 个文件夹`}`, variant: 'success' });
       return true;
     } catch {
-      window.alert('删除失败，请稍后重试');
+      showToast({ message: '删除失败，请稍后重试', variant: 'error' });
       return false;
     }
-  }, [projectFolders, refreshProjectFiles, refreshProjectFolders]);
+  }, [projectFolders, refreshProjectFiles, refreshProjectFolders, showToast]);
 
   // Load project images
   useEffect(() => {
@@ -508,9 +536,11 @@ export function App() {
           handleSend={handleSend}
           homeTextareaRef={homeTextareaRef}
           imageCount={imageCount}
+          imageModel={imageModel}
           imageLibraryOpen={imageLibraryOpen}
           imageModelOpen={imageModelOpen}
           imageRatio={imageRatio}
+          imageResolution={imageResolution}
           imageSizeOpen={imageSizeOpen}
           inputText={inputText}
           installedSkillIds={installedSkillIds}
@@ -546,9 +576,11 @@ export function App() {
           setConversationOpen={setConversationOpen}
           setCountOpen={setCountOpen}
           setImageCount={setImageCount}
+          setImageModel={setImageModel}
           setImageLibraryOpen={setImageLibraryOpen}
           setImageModelOpen={setImageModelOpen}
           setImageRatio={setImageRatio}
+          setImageResolution={setImageResolution}
           setImageSizeOpen={setImageSizeOpen}
           setInputText={setInputText}
           setLibraryModal={setLibraryModal}
@@ -586,6 +618,7 @@ export function App() {
           setSelectedCardImage={setSelectedCardImage}
           selectedComposerSkill={selectedComposerSkill}
           setSelectedComposerSkill={setSelectedComposerSkill}
+          showToast={showToast}
         />
       </div>
 
@@ -619,6 +652,7 @@ export function App() {
         skillModalData={skillModalData}
         toggleSkillEnabled={toggleSkillEnabled}
         uninstallSkill={uninstallSkill}
+        showToast={showToast}
       />
     </div>
   );

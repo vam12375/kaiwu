@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react';
 import type { Dispatch, MouseEvent, SetStateAction } from 'react';
 
 import { apiJson } from '../api/client';
-import type { ConvHistory, SidebarPage } from '../types';
+import type { ConvHistory, ShowToast, SidebarPage } from '../types';
 import type { AgentMessage } from './agentEventReducer';
 import type { ConversationTaskCacheEntry } from './useConversationTask';
 
@@ -61,6 +61,7 @@ type UseConversationOptions = {
   setInputText: Dispatch<SetStateAction<string>>;
   setConvHistory: Dispatch<SetStateAction<ConvHistory[]>>;
   setOpenHistoryMenu: Dispatch<SetStateAction<number | null>>;
+  showToast?: ShowToast;
 };
 
 function parseConversationMessages(messages: { role: string; content: string }[] = []) {
@@ -292,13 +293,17 @@ export function useConversation(options: UseConversationOptions) {
         if (options.currentConvId === conversationId) {
           resetConversation({ activePage: 'home' });
         }
+        options.showToast?.({ message: '对话已删除', variant: 'success' });
       })
-      .catch(() => {});
+      .catch(() => {
+        options.showToast?.({ message: '删除对话失败', variant: 'error' });
+      });
   }, [
     options.convCacheRef,
     options.currentConvId,
     options.setConvHistory,
     options.setOpenHistoryMenu,
+    options.showToast,
     resetConversation,
   ]);
 
@@ -307,10 +312,15 @@ export function useConversation(options: UseConversationOptions) {
       method: 'POST',
       body: JSON.stringify({ title }),
     })
-      .then(() => refreshConversationHistory())
-      .catch(() => {});
+      .then(() => {
+        refreshConversationHistory();
+        options.showToast?.({ message: '对话已重命名', variant: 'success' });
+      })
+      .catch(() => {
+        options.showToast?.({ message: '重命名失败，请稍后重试', variant: 'error' });
+      });
     options.setOpenHistoryMenu(null);
-  }, [options.setOpenHistoryMenu, refreshConversationHistory]);
+  }, [options.setOpenHistoryMenu, options.showToast, refreshConversationHistory]);
 
   return {
     deleteConversation,

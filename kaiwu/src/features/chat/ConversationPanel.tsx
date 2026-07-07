@@ -1,11 +1,13 @@
 import { useEffect, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, AtSign, Bookmark, Bot, Box, ChevronDown, ChevronLeft, Copy, ImagePlus, Type, X } from 'lucide-react';
+import { ArrowUp, Bookmark, Bot, Box, ChevronDown, ChevronLeft, Copy, ImagePlus, Square, X } from 'lucide-react';
 
-import { modelOptions, projectFolders } from '../../data';
-import type { Direction, LibraryModalType, PickerType } from '../../types';
+import { imageModelOptions, imageRatioOptions, imageResolutionOptions, modelOptions, projectFolders } from '../../data';
+import type { Direction, ImageModelId, ImageRatio, ImageResolution, LibraryModalType, PickerType, ShowToast } from '../../types';
 import { renderMarkdown } from '../../utils';
 import type { AgentMessage } from '../../hooks/agentEventReducer';
+import type { SendMessageOptions } from '../../hooks/useConversationTask';
+import type { ImageReferenceInput } from '../../api/tasks';
 
 type NodeStatus = {
   nodeId: string;
@@ -24,8 +26,7 @@ type UploadedFile = {
   size: number;
 };
 
-type ReferenceImagePreview = {
-  name: string;
+type ReferenceImagePreview = ImageReferenceInput & {
   url: string;
 };
 
@@ -37,9 +38,11 @@ type ConversationPanelProps = {
   countOpen: boolean;
   fileIndex: number | null;
   followupNodeRef: MutableRef<string | null>;
-  handleSend: () => Promise<void>;
+  handleSend: (options?: SendMessageOptions) => Promise<void>;
   imageCount: number;
-  imageRatio: string;
+  imageModel: ImageModelId;
+  imageRatio: ImageRatio;
+  imageResolution: ImageResolution;
   inputText: string;
   isComposingRef: MutableRef<boolean>;
   isImageMode: boolean;
@@ -54,7 +57,9 @@ type ConversationPanelProps = {
   resetConversation: () => void;
   setCountOpen: Dispatch<SetStateAction<boolean>>;
   setImageCount: Dispatch<SetStateAction<number>>;
-  setImageRatio: Dispatch<SetStateAction<string>>;
+  setImageModel: Dispatch<SetStateAction<ImageModelId>>;
+  setImageRatio: Dispatch<SetStateAction<ImageRatio>>;
+  setImageResolution: Dispatch<SetStateAction<ImageResolution>>;
   setInputText: Dispatch<SetStateAction<string>>;
   setLibraryModal: Dispatch<SetStateAction<LibraryModalType>>;
   setModelIndex: Dispatch<SetStateAction<number>>;
@@ -65,7 +70,11 @@ type ConversationPanelProps = {
   stopGeneration: () => void;
   suggestedQuestions: string[];
   uploadedFiles: UploadedFile[];
+  showToast: ShowToast;
 };
+
+const MAX_REFERENCE_IMAGES = 4;
+const MAX_REFERENCE_IMAGE_SIZE = 8 * 1024 * 1024;
 
 const NODE_ACTIONS: Record<string, { label: string; prompt: string }> = {
   node1: { label: '📄 生成深度商业调研报告', prompt: '生成深度商业调研报告' },
@@ -74,16 +83,7 @@ const NODE_ACTIONS: Record<string, { label: string; prompt: string }> = {
   node4: { label: '📊 生成系统化内容营销解决方案', prompt: '生成系统化内容营销解决方案' },
 };
 
-const IMAGE_MODEL_OPTIONS = [
-  'doubao-seedream-5-0-260128',
-  'doubao-seedream-5-0-lite-260128',
-  'doubao-seedream-4-5-251128',
-  'doubao-seedream-4-0-250828',
-];
-const IMAGE_RATIO_OPTIONS = ['21:9', '16:9', '3:2', '4:3', '1:1', '3:4', '2:3', '9:16'];
-const IMAGE_RESOLUTION_OPTIONS = ['2K', '4K'];
-
-function saveToProject(content: string, title: string) {
+function saveToProject(content: string, title: string, showToast: ShowToast) {
   fetch('http://localhost:5001/api/save-to-project', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -91,9 +91,37 @@ function saveToProject(content: string, title: string) {
   })
     .then((response) => response.json())
     .then((data) => {
-      if (data.status === 'ok') alert(data.message);
+      if (data.status === 'ok') {
+        showToast({ message: data.message || '已保存到项目库', variant: 'success' });
+        return;
+      }
+      showToast({ message: data.message || '保存失败，请稍后重试', variant: 'error' });
     })
-    .catch(() => {});
+    .catch(() => {
+      showToast({ message: '保存失败，请稍后重试', variant: 'error' });
+    })
+}
+
+function readImageAsDataUrl(file: File): Promise<ReferenceImagePreview> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === 'string' ? reader.result : '';
+      if (!dataUrl) {
+        reject(new Error('图片读取失败'));
+        return;
+      }
+      resolve({
+        name: file.name,
+        mime_type: file.type || 'image/png',
+        size: file.size,
+        data_url: dataUrl,
+        url: dataUrl,
+      });
+    };
+    reader.onerror = () => reject(new Error('图片读取失败'));
+    reader.readAsDataURL(file);
+  });
 }
 
 export function ConversationPanel({
@@ -106,7 +134,9 @@ export function ConversationPanel({
   followupNodeRef,
   handleSend,
   imageCount,
+  imageModel,
   imageRatio,
+  imageResolution,
   inputText,
   isComposingRef,
   isImageMode,
@@ -121,7 +151,9 @@ export function ConversationPanel({
   resetConversation,
   setCountOpen,
   setImageCount,
+  setImageModel,
   setImageRatio,
+  setImageResolution,
   setInputText,
   setLibraryModal,
   setModelIndex,
@@ -132,36 +164,38 @@ export function ConversationPanel({
   stopGeneration,
   suggestedQuestions,
   uploadedFiles,
+  showToast,
 }: ConversationPanelProps) {
-  const [imageModelName, setImageModelName] = useState(IMAGE_MODEL_OPTIONS[0]);
-  const [imageResolution, setImageResolution] = useState(IMAGE_RESOLUTION_OPTIONS[0]);
   const [referenceImages, setReferenceImages] = useState<ReferenceImagePreview[]>([]);
 
-  useEffect(() => (
-    () => {
-      referenceImages.forEach((image) => URL.revokeObjectURL(image.url));
-    }
-  ), [referenceImages]);
-
-  const appendToPrompt = (token: string) => {
-    setInputText((current) => {
-      const trimmed = current.trimEnd();
-      return trimmed ? `${trimmed} ${token}` : token;
+  useEffect(() => () => {
+    referenceImages.forEach((image) => {
+      if (image.url.startsWith('blob:')) URL.revokeObjectURL(image.url);
     });
-  };
+  }, [referenceImages]);
 
   const openReferenceImagePicker = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
     input.multiple = true;
-    input.onchange = (event) => {
-      const files = (event.target as HTMLInputElement).files;
-      if (files && files.length > 0) {
-        setReferenceImages(Array.from(files).map((file) => ({
-          name: file.name,
-          url: URL.createObjectURL(file),
-        })));
+    input.onchange = async (event) => {
+      const files = Array.from((event.target as HTMLInputElement).files || []);
+      const validFiles = files
+        .filter((file) => file.type.startsWith('image/'))
+        .slice(0, MAX_REFERENCE_IMAGES);
+      const oversized = validFiles.find((file) => file.size > MAX_REFERENCE_IMAGE_SIZE);
+      if (oversized) {
+        showToast({ message: '参考图单张不能超过 8MB', variant: 'error' });
+        return;
+      }
+      if (files.length > MAX_REFERENCE_IMAGES) {
+        showToast({ message: `最多上传 ${MAX_REFERENCE_IMAGES} 张参考图`, variant: 'info' });
+      }
+      try {
+        setReferenceImages(await Promise.all(validFiles.map(readImageAsDataUrl)));
+      } catch {
+        showToast({ message: '参考图读取失败，请重新选择', variant: 'error' });
       }
     };
     input.click();
@@ -169,6 +203,19 @@ export function ConversationPanel({
 
   const clearReferenceImages = () => {
     setReferenceImages([]);
+  };
+
+  const sendImageGeneration = () => {
+    void handleSend({
+      fallbackMessage: referenceImages.length > 0 ? '根据参考图生成图片' : undefined,
+      referenceImages: referenceImages.map(({ name, mime_type, size, data_url }) => ({
+        name,
+        mime_type,
+        size,
+        data_url,
+      })),
+      taskType: 'image_generation',
+    });
   };
 
   const runPrompt = (prompt: string, followupNode: string | null) => {
@@ -193,13 +240,7 @@ export function ConversationPanel({
           <h2>{conversationTitle}</h2>
           <span>{isImageMode ? '图片生成' : activeDirection !== '通用' ? activeDirection : '通用咨询'}</span>
         </div>
-        <div className="doubao-header-actions">
-          {isLoading && (
-            <button onClick={stopGeneration} className="doubao-stop-btn" type="button" title="停止生成">
-              <span className="doubao-stop-icon">■</span>
-            </button>
-          )}
-        </div>
+        <div className="doubao-header-spacer" aria-hidden="true" />
       </header>
 
       <div className="doubao-messages" id="doubao-messages">
@@ -392,14 +433,17 @@ export function ConversationPanel({
                         .then(() => {
                           const el = document.activeElement as HTMLElement;
                           el?.blur();
+                          showToast({ message: '已复制到剪贴板', variant: 'success' });
                         })
-                        .catch(() => {});
+                        .catch(() => {
+                          showToast({ message: '复制失败，请稍后重试', variant: 'error' });
+                        });
                     }}
                     title="复制到剪贴板"
                   >
                     <Copy size={14} />
                   </button>
-                  <button onClick={() => saveToProject(message.content, conversationTitle)} type="button" title="保存到AI对话产出">
+                  <button onClick={() => saveToProject(message.content, conversationTitle, showToast)} type="button" title="保存到AI对话产出">
                     <Bookmark size={14} />
                   </button>
                 </motion.div>
@@ -489,10 +533,18 @@ export function ConversationPanel({
             onKeyDown={(event) => {
               if (event.key === 'Enter' && !event.shiftKey && !isComposingRef.current) {
                 event.preventDefault();
-                void handleSend();
+                if (isImageMode) {
+                  sendImageGeneration();
+                } else {
+                  void handleSend();
+                }
               } else if (event.key === 'Enter' && event.ctrlKey) {
                 event.preventDefault();
-                void handleSend();
+                if (isImageMode) {
+                  sendImageGeneration();
+                } else {
+                  void handleSend();
+                }
               }
             }}
           />
@@ -538,16 +590,16 @@ export function ConversationPanel({
                       type="button"
                     >
                       <Box size={14} />
-                      <span className="image-model-label">{imageModelName}</span>
+                      <span className="image-model-label">{imageModel}</span>
                     </button>
                     {openPicker === 'image-model' && (
                       <div className="picker-popover image-model-choice-popover">
-                        {IMAGE_MODEL_OPTIONS.map((modelName) => (
+                        {imageModelOptions.map((modelName) => (
                           <button
                             key={modelName}
-                            className={imageModelName === modelName ? 'model-menu-row selected' : 'model-menu-row'}
+                            className={imageModel === modelName ? 'model-menu-row selected' : 'model-menu-row'}
                             onClick={() => {
-                              setImageModelName(modelName);
+                              setImageModel(modelName);
                               setOpenPicker(null);
                             }}
                             type="button"
@@ -577,7 +629,7 @@ export function ConversationPanel({
                       <div className="picker-popover image-size-popover-chat">
                         <strong>画面比例</strong>
                         <div className="image-ratio-grid-chat">
-                          {IMAGE_RATIO_OPTIONS.map((ratio) => (
+                          {imageRatioOptions.map((ratio) => (
                             <button
                               key={ratio}
                               className={imageRatio === ratio ? 'selected' : ''}
@@ -590,7 +642,7 @@ export function ConversationPanel({
                         </div>
                         <strong>分辨率</strong>
                         <div className="image-resolution-row-chat">
-                          {IMAGE_RESOLUTION_OPTIONS.map((resolution) => (
+                          {imageResolutionOptions.map((resolution) => (
                             <button
                               key={resolution}
                               className={imageResolution === resolution ? 'selected' : ''}
@@ -667,6 +719,7 @@ export function ConversationPanel({
                           const files = (event.target as HTMLInputElement).files;
                           if (files && files.length > 0) {
                             setInputText((prev) => `${prev} [已上传 ${files.length} 个文件]`);
+                            showToast({ message: `已选择 ${files.length} 个文件`, variant: 'success' });
                           }
                         };
                         input.click();
@@ -716,14 +769,30 @@ export function ConversationPanel({
                 </div>
               )}
               <button
-                className={`icon-action send-action ${!inputText.trim() || isLoading ? 'send-disabled' : ''}`}
-                aria-label="发送"
-                title="发送"
-                onClick={() => void handleSend()}
-                disabled={!inputText.trim() || isLoading}
+                className={`icon-action send-action ${
+                  isLoading
+                    ? 'send-stop-action'
+                    : !inputText.trim() && (!isImageMode || referenceImages.length === 0)
+                      ? 'send-disabled'
+                      : ''
+                }`}
+                aria-label={isLoading ? '停止生成' : '发送'}
+                title={isLoading ? '停止生成' : '发送'}
+                onClick={() => {
+                  if (isLoading) {
+                    stopGeneration();
+                    return;
+                  }
+                  if (isImageMode) {
+                    sendImageGeneration();
+                  } else {
+                    void handleSend();
+                  }
+                }}
+                disabled={!isLoading && !inputText.trim() && (!isImageMode || referenceImages.length === 0)}
                 type="button"
               >
-                <ArrowUp size={17} />
+                {isLoading ? <Square size={12} fill="currentColor" strokeWidth={2.4} /> : <ArrowUp size={17} />}
               </button>
             </div>
           </div>

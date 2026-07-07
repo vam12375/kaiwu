@@ -1,4 +1,5 @@
 import type { AgentTaskEvent } from '../api/tasks';
+import type { ShowToast } from '../types';
 import {
   errorAgentEventState,
   reduceAgentEvent,
@@ -29,6 +30,7 @@ type AgentTaskControllerDeps = {
   refreshHistory: () => void;
   refreshProjectImages: () => void;
   openCodingPreview: () => void;
+  showToast?: ShowToast;
 };
 
 export function createAgentTaskController(deps: AgentTaskControllerDeps) {
@@ -38,8 +40,14 @@ export function createAgentTaskController(deps: AgentTaskControllerDeps) {
   };
 
   const handleReducedSideEffects = (event: AgentTaskEvent, state: AgentEventState) => {
+    if (event.type === 'image') {
+      deps.refreshProjectImages();
+      return;
+    }
+
     if (event.type === 'file_saved') {
       deps.refreshProjectImages();
+      deps.showToast?.({ message: event.message || '文件已保存', variant: 'success' });
       if (event.auto_preview) {
         deps.openCodingPreview();
       }
@@ -51,6 +59,7 @@ export function createAgentTaskController(deps: AgentTaskControllerDeps) {
         deps.setCurrentConversationId(state.conversationId);
       }
       deps.refreshHistory();
+      deps.showToast?.({ message: '对话已保存', variant: 'success' });
     }
   };
 
@@ -95,10 +104,10 @@ export function createAgentTaskController(deps: AgentTaskControllerDeps) {
     if (event.type === 'image_gen_start') {
       deps.setNodeStatus({
         nodeId: '',
-        nodeName: '生成Logo',
+        nodeName: event.label || '图片生成',
         nodeIcon: '🎨',
         progress: 97,
-        message: `正在生成 ${event.count} 种风格Logo...`,
+        message: event.message || `正在生成 ${event.count} 张图片...`,
       });
       deps.setWorkflowPhase('executing');
       return;
@@ -120,6 +129,12 @@ export function createAgentTaskController(deps: AgentTaskControllerDeps) {
       syncMessageState(errorAgentEventState(deps.getState(), `请求异常：${event.message || '任务执行失败'}`));
       deps.setWorkflowPhase('idle');
       deps.setNodeStatus(null);
+      deps.showToast?.({ message: event.message || '任务执行失败', variant: 'error' });
+      return;
+    }
+
+    if (event.type === 'done') {
+      deps.showToast?.({ message: '生成完成', variant: 'success' });
     }
   };
 

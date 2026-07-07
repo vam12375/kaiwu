@@ -2,8 +2,8 @@ import { useCallback } from 'react';
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 
 import { apiJson } from '../api/client';
-import type { AgentTaskEvent } from '../api/tasks';
-import type { ConvHistory, SidebarPage } from '../types';
+import type { AgentTaskEvent, CreateTaskPayload, ImageReferenceInput } from '../api/tasks';
+import type { ConvHistory, ImageModelId, ImageRatio, ImageResolution, ShowToast, SidebarPage } from '../types';
 import {
   type AgentEventState,
   type AgentMessage,
@@ -37,6 +37,12 @@ export type ConversationTaskCacheEntry = {
   suggestedQuestions?: string[];
 };
 
+export type SendMessageOptions = {
+  fallbackMessage?: string;
+  referenceImages?: ImageReferenceInput[];
+  taskType?: 'image_generation';
+};
+
 type MutableRef<T> = {
   current: T;
 };
@@ -54,7 +60,10 @@ type UseConversationTaskOptions = {
   messages: AgentMessage[];
   activeNodeId: string;
   conversationTitle: string;
-  imageRatio: string;
+  isImageMode: boolean;
+  imageModel: ImageModelId;
+  imageRatio: ImageRatio;
+  imageResolution: ImageResolution;
   imageCount: number;
   modelId: string;
   setInputText: Dispatch<SetStateAction<string>>;
@@ -71,6 +80,7 @@ type UseConversationTaskOptions = {
   setProjectImages: Dispatch<SetStateAction<ProjectImage[]>>;
   setActivePage: Dispatch<SetStateAction<SidebarPage>>;
   setCodingMode: Dispatch<SetStateAction<'preview' | 'code'>>;
+  showToast?: ShowToast;
 };
 
 const REPORT_COMMAND_KEYWORDS = [
@@ -142,21 +152,28 @@ export function useConversationTask(options: UseConversationTaskOptions) {
     options.setIsLoading(false);
     options.setWorkflowPhase('idle');
     options.setNodeStatus(null);
+    options.showToast?.({ message: '已停止生成', variant: 'info' });
   }, [agentTask, options]);
 
-  const handleSend = useCallback(async () => {
-    const text = (
+  const handleSend = useCallback(async (sendOptions: SendMessageOptions = {}) => {
+    const isImageTask = sendOptions.taskType === 'image_generation' || options.isImageMode;
+    const rawText = (
       options.homeTextareaRef.current?.value ||
       options.convTextareaRef.current?.value ||
       options.inputText
     ).trim();
+    const text = rawText || (isImageTask ? (sendOptions.fallbackMessage || '') : '');
     if (!text || options.isLoading) return;
 
-    const isReportCommand = REPORT_COMMAND_KEYWORDS.some((keyword) => text.includes(keyword));
-    if (isReportCommand) {
+    if (isImageTask) {
       options.followupNodeRef.current = null;
-    } else if (!options.followupNodeRef.current && options.messages.length > 0 && options.activeNodeId) {
-      options.followupNodeRef.current = options.activeNodeId;
+    } else {
+      const isReportCommand = REPORT_COMMAND_KEYWORDS.some((keyword) => text.includes(keyword));
+      if (isReportCommand) {
+        options.followupNodeRef.current = null;
+      } else if (!options.followupNodeRef.current && options.messages.length > 0 && options.activeNodeId) {
+        options.followupNodeRef.current = options.activeNodeId;
+      }
     }
 
     if (options.homeTextareaRef.current) options.homeTextareaRef.current.value = '';
@@ -184,7 +201,7 @@ export function useConversationTask(options: UseConversationTaskOptions) {
       messages: latestMessages,
       conversationId: options.convIdRef.current,
       conversationTitle: nextConversationTitle,
-      nodeId: options.activeNodeId,
+      nodeId: isImageTask ? 'image_generation' : options.activeNodeId,
     };
 
     const controller = createAgentTaskController({
@@ -209,23 +226,35 @@ export function useConversationTask(options: UseConversationTaskOptions) {
         options.setActivePage('coding');
         options.setCodingMode('preview');
       },
+      showToast: options.showToast,
     });
 
     scrollConversationToBottom();
     options.sseConvIdRef.current = options.convIdRef.current;
 
     try {
+      const taskPayload: CreateTaskPayload = {
+        message: text,
+        history: options.messages.slice(-10),
+        stream: true,
+        image_ratio: options.imageRatio,
+        image_count: options.imageCount,
+        followup_node: options.followupNodeRef.current,
+        model: options.modelId,
+        conversation_id: options.convIdRef.current,
+      };
+
+      if (isImageTask) {
+        taskPayload.task_type = 'image_generation';
+        taskPayload.image_model = options.imageModel;
+        taskPayload.image_resolution = options.imageResolution;
+        taskPayload.reference_images = sendOptions.referenceImages || [];
+        taskPayload.followup_node = null;
+        taskPayload.model = undefined;
+      }
+
       await agentTask.sendMessage(
-        {
-          message: text,
-          history: options.messages.slice(-10),
-          stream: true,
-          image_ratio: options.imageRatio,
-          image_count: options.imageCount,
-          followup_node: options.followupNodeRef.current,
-          model: options.modelId,
-          conversation_id: options.convIdRef.current,
-        },
+        taskPayload,
         {
           onEvent: (data: AgentTaskEvent) => controller.handleEvent(data),
         },
@@ -234,7 +263,9 @@ export function useConversationTask(options: UseConversationTaskOptions) {
       if (error instanceof Error && error.name === 'AbortError') {
         controller.stop();
       } else {
-        controller.fail(`请求异常：${getErrorMessage(error)}`);
+        const message = getErrorMessage(error);
+        controller.fail(`请求异常：${message}`);
+        options.showToast?.({ message, variant: 'error' });
       }
       options.setWorkflowPhase('idle');
       options.setNodeStatus(null);
