@@ -84,6 +84,14 @@ export type ProjectImage = {
   url: string;
   size: number;
   modified: string;
+  prompt?: string;
+  style?: string;
+  model?: string;
+  ratio?: string;
+  resolution?: string;
+  source?: string;
+  reference_count?: number;
+  created_at?: string;
 };
 
 export type SkillSource = 'market' | 'external' | 'custom';

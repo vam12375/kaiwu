@@ -8,9 +8,11 @@ import threading
 import time
 import uuid
 from typing import Any, Iterable
+from urllib.parse import quote
 
 from server.agent.event_store import EventStore
 from server.agent.state_machine import ROUTING, RUNNING, STREAMING, SAVING, COMPLETED, FAILED, CANCELLED
+from server.config import public_url
 from server.intent.recognizer import (
     DEPENDENCIES,
     _session_state,
@@ -412,13 +414,26 @@ class AgentRuntime:
 
                 provider_url = urls[0]
                 display_url = provider_url
+                image_style = f"图片生成#{img_i + 1}"
                 try:
-                    filename = save_image_to_library(provider_url, "AI生图")
-                    display_url = f"http://localhost:5001/project-images/{filename}"
+                    filename = save_image_to_library(
+                        provider_url,
+                        "AI生图",
+                        {
+                            "prompt": message,
+                            "style": image_style,
+                            "model": image_model,
+                            "ratio": image_ratio,
+                            "resolution": image_resolution,
+                            "source": "AI 生图",
+                            "reference_count": len(reference_data_urls),
+                        },
+                    )
+                    display_url = public_url(f"/project-images/{quote(filename, safe='')}")
                 except Exception as exc:
                     print(f"[IMG] Save failed: {exc}", flush=True)
 
-                image = {"style": f"图片生成#{img_i + 1}", "url": display_url, "prompt": message}
+                image = {"style": image_style, "url": display_url, "prompt": message}
                 image_urls.append(image)
                 self.emit(task_id, "image", image)
             except Exception as exc:
@@ -563,7 +578,17 @@ class AgentRuntime:
                         try:
                             from server.utils.common import save_image_to_library
 
-                            save_image_to_library(urls[0], style[:4])
+                            save_image_to_library(
+                                urls[0],
+                                style[:4],
+                                {
+                                    "prompt": prompt,
+                                    "style": f"{style}#{img_i + 1}",
+                                    "ratio": image_ratio,
+                                    "resolution": image_ratio_to_size(image_ratio),
+                                    "source": "AI 对话产出",
+                                },
+                            )
                         except Exception as exc:
                             print(f"[IMG] Save failed: {exc}", flush=True)
                         image = {"style": f"{style}#{img_i + 1}", "url": urls[0], "prompt": prompt}

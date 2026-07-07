@@ -11,7 +11,8 @@ from fastapi import Request
 from fastapi.responses import JSONResponse, FileResponse
 from starlette.responses import Response
 
-from server.config import IMG_STORE, PROJECT_LIB
+from server.config import IMG_STORE, PROJECT_LIB, PUBLIC_BASE_URL, public_url
+from server.utils.file_io import backfill_project_image_metadata_from_task_events, get_project_image_metadata_map
 
 PROJECT_FOLDER_META = PROJECT_LIB / ".folder-meta.json"
 PROJECT_FILE_META = PROJECT_LIB / ".file-meta.json"
@@ -134,7 +135,7 @@ def _project_file_entry(folder_name: str, f, meta: dict[str, dict] | None = None
         "type": f.suffix.upper().lstrip(".") or "FILE",
         "size": f.stat().st_size,
         "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
-        "url": f"http://localhost:5001/project-files/{quote(folder_name, safe='')}/{quote(f.name, safe='')}",
+        "url": public_url(f"/project-files/{quote(folder_name, safe='')}/{quote(f.name, safe='')}"),
         "source": _infer_file_source(folder_name, f.name, file_meta),
     }
 
@@ -274,6 +275,17 @@ def _delete_project_file(folder: str, filename: str):
 LOCAL_IMAGE_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
 
+def _matches_public_base_url(parsed) -> bool:
+    public_base = urlparse(PUBLIC_BASE_URL)
+    return bool(
+        parsed.netloc
+        and public_base.scheme
+        and public_base.netloc
+        and parsed.scheme == public_base.scheme
+        and parsed.netloc == public_base.netloc
+    )
+
+
 def _attachment_headers(filename: str) -> dict[str, str]:
     fallback = "".join(
         ch if 32 <= ord(ch) < 127 and ch not in {'"', "\\", ";"} else "_"
@@ -291,7 +303,7 @@ def _project_image_path_from_url(url: str) -> Path | None:
     parsed = urlparse(url)
     is_local_project_image = (
         parsed.path.startswith("/project-images/")
-        and (not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS)
+        and (not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS or _matches_public_base_url(parsed))
     )
     if not is_local_project_image:
         return None
@@ -316,14 +328,28 @@ def register_file_routes(app):
     def api_list_project_images():
         images = []
         if IMG_STORE.exists():
-            for f in sorted(IMG_STORE.glob("*"), key=lambda x: x.stat().st_mtime, reverse=True):
-                if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'):
-                    images.append({
-                        "name": f.name,
-                        "url": f"http://localhost:5001/project-images/{f.name}",
-                        "size": f.stat().st_size,
-                        "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime('%Y-%m-%d %H:%M'),
-                    })
+            image_files = [
+                f for f in sorted(IMG_STORE.glob("*"), key=lambda x: x.stat().st_mtime, reverse=True)
+                if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp')
+            ]
+            image_metadata = get_project_image_metadata_map()
+            ai_generated_image_files = [f for f in image_files if f.name.startswith("AI生图")]
+            missing_metadata = any(
+                not all(image_metadata.get(f.name, {}).get(field) for field in ("prompt", "model", "ratio", "resolution"))
+                for f in ai_generated_image_files
+            )
+            if missing_metadata:
+                backfill_project_image_metadata_from_task_events()
+                image_metadata = get_project_image_metadata_map()
+            for f in image_files:
+                metadata = image_metadata.get(f.name, {})
+                images.append({
+                    **metadata,
+                    "name": f.name,
+                    "url": public_url(f"/project-images/{quote(f.name, safe='')}"),
+                    "size": f.stat().st_size,
+                    "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime('%Y-%m-%d %H:%M'),
+                })
         return images[:50]
 
     @app.get("/project-images/{filename:path}")
@@ -638,7 +664,7 @@ def register_file_routes(app):
             if not local_path.is_file():
                 return JSONResponse({"error": "image not found"}, status_code=404)
             return FileResponse(local_path, headers=_attachment_headers(local_path.name))
-        if not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS:
+        if not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS or _matches_public_base_url(parsed):
             return JSONResponse({"error": "unsupported image url"}, status_code=400)
 
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
