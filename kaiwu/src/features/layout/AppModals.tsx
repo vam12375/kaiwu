@@ -1,7 +1,8 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 
-import { projectFolders, projectLibraryFiles, skillOptions } from '../../data';
+import { skillOptions } from '../../data';
+import { createProjectFolder, uploadProjectFile } from '../../api/projectFiles';
 import type { CustomSkillInput, SkillLibraryItem } from '../../types';
 
 type AppModalsProps = Record<string, any>;
@@ -13,15 +14,14 @@ export function AppModals(props: AppModalsProps) {
     installSkill,
     installedSkillIds,
     libraryModal,
-    openProjectFile,
     previewImageIndex,
-    projectImages,
+    projectFolders,
     projectModal,
     realProjectFiles,
     rechargeModalOpen,
     rechargeView,
-    selectedFileIndex,
-    selectedFolderIndex,
+    refreshProjectFiles,
+    refreshProjectFolders,
     saveCustomSkill,
     setFileIndex,
     setLibraryModal,
@@ -46,10 +46,21 @@ export function AppModals(props: AppModalsProps) {
     description: '',
     connection: '',
   });
+  const [projectFolderName, setProjectFolderName] = useState('');
+  const [projectFolderDesc, setProjectFolderDesc] = useState('');
+  const [projectModalStatus, setProjectModalStatus] = useState('');
+  const [selectedProjectFile, setSelectedProjectFile] = useState<File | null>(null);
+  const [selectedUploadFolder, setSelectedUploadFolder] = useState('');
+  const [uploadDragging, setUploadDragging] = useState(false);
+  const [uploadingProjectFile, setUploadingProjectFile] = useState(false);
+  const projectUploadInputRef = useRef<HTMLInputElement>(null);
 
   const currentSkill = skillModalData as SkillLibraryItem | null;
   const currentSkillInstalled = Boolean(currentSkill && installedSkillIds.includes(currentSkill.id));
   const currentSkillEnabled = Boolean(currentSkill && enabledSkillIds.includes(currentSkill.id));
+  const uploadExcludedFolders = new Set(['图片库', '视频库', '最近文件']);
+  const selectableProjectFolders = (projectFolders || []).filter((folder: { name: string }) => !uploadExcludedFolders.has(folder.name));
+  const defaultUploadFolder = selectableProjectFolders.find((folder: { name: string }) => folder.name === '创业资料')?.name || selectableProjectFolders[0]?.name || '';
 
   useEffect(() => {
     if (skillModal === 'custom') {
@@ -62,6 +73,28 @@ export function AppModals(props: AppModalsProps) {
     }
   }, [skillModal]);
 
+  useEffect(() => {
+    if (projectModal === 'new-folder') {
+      setProjectFolderName('');
+      setProjectFolderDesc('');
+      setProjectModalStatus('');
+    }
+    if (projectModal === 'upload') {
+      setProjectModalStatus('');
+      setSelectedProjectFile(null);
+      setSelectedUploadFolder(defaultUploadFolder);
+      setUploadDragging(false);
+    }
+  }, [projectModal, defaultUploadFolder]);
+
+  useEffect(() => {
+    if (projectModal !== 'upload') return;
+    const selectedStillValid = selectableProjectFolders.some((folder: { name: string }) => folder.name === selectedUploadFolder);
+    if (!selectedStillValid) {
+      setSelectedUploadFolder(defaultUploadFolder);
+    }
+  }, [projectModal, selectableProjectFolders, selectedUploadFolder, defaultUploadFolder]);
+
   const updateCustomSkillForm = (field: keyof CustomSkillInput, value: string) => {
     setCustomSkillForm((current) => ({ ...current, [field]: value }));
   };
@@ -71,6 +104,54 @@ export function AppModals(props: AppModalsProps) {
     if (!saved) return;
     setSkillModalData(saved);
     setSkillModal('detail');
+  };
+
+  const handleCreateProjectFolder = async () => {
+    const name = projectFolderName.trim();
+    if (!name) {
+      setProjectModalStatus('请输入文件夹名称');
+      return;
+    }
+
+    try {
+      setProjectModalStatus('正在创建...');
+      await createProjectFolder({ name, desc: projectFolderDesc.trim() });
+      await refreshProjectFolders?.();
+      setProjectModal(null);
+    } catch {
+      setProjectModalStatus('创建失败，请检查名称是否重复');
+    }
+  };
+
+  const selectProjectUploadFile = (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    setSelectedProjectFile(file);
+    setProjectModalStatus('');
+  };
+
+  const handleUploadProjectFile = async () => {
+    if (!selectedProjectFile) {
+      setProjectModalStatus('请选择要上传的文件');
+      return;
+    }
+    if (!selectedUploadFolder) {
+      setProjectModalStatus('请先创建一个可保存文件的文件夹');
+      return;
+    }
+
+    try {
+      setUploadingProjectFile(true);
+      setProjectModalStatus('正在上传...');
+      await uploadProjectFile(selectedProjectFile, selectedUploadFolder);
+      await refreshProjectFiles?.();
+      await refreshProjectFolders?.();
+      setProjectModal(null);
+    } catch {
+      setProjectModalStatus('上传失败，请稍后重试');
+    } finally {
+      setUploadingProjectFile(false);
+    }
   };
 
   return (
@@ -195,7 +276,7 @@ export function AppModals(props: AppModalsProps) {
                   <header className="modal-header">
                     <div>
                       <div className="modal-kicker">项目库</div>
-                      <h2>{projectModal === 'new-folder' ? '新建文件夹' : projectModal === 'upload' ? '上传文件' : projectModal === 'folder-detail' ? projectFolders[selectedFolderIndex].name : projectLibraryFiles[selectedFileIndex].name}</h2>
+                      <h2>{projectModal === 'new-folder' ? '新建文件夹' : '上传文件'}</h2>
                     </div>
                     <button className="modal-close" onClick={() => setProjectModal(null)} type="button">×</button>
                   </header>
@@ -203,111 +284,60 @@ export function AppModals(props: AppModalsProps) {
                     <div className="project-modal-body">
                       <div className="form-field">
                         <span>文件夹名称</span>
-                        <input placeholder="例如：融资材料" />
+                        <input value={projectFolderName} onChange={(event) => setProjectFolderName(event.target.value)} placeholder="例如：融资材料" />
                       </div>
                       <div className="form-field">
                         <span>用途说明</span>
-                        <textarea placeholder="描述这个文件夹将用于存放什么资料..." />
+                        <textarea value={projectFolderDesc} onChange={(event) => setProjectFolderDesc(event.target.value)} placeholder="描述这个文件夹将用于存放什么资料..." />
                       </div>
+                      {projectModalStatus && <div className="modal-status">{projectModalStatus}</div>}
                       <div className="modal-actions">
                         <button className="secondary-action" onClick={() => setProjectModal(null)} type="button">取消</button>
-                        <button className="primary-action" type="button">创建文件夹</button>
+                        <button className="primary-action" onClick={handleCreateProjectFolder} type="button">创建文件夹</button>
                       </div>
                     </div>
                   )}
                   {projectModal === 'upload' && (
                     <div className="project-modal-body">
-                      <div className="upload-drop">
-                        <strong>拖拽文件到这里</strong>
-                        <span>或点击选择本地文件</span>
-                      </div>
-                      <div className="upload-options">
-                        <button type="button">JPG</button>
-                        <button type="button">MD</button>
-                        <button type="button">PDF</button>
-                        <button type="button">XLSX</button>
+                      <input
+                        ref={projectUploadInputRef}
+                        className="sr-only-input"
+                        type="file"
+                        onChange={(event) => selectProjectUploadFile(event.target.files)}
+                      />
+                      <div
+                        className={uploadDragging ? 'upload-drop is-dragging' : 'upload-drop'}
+                        onClick={() => projectUploadInputRef.current?.click()}
+                        onDragEnter={(event) => { event.preventDefault(); setUploadDragging(true); }}
+                        onDragOver={(event) => { event.preventDefault(); setUploadDragging(true); }}
+                        onDragLeave={(event) => { event.preventDefault(); setUploadDragging(false); }}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          setUploadDragging(false);
+                          selectProjectUploadFile(event.dataTransfer.files);
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') projectUploadInputRef.current?.click();
+                        }}
+                      >
+                        <strong>{selectedProjectFile ? selectedProjectFile.name : '拖拽文件到这里'}</strong>
+                        <span>{selectedProjectFile ? `${Math.ceil(selectedProjectFile.size / 1024)} KB` : '或点击选择本地文件'}</span>
                       </div>
                       <div className="form-field">
                         <span>保存到文件夹</span>
-                        <select>
-                          <option>创业资料</option>
-                          <option>AI 对话产出</option>
-                          <option>产品设计</option>
-                          <option>营销素材</option>
+                        <select value={selectedUploadFolder} onChange={(event) => setSelectedUploadFolder(event.target.value)}>
+                          {selectableProjectFolders.map((folder: { name: string }) => (
+                            <option key={folder.name} value={folder.name}>{folder.name}</option>
+                          ))}
                         </select>
                       </div>
+                      {selectableProjectFolders.length === 0 && <div className="modal-status">请先创建一个文件夹再上传</div>}
+                      {projectModalStatus && <div className="modal-status">{projectModalStatus}</div>}
                       <div className="modal-actions">
                         <button className="secondary-action" onClick={() => setProjectModal(null)} type="button">取消</button>
-                        <button className="primary-action" type="button">开始上传</button>
-                      </div>
-                    </div>
-                  )}
-                  {projectModal === 'folder-detail' && (
-                    <div className="project-modal-body">
-                      <p className="modal-desc">{projectFolders[selectedFolderIndex].desc}</p>
-                      {projectFolders[selectedFolderIndex].name === '图片库' ? (
-                        projectImages.length > 0 ? (
-                          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
-                            {projectImages.map((img: { name: string; url: string; modified: string }) => (
-                              <div key={img.name} style={{position:'relative',borderRadius:'8px',overflow:'visible',border:'1px solid #e2e8f0'}}>
-                                <a href={img.url} target="_blank" style={{display:'block'}}>
-                                  <img src={img.url} alt={img.name} style={{width:'100%',aspectRatio:'1',objectFit:'cover',display:'block'}} />
-                                </a>
-                                <button className="md-svg-save-btn" onClick={() => { window.open(`http://localhost:5001/api/download-image?url=${encodeURIComponent(img.url)}`, '_blank'); }} title="下载图片">⬇</button>
-                                <div style={{padding:'4px 8px',fontSize:'10px',color:'#64748b',textAlign:'center',background:'#fff'}}>{img.modified}</div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : <p style={{color:'#94a3b8',textAlign:'center',padding:'20px'}}>暂无图片，生成Logo后自动存入</p>
-                      ) : (
-                        (() => {
-                          const folderName = projectFolders[selectedFolderIndex].name;
-                          const folderFiles = realProjectFiles.filter((f: { folder: string }) => f.folder === folderName);
-                          if (folderFiles.length === 0 && projectLibraryFiles.some(f => f.folder === folderName)) {
-                            return (
-                              <div className="mini-file-list">
-                                {projectLibraryFiles.filter(f => f.folder === folderName).map((file, i) => (
-                                  <button key={i} className="mini-file-row" type="button">
-                                    <span className={`file-type tone-${file.tone}`}>{file.type}</span>
-                                    <strong>{file.name}</strong>
-                                    <small>{file.updated}</small>
-                                  </button>
-                                ))}
-                              </div>
-                            );
-                          }
-                          return folderFiles.length > 0 ? (
-                            <div className="mini-file-list">
-                              {folderFiles.map((file: { name: string; type: string; modified: string; folder: string; url: string }, i: number) => (
-                                <button key={i} className="mini-file-row" onClick={() => openProjectFile(file)} type="button">
-                                  <span style={{display:'inline-grid',placeItems:'center',borderRadius:'9px',color:'#334155',fontSize:'11px',fontWeight:700,background:'rgba(15,23,42,0.06)',height:'28px',padding:'0 8px'}}>{file.type}</span>
-                                  <strong>{file.name}</strong>
-                                  <small>{file.modified}</small>
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            <p style={{color:'#94a3b8',textAlign:'center',padding:'20px'}}>暂无文件，生成内容后自动存入</p>
-                          );
-                        })()
-                      )}
-                      <div className="modal-subtle-actions">
-                        <button type="button">重命名文件夹</button>
-                      </div>
-                    </div>
-                  )}
-                  {projectModal === 'file-detail' && (
-                    <div className="project-modal-body">
-                      <div className="file-detail-grid">
-                        <span>文件类型</span><strong>{projectLibraryFiles[selectedFileIndex].type}</strong>
-                        <span>所在文件夹</span><strong>{projectLibraryFiles[selectedFileIndex].folder}</strong>
-                        <span>来源</span><strong>{projectLibraryFiles[selectedFileIndex].source}</strong>
-                        <span>更新时间</span><strong>{projectLibraryFiles[selectedFileIndex].updated}</strong>
-                      </div>
-                      <div className="modal-actions">
-                        <button className="secondary-action" type="button">重命名</button>
-                        <button className="secondary-action" type="button">移动到文件夹</button>
-                        <button className="primary-action" type="button">打开文件</button>
+                        <button className="primary-action" onClick={handleUploadProjectFile} disabled={uploadingProjectFile || selectableProjectFolders.length === 0} type="button">{uploadingProjectFile ? '上传中...' : '开始上传'}</button>
                       </div>
                     </div>
                   )}

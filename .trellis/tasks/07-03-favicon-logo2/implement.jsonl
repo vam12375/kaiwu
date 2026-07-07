@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend spec index and checklist for changes under kaiwu/."}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Confirms public assets are served by Vite and frontend ownership boundaries."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Defines required frontend build verification."}
+{"file": ".trellis/spec/guides/index.md", "reason": "Shared thinking guide index for pre-modification checks."}

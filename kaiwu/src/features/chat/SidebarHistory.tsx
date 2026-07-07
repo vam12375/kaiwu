@@ -4,6 +4,7 @@ import type { ConvHistory } from '../../types';
 
 type SidebarHistoryProps = {
   conversations: ConvHistory[];
+  emptyMessage?: string;
   openHistoryMenu: number | null;
   setOpenHistoryMenu: Dispatch<SetStateAction<number | null>>;
   loadConversation: (conversationId: number) => void;
@@ -13,6 +14,7 @@ type SidebarHistoryProps = {
 
 export function SidebarHistory({
   conversations,
+  emptyMessage = '暂无对话记录',
   openHistoryMenu,
   setOpenHistoryMenu,
   loadConversation,
@@ -24,7 +26,7 @@ export function SidebarHistory({
       <div className="history-heading">对话历史</div>
       <div className="history-list">
         {conversations.length === 0 && (
-          <div className="history-empty">暂无对话记录</div>
+          <div className="history-empty">{emptyMessage}</div>
         )}
         {conversations.map((item, index) => (
           <div key={item.id} className="history-row">

@@ -91,6 +91,10 @@ Suggested questions are stored in React state and `suggestedQuestionsRef` so fin
 
 Only AI image generation should enter image mode. Do not make AI video or AI coding reuse image-mode controls.
 
+### Creative Mode Navigation
+
+`activeCreativeMode` controls the selected state of children under the sidebar's 创造模式 group. New 创造模式 children should be added through the shared `creativeSubnavItems` config in `AppSidebar`, with a matching `CreativeMode` union key, so every child gets consistent active styling and top-level navigation can clear the state in one place.
+
 ---
 
 ## Conversation Cache

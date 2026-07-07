@@ -1,6 +1,6 @@
 import { useEffect, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUp, Bookmark, Bot, Box, ChevronDown, ChevronLeft, Copy } from 'lucide-react';
+import { ArrowUp, AtSign, Bookmark, Bot, Box, ChevronDown, ChevronLeft, Copy, ImagePlus, Type, X } from 'lucide-react';
 
 import { modelOptions, projectFolders } from '../../data';
 import type { Direction, LibraryModalType, PickerType } from '../../types';
@@ -22,6 +22,11 @@ type MutableRef<T> = {
 type UploadedFile = {
   name: string;
   size: number;
+};
+
+type ReferenceImagePreview = {
+  name: string;
+  url: string;
 };
 
 type ConversationPanelProps = {
@@ -67,8 +72,16 @@ const NODE_ACTIONS: Record<string, { label: string; prompt: string }> = {
   node2: { label: '📋 生成品牌商业计划书', prompt: '帮我生成品牌商业计划书' },
   node3: { label: '📦 生成产品手册', prompt: '生成产品手册' },
   node4: { label: '📊 生成系统化内容营销解决方案', prompt: '生成系统化内容营销解决方案' },
-  node5: { label: '📦 生成营销素材', prompt: '生成营销素材' },
 };
+
+const IMAGE_MODEL_OPTIONS = [
+  'doubao-seedream-5-0-260128',
+  'doubao-seedream-5-0-lite-260128',
+  'doubao-seedream-4-5-251128',
+  'doubao-seedream-4-0-250828',
+];
+const IMAGE_RATIO_OPTIONS = ['21:9', '16:9', '3:2', '4:3', '1:1', '3:4', '2:3', '9:16'];
+const IMAGE_RESOLUTION_OPTIONS = ['2K', '4K'];
 
 function saveToProject(content: string, title: string) {
   fetch('http://localhost:5001/api/save-to-project', {
@@ -120,37 +133,55 @@ export function ConversationPanel({
   suggestedQuestions,
   uploadedFiles,
 }: ConversationPanelProps) {
-  const [lastActionableNodeId, setLastActionableNodeId] = useState('');
+  const [imageModelName, setImageModelName] = useState(IMAGE_MODEL_OPTIONS[0]);
+  const [imageResolution, setImageResolution] = useState(IMAGE_RESOLUTION_OPTIONS[0]);
+  const [referenceImages, setReferenceImages] = useState<ReferenceImagePreview[]>([]);
 
-  // 只有业务节点（node1-4）完成时才记住，summary/export 等不会覆盖
-  useEffect(() => {
-    if (NODE_ACTIONS[activeNodeId]) {
-      setLastActionableNodeId(activeNodeId);
+  useEffect(() => (
+    () => {
+      referenceImages.forEach((image) => URL.revokeObjectURL(image.url));
     }
-  }, [activeNodeId]);
+  ), [referenceImages]);
 
-  // 新会话开始时清理上一个会话遗留的按钮状态
-  useEffect(() => {
-    if (messages.length === 0) {
-      setLastActionableNodeId('');
-    }
-  }, [messages.length]);
+  const appendToPrompt = (token: string) => {
+    setInputText((current) => {
+      const trimmed = current.trimEnd();
+      return trimmed ? `${trimmed} ${token}` : token;
+    });
+  };
+
+  const openReferenceImagePicker = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = true;
+    input.onchange = (event) => {
+      const files = (event.target as HTMLInputElement).files;
+      if (files && files.length > 0) {
+        setReferenceImages(Array.from(files).map((file) => ({
+          name: file.name,
+          url: URL.createObjectURL(file),
+        })));
+      }
+    };
+    input.click();
+  };
+
+  const clearReferenceImages = () => {
+    setReferenceImages([]);
+  };
 
   const runPrompt = (prompt: string, followupNode: string | null) => {
     if (convTextareaRef.current) convTextareaRef.current.value = prompt;
     setInputText(prompt);
-    // 节点操作按钮（导出报告）不消除建议问题，只有推进流程的点击才消除
-    if (followupNode !== null) {
-      setSuggestedQuestions([]);
-    }
+    setSuggestedQuestions([]);
     followupNodeRef.current = followupNode;
     window.setTimeout(() => {
       void handleSend();
     }, 80);
   };
 
-  const lastAi = [...messages].reverse().find((message) => message.role === 'ai');
-  const nodeAction = NODE_ACTIONS[lastActionableNodeId];
+  const nodeAction = NODE_ACTIONS[activeNodeId];
 
   return (
     <section className="doubao-conversation">
@@ -160,7 +191,7 @@ export function ConversationPanel({
         </button>
         <div className="doubao-header-center">
           <h2>{conversationTitle}</h2>
-          <span>{activeDirection !== '通用' ? activeDirection : '通用咨询'}</span>
+          <span>{isImageMode ? '图片生成' : activeDirection !== '通用' ? activeDirection : '通用咨询'}</span>
         </div>
         <div className="doubao-header-actions">
           {isLoading && (
@@ -168,15 +199,6 @@ export function ConversationPanel({
               <span className="doubao-stop-icon">■</span>
             </button>
           )}
-          <button
-            onClick={() => {
-              if (lastAi) saveToProject(lastAi.content, conversationTitle);
-            }}
-            type="button"
-            title="保存到AI对话产出"
-          >
-            <Bookmark size={16} />
-          </button>
         </div>
       </header>
 
@@ -296,34 +318,6 @@ export function ConversationPanel({
                       dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
                     />
                   )}
-                  {nodeAction && messageIndex === messages.length - 1 && (
-                    <div
-                      className="node-action-card"
-                      onClick={() => runPrompt(nodeAction.prompt, null)}
-                      style={{
-                        marginTop: 12,
-                        padding: '10px 14px',
-                        borderRadius: 8,
-                        background: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'var(--border)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--surface)';
-                      }}
-                    >
-                      <span style={{ fontSize: 16, flexShrink: 0 }}>{nodeAction.label.slice(0, 2)}</span>
-                      <span style={{ fontSize: 13, color: 'var(--text-primary)', flex: 1 }}>{nodeAction.label.slice(3)}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>→</span>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -430,6 +424,19 @@ export function ConversationPanel({
         </div>
       )}
 
+      {nodeAction && !isLoading && messages.length > 0 && (
+        <div className="suggested-questions-bar">
+          <button
+            className="suggested-question-chip"
+            style={{ background: 'var(--brand-accent)', color: '#fff', borderColor: 'var(--brand-accent)', fontWeight: 600 }}
+            onClick={() => runPrompt(nodeAction.prompt, null)}
+            type="button"
+          >
+            {nodeAction.label}
+          </button>
+        </div>
+      )}
+
       {uploadedFiles.length > 0 && (
         <div className="uploaded-files-bar">
           {uploadedFiles.map((file, index) => (
@@ -444,11 +451,34 @@ export function ConversationPanel({
         </div>
       )}
 
-      <div className="doubao-composer">
-        <div className="doubao-composer-inner">
+      <div className={isImageMode ? 'doubao-composer image-generation-composer' : 'doubao-composer'}>
+        <div className={isImageMode ? 'doubao-composer-inner image-generation-inner' : 'doubao-composer-inner'}>
+          {isImageMode && (
+            <div className="image-reference-shell">
+              <button className="image-reference-button" onClick={openReferenceImagePicker} type="button" title="上传参考图">
+                {referenceImages.length > 0 ? (
+                  <>
+                    <img src={referenceImages[0].url} alt={referenceImages[0].name} />
+                    <span className="image-reference-count">{referenceImages.length} 张</span>
+                  </>
+                ) : (
+                  <>
+                    <ImagePlus size={24} />
+                    <span>参考图</span>
+                  </>
+                )}
+              </button>
+              {referenceImages.length > 0 && (
+                <button className="image-reference-remove" onClick={clearReferenceImages} type="button" aria-label="删除参考图" title="删除参考图">
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+          )}
           <textarea
             ref={convTextareaRef}
-            placeholder="继续追问，或让开物把结果保存为阶段产物..."
+            value={inputText}
+            placeholder={isImageMode ? '上传参考图、输入文字或 @ 主体，描述你想生成的图片。' : '继续追问，或让开物把结果保存为阶段产物...'}
             onChange={(event) => setInputText(event.target.value)}
             onCompositionStart={() => {
               isComposingRef.current = true;
@@ -468,19 +498,131 @@ export function ConversationPanel({
           />
           <div className="doubao-composer-foot">
             <div className="toolbar-left">
-              <div className="picker-wrap">
-                <button
-                  className={openPicker === 'model' ? 'toolbar-select model-select is-active' : 'toolbar-select model-select'}
-                  onClick={() => setOpenPicker(openPicker === 'model' ? null : 'model')}
-                  type="button"
-                >
-                  <Bot size={14} />
-                  <span>{modelOptions[modelIndex].name}</span>
-                  <ChevronDown size={13} />
-                </button>
-                {openPicker === 'model' && (
-                  <div className="picker-popover">
-                    {modelOptions.map((item, index) => (
+              {isImageMode ? (
+                <>
+                  <div className="picker-wrap">
+                    <button
+                      className={openPicker === 'image-mode' ? 'toolbar-select image-mode-select is-active' : 'toolbar-select image-mode-select'}
+                      onClick={() => {
+                        setOpenPicker(openPicker === 'image-mode' ? null : 'image-mode');
+                        setRatioOpen(false);
+                        setCountOpen(false);
+                      }}
+                      type="button"
+                    >
+                      <ImagePlus size={14} />
+                      <span>图片生成</span>
+                      <ChevronDown size={13} />
+                    </button>
+                    {openPicker === 'image-mode' && (
+                      <div className="picker-popover image-compact-popover">
+                        <button className="model-menu-row selected" onClick={() => setOpenPicker(null)} type="button">
+                          <span className="model-icon">✦</span>
+                          <span className="model-name">图片生成</span>
+                        </button>
+                        <button className="model-menu-row muted" disabled type="button">
+                          <span className="model-icon">＋</span>
+                          <span className="model-name">图片编辑</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="picker-wrap">
+                    <button
+                      className={openPicker === 'image-model' ? 'toolbar-select image-model-select is-active-soft' : 'toolbar-select image-model-select'}
+                      onClick={() => {
+                        setOpenPicker(openPicker === 'image-model' ? null : 'image-model');
+                        setRatioOpen(false);
+                        setCountOpen(false);
+                      }}
+                      type="button"
+                    >
+                      <Box size={14} />
+                      <span className="image-model-label">{imageModelName}</span>
+                    </button>
+                    {openPicker === 'image-model' && (
+                      <div className="picker-popover image-model-choice-popover">
+                        {IMAGE_MODEL_OPTIONS.map((modelName) => (
+                          <button
+                            key={modelName}
+                            className={imageModelName === modelName ? 'model-menu-row selected' : 'model-menu-row'}
+                            onClick={() => {
+                              setImageModelName(modelName);
+                              setOpenPicker(null);
+                            }}
+                            type="button"
+                          >
+                            <span className="model-icon">✦</span>
+                            <span className="model-name">{modelName}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="picker-wrap">
+                    <button
+                      className={ratioOpen ? 'toolbar-select is-active-soft image-size-select' : 'toolbar-select image-size-select'}
+                      onClick={() => {
+                        setRatioOpen(!ratioOpen);
+                        setCountOpen(false);
+                        setOpenPicker(null);
+                      }}
+                      type="button"
+                    >
+                      <span>{imageRatio}</span>
+                      <span className="image-size-divider" />
+                      <span>{imageResolution}</span>
+                    </button>
+                    {ratioOpen && (
+                      <div className="picker-popover image-size-popover-chat">
+                        <strong>画面比例</strong>
+                        <div className="image-ratio-grid-chat">
+                          {IMAGE_RATIO_OPTIONS.map((ratio) => (
+                            <button
+                              key={ratio}
+                              className={imageRatio === ratio ? 'selected' : ''}
+                              onClick={() => setImageRatio(ratio)}
+                              type="button"
+                            >
+                              {ratio}
+                            </button>
+                          ))}
+                        </div>
+                        <strong>分辨率</strong>
+                        <div className="image-resolution-row-chat">
+                          {IMAGE_RESOLUTION_OPTIONS.map((resolution) => (
+                            <button
+                              key={resolution}
+                              className={imageResolution === resolution ? 'selected' : ''}
+                              onClick={() => {
+                                setImageResolution(resolution);
+                                setRatioOpen(false);
+                              }}
+                              type="button"
+                            >
+                              {resolution}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="picker-wrap">
+                    <button
+                      className={openPicker === 'model' ? 'toolbar-select model-select is-active' : 'toolbar-select model-select'}
+                      onClick={() => setOpenPicker(openPicker === 'model' ? null : 'model')}
+                      type="button"
+                    >
+                      <Bot size={14} />
+                      <span>{modelOptions[modelIndex].name}</span>
+                      <ChevronDown size={13} />
+                    </button>
+                    {openPicker === 'model' && (
+                      <div className="picker-popover">
+                        {modelOptions.map((item, index) => (
                       <button
                         key={item.name}
                         className={modelIndex === index ? 'model-menu-row selected' : 'model-menu-row'}
@@ -495,75 +637,9 @@ export function ConversationPanel({
                         <span className="model-desc">{item.desc}</span>
                       </button>
                     ))}
-                  </div>
-                )}
-              </div>
-
-              {isImageMode ? (
-                <>
-                  <div className="picker-wrap">
-                    <button
-                      className={ratioOpen ? 'toolbar-select is-active-soft' : 'toolbar-select'}
-                      onClick={() => {
-                        setRatioOpen(!ratioOpen);
-                        setCountOpen(false);
-                        setOpenPicker(null);
-                      }}
-                      type="button"
-                    >
-                      <span>{imageRatio}</span>
-                    </button>
-                    {ratioOpen && (
-                      <div className="picker-popover" style={{ width: '160px', padding: '8px' }}>
-                        {['1:1', '4:3', '16:9'].map((ratio) => (
-                          <button
-                            key={ratio}
-                            className={imageRatio === ratio ? 'model-menu-row selected' : 'model-menu-row'}
-                            onClick={() => {
-                              setImageRatio(ratio);
-                              setRatioOpen(false);
-                            }}
-                            type="button"
-                          >
-                            <span className="model-name">{ratio}</span>
-                          </button>
-                        ))}
                       </div>
                     )}
                   </div>
-                  <div className="picker-wrap">
-                    <button
-                      className={countOpen ? 'toolbar-select is-active-soft' : 'toolbar-select'}
-                      onClick={() => {
-                        setCountOpen(!countOpen);
-                        setRatioOpen(false);
-                        setOpenPicker(null);
-                      }}
-                      type="button"
-                    >
-                      <span>{imageCount} 张</span>
-                    </button>
-                    {countOpen && (
-                      <div className="picker-popover" style={{ width: '140px', padding: '8px' }}>
-                        {[1, 2, 3, 4].map((count) => (
-                          <button
-                            key={count}
-                            className={imageCount === count ? 'model-menu-row selected' : 'model-menu-row'}
-                            onClick={() => {
-                              setImageCount(count);
-                              setCountOpen(false);
-                            }}
-                            type="button"
-                          >
-                            <span className="model-name">{count} 张</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
                   <div className="picker-wrap">
                     <button
                       className={libraryModal === 'file' || fileIndex !== null ? 'toolbar-select is-active-soft' : 'toolbar-select'}
@@ -606,6 +682,39 @@ export function ConversationPanel({
               )}
             </div>
             <div className="toolbar-right">
+              {isImageMode && (
+                <div className="picker-wrap">
+                  <button
+                    className={countOpen ? 'toolbar-select is-active-soft image-count-select' : 'toolbar-select image-count-select'}
+                    onClick={() => {
+                      setCountOpen(!countOpen);
+                      setRatioOpen(false);
+                      setOpenPicker(null);
+                    }}
+                    type="button"
+                  >
+                    <span>{imageCount}/张</span>
+                    <ChevronDown size={13} />
+                  </button>
+                  {countOpen && (
+                    <div className="picker-popover image-count-popover">
+                      {[1, 2, 3, 4].map((count) => (
+                        <button
+                          key={count}
+                          className={imageCount === count ? 'model-menu-row selected' : 'model-menu-row'}
+                          onClick={() => {
+                            setImageCount(count);
+                            setCountOpen(false);
+                          }}
+                          type="button"
+                        >
+                          <span className="model-name">{count} 张</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <button
                 className={`icon-action send-action ${!inputText.trim() || isLoading ? 'send-disabled' : ''}`}
                 aria-label="发送"

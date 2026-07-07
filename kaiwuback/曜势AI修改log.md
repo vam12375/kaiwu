@@ -66,7 +66,7 @@
   setConversationOpen(true);
   setActivePage('home');
   // 预设 prompt 触发 Node3
-  setInputText('帮我设计品牌Logo：');
+  setInputText('');
   // 自动聚焦输入框
 }} type="button">AI生图</button>
 ```
