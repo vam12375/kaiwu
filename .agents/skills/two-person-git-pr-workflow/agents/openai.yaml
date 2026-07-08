@@ -1,0 +1,4 @@
+interface:
+  display_name: "Two-Person Git PR Workflow"
+  short_description: "Fork PR workflow for two-person Git collaboration"
+  default_prompt: "Use $two-person-git-pr-workflow to guide a fork-based PR workflow and reduce conflicts."
