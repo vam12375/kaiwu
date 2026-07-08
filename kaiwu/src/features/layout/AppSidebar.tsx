@@ -5,6 +5,8 @@ import { Box, ChevronDown, ChevronLeft, Search, Settings2 } from 'lucide-react';
 import { sidebarItems } from '../../data';
 import type { ConvHistory, CreativeMode, SidebarPage } from '../../types';
 import { SidebarHistory } from '../chat/SidebarHistory';
+import '../../styles/layout/app-sidebar.css';
+import '../../styles/layout/account-menu.css';
 
 type ResetConversationOptions = {
   activePage?: SidebarPage;

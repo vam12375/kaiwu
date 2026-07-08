@@ -1,0 +1,12 @@
+.tone-blue { background: linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-green { background: linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-purple { background: linear-gradient(135deg, rgba(245, 243, 255, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-amber { background: linear-gradient(135deg, rgba(255, 251, 235, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-rose { background: linear-gradient(135deg, rgba(255, 241, 242, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-cyan { background: linear-gradient(135deg, rgba(236, 254, 255, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-indigo { background: linear-gradient(135deg, rgba(238, 242, 255, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-pink { background: linear-gradient(135deg, rgba(253, 242, 248, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-slate { background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-orange { background: linear-gradient(135deg, rgba(255, 247, 237, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-teal { background: linear-gradient(135deg, rgba(240, 253, 250, 0.95), rgba(255, 255, 255, 0.86)); }
+.tone-lime { background: linear-gradient(135deg, rgba(247, 254, 231, 0.95), rgba(255, 255, 255, 0.86)); }

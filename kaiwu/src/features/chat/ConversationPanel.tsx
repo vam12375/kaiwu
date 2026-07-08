@@ -9,6 +9,14 @@ import { renderMarkdown } from '../../utils';
 import type { AgentMessage } from '../../hooks/agentEventReducer';
 import type { SendMessageOptions } from '../../hooks/useConversationTask';
 import type { ImageReferenceInput } from '../../api/tasks';
+import '../../styles/modals/modal-base.css';
+import '../../styles/conversation/conversation-shell.css';
+import '../../styles/conversation/markdown-content.css';
+import '../../styles/conversation/message-actions.css';
+import '../../styles/conversation/composer.css';
+import '../../styles/conversation/generated-media.css';
+import '../../styles/conversation/node-progress.css';
+import '../../styles/conversation/conversation-extras.css';
 
 type NodeStatus = {
   nodeId: string;

@@ -114,6 +114,7 @@ import { type AgentMessage } from './hooks/agentEventReducer';
 import { useConversation } from './hooks/useConversation';
 import { useConversationTask, type ConversationTaskCacheEntry } from './hooks/useConversationTask';
 import { useSkillLibrary } from './hooks/useSkillLibrary';
+import './styles/layout/app-shell.css';
 
 const projectFolderTones = ['blue', 'purple', 'green', 'amber', 'teal', 'rose', 'indigo', 'slate'];
 

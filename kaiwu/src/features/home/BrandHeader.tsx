@@ -1,4 +1,5 @@
 import { Box } from 'lucide-react';
+import '../../styles/home/brand-header.css';
 
 export function BrandHeader() {
   return (

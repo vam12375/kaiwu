@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FEATURE_CARDS } from '../../data';
+import '../../styles/home/feature-cards.css';
 
 const FALLBACK_GRADIENTS = [
   'linear-gradient(135deg, #dbeafe, #bfdbfe)',
