@@ -69,8 +69,11 @@ export function AppModals(props: AppModalsProps) {
   const currentSkillInstalled = Boolean(currentSkill && installedSkillIds.includes(currentSkill.id));
   const currentSkillEnabled = Boolean(currentSkill && enabledSkillIds.includes(currentSkill.id));
   const uploadExcludedFolders = new Set(['图片库', '视频库', '最近文件']);
-  const selectableProjectFolders = (projectFolders || []).filter((folder: { name: string }) => !uploadExcludedFolders.has(folder.name));
-  const lockedUploadFolder = projectUploadTargetFolder && selectableProjectFolders.some((folder: { name: string }) => folder.name === projectUploadTargetFolder.name)
+  const selectableProjectFolders = (projectFolders || []).filter((folder: ProjectFolder) => {
+    const folderId = folder.id || folder.name;
+    return !uploadExcludedFolders.has(folderId) && folder.kind !== 'image_library' && folder.kind !== 'video_library';
+  });
+  const lockedUploadFolder = projectUploadTargetFolder && selectableProjectFolders.some((folder: ProjectFolder) => (folder.id || folder.name) === (projectUploadTargetFolder.id || projectUploadTargetFolder.name))
     ? projectUploadTargetFolder as ProjectFolder
     : null;
   const defaultUploadFolder = lockedUploadFolder?.name

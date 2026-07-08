@@ -110,6 +110,8 @@ Core filesystem fields (`name`, `url`, `size`, `modified`) must win over metadat
 - Missing metadata for a filename -> return required fields only.
 - Unsupported file suffix in `IMG_STORE` -> skip it.
 - Corrupt metadata that attempts to override `name`, `url`, `size`, or `modified` -> ignore the override by merging filesystem fields last.
+- `DELETE /api/project-images` with an invalid filename -> `400 {"error": "invalid filename"}` or `400 {"error": "filename required"}`.
+- `DELETE /api/project-images` for a missing image -> `404 {"error": "image not found"}`.
 
 ### 5. Good/Base/Bad Cases
 

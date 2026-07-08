@@ -98,3 +98,10 @@ export function deleteProjectFile(file: ProjectFile) {
     }),
   });
 }
+
+export function deleteProjectImages(names: string[]) {
+  return apiJson<{ status: string; deleted: string[] }>('/api/project-images', {
+    method: 'DELETE',
+    body: JSON.stringify({ names }),
+  });
+}

@@ -60,7 +60,9 @@ export type PickerType = 'model' | 'image-mode' | 'image-model' | null;
 export type LibraryModalType = 'file' | 'skill' | null;
 
 export type ProjectFolder = {
+  id?: string;
   name: string;
+  kind?: 'folder' | 'image_library' | 'video_library' | string;
   count?: string;
   desc: string;
   tone: string;
