@@ -11,7 +11,17 @@ from fastapi import Request
 from fastapi.responses import JSONResponse, FileResponse
 from starlette.responses import Response
 
-from server.config import IMG_STORE, PROJECT_LIB
+from server.config import IMG_STORE, PROJECT_IMAGE_PREVIEW_STORE, PROJECT_LIB, PUBLIC_BASE_URL, public_url
+from server.utils.file_io import (
+    backfill_project_image_metadata_from_task_events,
+    delete_project_image_metadata,
+    ensure_project_image_webp_preview,
+    get_project_image_metadata_map,
+    project_image_display_url,
+    project_image_original_name_from_preview,
+    project_image_original_url,
+    project_image_webp_preview_name,
+)
 
 PROJECT_FOLDER_META = PROJECT_LIB / ".folder-meta.json"
 PROJECT_FILE_META = PROJECT_LIB / ".file-meta.json"
@@ -56,23 +66,29 @@ def _write_file_meta(meta: dict[str, dict]) -> None:
     PROJECT_FILE_META.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def _read_folder_state() -> dict[str, list[str]]:
+def _read_folder_state() -> dict[str, object]:
     if not PROJECT_FOLDER_STATE.exists():
-        return {"hidden": []}
+        return {"hidden": [], "display_names": {}}
     try:
         data = json.loads(PROJECT_FOLDER_STATE.read_text(encoding="utf-8"))
         if not isinstance(data, dict):
-            return {"hidden": []}
+            return {"hidden": [], "display_names": {}}
         hidden = data.get("hidden", [])
         if not isinstance(hidden, list):
             hidden = []
-        return {"hidden": [str(name) for name in hidden]}
+        display_names = data.get("display_names", {})
+        if not isinstance(display_names, dict):
+            display_names = {}
+        return {
+            "hidden": [str(name) for name in hidden],
+            "display_names": {str(key): str(value or "") for key, value in display_names.items()},
+        }
     except Exception as e:
         print(f"[FILE] Folder state read failed: {str(e)[:120]}", flush=True)
-        return {"hidden": []}
+        return {"hidden": [], "display_names": {}}
 
 
-def _write_folder_state(state: dict[str, list[str]]) -> None:
+def _write_folder_state(state: dict) -> None:
     PROJECT_FOLDER_STATE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
@@ -80,7 +96,7 @@ def _hide_virtual_folder(folder_name: str) -> None:
     state = _read_folder_state()
     hidden = set(state.get("hidden", []))
     hidden.add(folder_name)
-    _write_folder_state({"hidden": sorted(hidden)})
+    _write_folder_state({**state, "hidden": sorted(hidden)})
 
 
 def _show_folder(folder_name: str) -> None:
@@ -89,7 +105,28 @@ def _show_folder(folder_name: str) -> None:
     if folder_name not in hidden:
         return
     hidden.remove(folder_name)
-    _write_folder_state({"hidden": sorted(hidden)})
+    _write_folder_state({**state, "hidden": sorted(hidden)})
+
+
+def _folder_display_name(folder_name: str) -> str:
+    display_names = _read_folder_state().get("display_names", {})
+    if not isinstance(display_names, dict):
+        return folder_name
+    display_name = str(display_names.get(folder_name, "") or "").strip()
+    return display_name or folder_name
+
+
+def _set_folder_display_name(folder_name: str, display_name: str) -> None:
+    state = _read_folder_state()
+    display_names = state.get("display_names", {})
+    if not isinstance(display_names, dict):
+        display_names = {}
+    clean_display_name = display_name.strip()
+    if clean_display_name and clean_display_name != folder_name:
+        display_names[folder_name] = clean_display_name
+    else:
+        display_names.pop(folder_name, None)
+    _write_folder_state({**state, "display_names": display_names})
 
 
 def _validate_leaf_name(name: str, label: str) -> tuple[str | None, JSONResponse | None]:
@@ -134,18 +171,42 @@ def _project_file_entry(folder_name: str, f, meta: dict[str, dict] | None = None
         "type": f.suffix.upper().lstrip(".") or "FILE",
         "size": f.stat().st_size,
         "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
-        "url": f"http://localhost:5001/project-files/{quote(folder_name, safe='')}/{quote(f.name, safe='')}",
+        "url": public_url(f"/project-files/{quote(folder_name, safe='')}/{quote(f.name, safe='')}"),
         "source": _infer_file_source(folder_name, f.name, file_meta),
     }
 
 
 def _project_folder_entry(folder_path: Path, desc: str = "") -> dict:
     file_count = sum(1 for f in folder_path.iterdir() if f.is_file() and not f.name.startswith("."))
+    folder_kind = "folder"
+    file_count_label = f"{file_count} 个文件"
+    if folder_path.name == "图片库":
+        folder_kind = "image_library"
+        file_count_label = f"{_count_project_images()} 个文件"
+    elif folder_path.name == "视频库":
+        folder_kind = "video_library"
     return {
-        "name": folder_path.name,
+        "id": folder_path.name,
+        "name": _folder_display_name(folder_path.name),
+        "kind": folder_kind,
         "desc": desc,
-        "count": f"{file_count} 个文件",
+        "count": file_count_label,
         "modified": datetime.fromtimestamp(folder_path.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
+        "deletable": True,
+    }
+
+
+def _virtual_project_folder_entry(folder_name: str, desc: str = "") -> dict:
+    kind = "image_library" if folder_name == "图片库" else "video_library"
+    count = f"{_count_project_images()} 个文件" if kind == "image_library" else "0 个文件"
+    modified = datetime.fromtimestamp(IMG_STORE.stat().st_mtime).strftime("%Y-%m-%d %H:%M") if kind == "image_library" and IMG_STORE.exists() else ""
+    return {
+        "id": folder_name,
+        "name": _folder_display_name(folder_name),
+        "kind": kind,
+        "desc": desc,
+        "count": count,
+        "modified": modified,
         "deletable": True,
     }
 
@@ -165,6 +226,31 @@ def _count_project_images() -> int:
     if not IMG_STORE.exists():
         return 0
     return sum(1 for f in IMG_STORE.iterdir() if f.is_file() and f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'))
+
+
+PROJECT_IMAGE_SUFFIXES = {'.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'}
+
+
+def _resolve_project_image_file(filename: str) -> Path | None:
+    root = IMG_STORE.resolve()
+    image_path = (root / filename).resolve()
+    try:
+        image_path.relative_to(root)
+    except ValueError:
+        return None
+    return image_path
+
+
+def _delete_project_image_assets(filename: str) -> None:
+    preview_path = PROJECT_IMAGE_PREVIEW_STORE / project_image_webp_preview_name(filename)
+    if preview_path.exists() and preview_path.is_file():
+        preview_path.unlink()
+
+    archive_path = PROJECT_LIB / "图片库" / filename
+    if archive_path.exists() and archive_path.is_file():
+        archive_path.unlink()
+    _remove_file_meta("图片库", filename)
+    delete_project_image_metadata(filename)
 
 
 def _rewrite_folder_file_meta(old_folder: str, new_folder: str) -> None:
@@ -274,6 +360,17 @@ def _delete_project_file(folder: str, filename: str):
 LOCAL_IMAGE_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
 
+def _matches_public_base_url(parsed) -> bool:
+    public_base = urlparse(PUBLIC_BASE_URL)
+    return bool(
+        parsed.netloc
+        and public_base.scheme
+        and public_base.netloc
+        and parsed.scheme == public_base.scheme
+        and parsed.netloc == public_base.netloc
+    )
+
+
 def _attachment_headers(filename: str) -> dict[str, str]:
     fallback = "".join(
         ch if 32 <= ord(ch) < 127 and ch not in {'"', "\\", ";"} else "_"
@@ -291,7 +388,7 @@ def _project_image_path_from_url(url: str) -> Path | None:
     parsed = urlparse(url)
     is_local_project_image = (
         parsed.path.startswith("/project-images/")
-        and (not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS)
+        and (not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS or _matches_public_base_url(parsed))
     )
     if not is_local_project_image:
         return None
@@ -309,6 +406,46 @@ def _project_image_path_from_url(url: str) -> Path | None:
     return image_path
 
 
+def _project_image_preview_path_from_url(url: str) -> Path | None:
+    parsed = urlparse(url)
+    is_local_project_image_preview = (
+        parsed.path.startswith("/project-image-previews/")
+        and (not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS or _matches_public_base_url(parsed))
+    )
+    if not is_local_project_image_preview:
+        return None
+
+    filename = unquote(parsed.path.removeprefix("/project-image-previews/"))
+    if not filename:
+        return None
+
+    root = PROJECT_IMAGE_PREVIEW_STORE.resolve()
+    preview_path = (root / filename).resolve()
+    try:
+        preview_path.relative_to(root)
+    except ValueError:
+        return None
+    return preview_path
+
+
+def _project_image_original_path_from_preview_url(url: str) -> Path | None:
+    preview_path = _project_image_preview_path_from_url(url)
+    if preview_path is None:
+        return None
+
+    original_filename = project_image_original_name_from_preview(preview_path.name)
+    if not original_filename:
+        return None
+
+    root = IMG_STORE.resolve()
+    image_path = (root / original_filename).resolve()
+    try:
+        image_path.relative_to(root)
+    except ValueError:
+        return None
+    return image_path
+
+
 def register_file_routes(app):
     """向 FastAPI app 注册文件/图片相关路由"""
 
@@ -316,21 +453,107 @@ def register_file_routes(app):
     def api_list_project_images():
         images = []
         if IMG_STORE.exists():
-            for f in sorted(IMG_STORE.glob("*"), key=lambda x: x.stat().st_mtime, reverse=True):
-                if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'):
-                    images.append({
-                        "name": f.name,
-                        "url": f"http://localhost:5001/project-images/{f.name}",
-                        "size": f.stat().st_size,
-                        "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime('%Y-%m-%d %H:%M'),
-                    })
+            image_files = [
+                f for f in sorted(IMG_STORE.glob("*"), key=lambda x: x.stat().st_mtime, reverse=True)
+                if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp')
+            ]
+            image_metadata = get_project_image_metadata_map()
+            ai_generated_image_files = [f for f in image_files if f.name.startswith("AI生图")]
+            missing_metadata = any(
+                not all(image_metadata.get(f.name, {}).get(field) for field in ("prompt", "model", "ratio", "resolution"))
+                for f in ai_generated_image_files
+            )
+            if missing_metadata:
+                backfill_project_image_metadata_from_task_events()
+                image_metadata = get_project_image_metadata_map()
+            for f in image_files:
+                metadata = image_metadata.get(f.name, {})
+                display_url = project_image_display_url(f.name)
+                original_url = project_image_original_url(f.name)
+                images.append({
+                    **metadata,
+                    "name": f.name,
+                    "url": display_url,
+                    "original_url": original_url,
+                    "preview_url": display_url,
+                    "size": f.stat().st_size,
+                    "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime('%Y-%m-%d %H:%M'),
+                })
         return images[:50]
+
+    @app.delete("/api/project-images")
+    async def api_delete_project_images(request: Request):
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
+        raw_names = data.get("names")
+        if raw_names is None:
+            raw_names = [data.get("name", "")]
+        elif isinstance(raw_names, str):
+            raw_names = [raw_names]
+        elif not isinstance(raw_names, list):
+            return JSONResponse({"error": "names must be a list"}, status_code=400)
+
+        filenames: list[str] = []
+        for raw_name in raw_names:
+            filename, filename_error = _validate_leaf_name(str(raw_name or ""), "filename")
+            if filename_error:
+                return filename_error
+            if filename not in filenames:
+                filenames.append(filename)
+        if not filenames:
+            return JSONResponse({"error": "filename required"}, status_code=400)
+
+        image_paths: dict[str, Path] = {}
+        for filename in filenames:
+            image_path = _resolve_project_image_file(filename)
+            if image_path is None or not image_path.is_file() or image_path.suffix.lower() not in PROJECT_IMAGE_SUFFIXES:
+                return JSONResponse({"error": "image not found"}, status_code=404)
+            image_paths[filename] = image_path
+
+        deleted: list[str] = []
+        for filename, image_path in image_paths.items():
+            try:
+                image_path.unlink()
+                _delete_project_image_assets(filename)
+                deleted.append(filename)
+            except Exception as e:
+                print(f"[IMG] Image delete failed for {filename}: {str(e)[:120]}", flush=True)
+                return JSONResponse({"error": "delete failed"}, status_code=500)
+
+        print(f"[IMG] Images deleted: {', '.join(deleted)}", flush=True)
+        return {"status": "ok", "deleted": deleted}
 
     @app.get("/project-images/{filename:path}")
     def serve_project_image(filename: str):
         path = IMG_STORE / filename
         if path.exists():
             return FileResponse(path)
+        return JSONResponse({"error": "not found"}, status_code=404)
+
+    @app.get("/project-image-previews/{filename:path}")
+    def serve_project_image_preview(filename: str):
+        root = PROJECT_IMAGE_PREVIEW_STORE.resolve()
+        path = (root / filename).resolve()
+        try:
+            path.relative_to(root)
+        except ValueError:
+            return JSONResponse({"error": "not found"}, status_code=404)
+        if path.exists():
+            return FileResponse(path)
+
+        original_filename = project_image_original_name_from_preview(path.name)
+        if original_filename:
+            original_path = (IMG_STORE.resolve() / original_filename).resolve()
+            try:
+                original_path.relative_to(IMG_STORE.resolve())
+            except ValueError:
+                original_path = None
+            if original_path is not None and original_path.exists():
+                preview_path = ensure_project_image_webp_preview(original_path)
+                if preview_path is not None and preview_path.exists():
+                    return FileResponse(preview_path)
         return JSONResponse({"error": "not found"}, status_code=404)
 
     @app.get("/api/project-files")
@@ -369,31 +592,12 @@ def register_file_routes(app):
             for folder in sorted(PROJECT_LIB.iterdir(), key=lambda x: x.name):
                 if not folder.is_dir() or folder.name.startswith(".") or folder.name in VIRTUAL_PROJECT_FOLDERS or folder.name in hidden_folders:
                     continue
-                file_count = sum(1 for f in folder.iterdir() if f.is_file() and not f.name.startswith("."))
-                folders.append({
-                    "name": folder.name,
-                    "desc": meta.get(folder.name, ""),
-                    "count": f"{file_count} 个文件",
-                    "modified": datetime.fromtimestamp(folder.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
-                    "deletable": True,
-                })
-        folder_names = {folder["name"] for folder in folders}
-        if "图片库" not in hidden_folders and "图片库" not in folder_names:
-            folders.append({
-                "name": "图片库",
-                "desc": "",
-                "count": f"{_count_project_images()} 个文件",
-                "modified": datetime.fromtimestamp(IMG_STORE.stat().st_mtime).strftime("%Y-%m-%d %H:%M") if IMG_STORE.exists() else "",
-                "deletable": True,
-            })
-        if "视频库" not in hidden_folders and "视频库" not in folder_names:
-            folders.append({
-                "name": "视频库",
-                "desc": "",
-                "count": "0 个文件",
-                "modified": "",
-                "deletable": True,
-            })
+                folders.append(_project_folder_entry(folder, meta.get(folder.name, "")))
+        folder_ids = {folder.get("id", folder["name"]) for folder in folders}
+        if "图片库" not in hidden_folders and "图片库" not in folder_ids:
+            folders.append(_virtual_project_folder_entry("图片库", meta.get("图片库", "")))
+        if "视频库" not in hidden_folders and "视频库" not in folder_ids:
+            folders.append(_virtual_project_folder_entry("视频库", meta.get("视频库", "")))
         return folders
 
     @app.post("/api/project-folders")
@@ -427,7 +631,9 @@ def register_file_routes(app):
         return {
             "status": "ok",
             "folder": {
+                "id": folder_name,
                 "name": folder_name,
+                "kind": "folder",
                 "desc": desc[:200],
                 "count": "0 个文件",
                 "modified": datetime.fromtimestamp(folder_path.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
@@ -445,6 +651,28 @@ def register_file_routes(app):
             return new_error
         if new_name in VIRTUAL_PROJECT_FOLDERS:
             return JSONResponse({"error": "folder name is reserved"}, status_code=400)
+
+        if old_name in VIRTUAL_LIBRARY_FOLDERS:
+            folder_meta = _read_folder_meta()
+            desc = str(data.get("desc", folder_meta.get(old_name, "")) or "").strip()[:200]
+            visible_names = {
+                str(folder.get("name", ""))
+                for folder in api_list_project_folders()
+                if folder.get("id", folder.get("name")) != old_name
+            }
+            if new_name in visible_names:
+                return JSONResponse({"error": "folder already exists"}, status_code=409)
+            try:
+                _set_folder_display_name(old_name, new_name)
+                folder_meta.pop(old_name, None)
+                if desc:
+                    folder_meta[old_name] = desc
+                _write_folder_meta(folder_meta)
+            except Exception as e:
+                print(f"[FILE] Virtual folder rename failed: {str(e)[:120]}", flush=True)
+                return JSONResponse({"error": "rename failed"}, status_code=500)
+            print(f"[FILE] Virtual folder renamed: {old_name} -> {new_name}", flush=True)
+            return {"status": "ok", "folder": _virtual_project_folder_entry(old_name, desc)}
 
         folder_path = _resolve_project_folder(old_name)
         if folder_path is None or not folder_path.is_dir():
@@ -486,7 +714,7 @@ def register_file_routes(app):
                 if old_name in hidden:
                     hidden.remove(old_name)
                     hidden.add(new_name)
-                    _write_folder_state({"hidden": sorted(hidden)})
+                    _write_folder_state({**state, "hidden": sorted(hidden)})
             except Exception as e:
                 print(f"[FILE] Folder state rename failed: {str(e)[:120]}", flush=True)
 
@@ -501,27 +729,34 @@ def register_file_routes(app):
 
         folder_path = _resolve_project_folder(folder_name)
         deleted_physical_folder = False
-        if folder_path is not None and folder_path.is_dir():
-            try:
-                shutil.rmtree(folder_path)
-                deleted_physical_folder = True
-            except Exception as e:
-                print(f"[FILE] Folder delete failed: {str(e)[:120]}", flush=True)
-                return JSONResponse({"error": "delete failed"}, status_code=500)
-        elif folder_name == "图片库":
+        if folder_name == "图片库":
             try:
                 if IMG_STORE.exists():
                     shutil.rmtree(IMG_STORE)
                 IMG_STORE.mkdir(parents=True, exist_ok=True)
+                if PROJECT_IMAGE_PREVIEW_STORE.exists():
+                    shutil.rmtree(PROJECT_IMAGE_PREVIEW_STORE)
+                PROJECT_IMAGE_PREVIEW_STORE.mkdir(parents=True, exist_ok=True)
+                if folder_path is not None and folder_path.is_dir():
+                    shutil.rmtree(folder_path)
                 _hide_virtual_folder(folder_name)
             except Exception as e:
                 print(f"[FILE] Image library delete failed: {str(e)[:120]}", flush=True)
                 return JSONResponse({"error": "delete failed"}, status_code=500)
         elif folder_name == "视频库":
             try:
+                if folder_path is not None and folder_path.is_dir():
+                    shutil.rmtree(folder_path)
                 _hide_virtual_folder(folder_name)
             except Exception as e:
                 print(f"[FILE] Video library delete failed: {str(e)[:120]}", flush=True)
+                return JSONResponse({"error": "delete failed"}, status_code=500)
+        elif folder_path is not None and folder_path.is_dir():
+            try:
+                shutil.rmtree(folder_path)
+                deleted_physical_folder = True
+            except Exception as e:
+                print(f"[FILE] Folder delete failed: {str(e)[:120]}", flush=True)
                 return JSONResponse({"error": "delete failed"}, status_code=500)
         else:
             return JSONResponse({"error": "folder not found"}, status_code=404)
@@ -633,12 +868,12 @@ def register_file_routes(app):
             return JSONResponse({"error": "url required"}, status_code=400)
 
         parsed = urlparse(url)
-        local_path = _project_image_path_from_url(url)
+        local_path = _project_image_original_path_from_preview_url(url) or _project_image_path_from_url(url)
         if local_path is not None:
             if not local_path.is_file():
                 return JSONResponse({"error": "image not found"}, status_code=404)
             return FileResponse(local_path, headers=_attachment_headers(local_path.name))
-        if not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS:
+        if not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS or _matches_public_base_url(parsed):
             return JSONResponse({"error": "unsupported image url"}, status_code=400)
 
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:

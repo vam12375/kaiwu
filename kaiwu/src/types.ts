@@ -60,7 +60,9 @@ export type PickerType = 'model' | 'image-mode' | 'image-model' | null;
 export type LibraryModalType = 'file' | 'skill' | null;
 
 export type ProjectFolder = {
+  id?: string;
   name: string;
+  kind?: 'folder' | 'image_library' | 'video_library' | string;
   count?: string;
   desc: string;
   tone: string;
@@ -82,8 +84,18 @@ export type ProjectFile = {
 export type ProjectImage = {
   name: string;
   url: string;
+  original_url?: string;
+  preview_url?: string;
   size: number;
   modified: string;
+  prompt?: string;
+  style?: string;
+  model?: string;
+  ratio?: string;
+  resolution?: string;
+  source?: string;
+  reference_count?: number;
+  created_at?: string;
 };
 
 export type SkillSource = 'market' | 'external' | 'custom';

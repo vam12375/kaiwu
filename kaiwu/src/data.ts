@@ -143,12 +143,12 @@ export interface IFeatureCard {
 }
 
 export const FEATURE_CARDS: IFeatureCard[] = [
-  { id: '1', order: 1, title: '需求调研', imageUrl: '/需求调研.png' },
-  { id: '2', order: 2, title: '数据洞察', imageUrl: '/数据洞察.png' },
-  { id: '3', order: 3, title: '图片生成', imageUrl: '/图片生成.png' },
-  { id: '4', order: 4, title: '商业报告', imageUrl: '/商业报告.png' },
-  { id: '5', order: 5, title: '品牌故事', imageUrl: '/品牌故事.png' },
-  { id: '6', order: 6, title: '内容营销', imageUrl: '/内容营销.png' },
+  { id: '1', order: 1, title: '需求调研', imageUrl: '/需求调研-800.webp' },
+  { id: '2', order: 2, title: '数据洞察', imageUrl: '/数据洞察-800.webp' },
+  { id: '3', order: 3, title: '图片生成', imageUrl: '/图片生成-800.webp' },
+  { id: '4', order: 4, title: '商业报告', imageUrl: '/商业报告-800.webp' },
+  { id: '5', order: 5, title: '品牌故事', imageUrl: '/品牌故事-800.webp' },
+  { id: '6', order: 6, title: '内容营销', imageUrl: '/内容营销-800.webp' },
 ];
 
 export interface IWorkflowStep {

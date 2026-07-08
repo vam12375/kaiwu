@@ -39,8 +39,68 @@ Use `src/api/client.ts` and `src/api/tasks.ts` for JSON API calls and task types
 Current pattern:
 
 - `apiJson<T>()` centralizes JSON requests.
-- `API_BASE_URL` reads `VITE_API_BASE_URL` and falls back to `http://localhost:5001`.
+- `API_BASE_URL` reads `VITE_API_BASE_URL`; when it is empty, calls use same-origin relative `/api/...` URLs.
+- Local Vite development may leave `VITE_API_BASE_URL` empty and use the dev proxy in `vite.config.ts`; direct split-origin development may set `VITE_API_BASE_URL=http://localhost:5001` in `kaiwu/.env.local`.
+- Production source code must not hardcode localhost.
 - `tasks.ts` owns `AgentTaskStatus`, `CreateTaskPayload`, `AgentTaskEvent`, and `/api/tasks` helpers.
+
+### Scenario: Frontend API base URL and Vite dev proxy
+
+#### 1. Scope / Trigger
+
+Use this contract when changing `src/api/client.ts`, `kaiwu/vite.config.ts`, frontend environment examples, or any browser-facing API/download/SSE URL construction.
+
+#### 2. Signatures
+
+- Environment key: `VITE_API_BASE_URL=<absolute origin or empty>`.
+- Frontend helper: `API_BASE_URL` from `src/api/client.ts`.
+- Dev proxy: `server.proxy['/api'].target = 'http://localhost:5001'` in `kaiwu/vite.config.ts`.
+
+#### 3. Contracts
+
+- `VITE_API_BASE_URL=` (empty): API helpers call same-origin `/api/...`; local Vite dev forwards `/api` to the backend through its proxy.
+- `VITE_API_BASE_URL=http://localhost:5001`: browser calls the local backend directly and bypasses the Vite proxy.
+- `VITE_API_BASE_URL=https://<domain>`: browser calls a deployed backend/API gateway.
+- `kaiwu/src/**` must not embed `http://localhost:5001`; local origins belong in env examples, local `.env.local`, or Vite dev-only proxy config.
+
+#### 4. Validation & Error Matrix
+
+- `VITE_API_BASE_URL=http://localhost:5173` -> browser posts back to the Vite frontend server and `/api/tasks` fails unless explicitly proxied; do not use this value.
+- Backend on `5001` is not running -> Vite proxy returns a proxy/network error; start `kaiwuback/main.py`.
+- `localhost:5001` hardcoded in `kaiwu/src/**` -> deployed browsers call the user's own machine; move the origin to env/config.
+
+#### 5. Good/Base/Bad Cases
+
+- Good local proxy: `VITE_API_BASE_URL=` and `GET http://127.0.0.1:<vite-port>/api/health` returns backend health JSON.
+- Good local direct: `VITE_API_BASE_URL=http://localhost:5001` and API calls go directly to FastAPI.
+- Base same-origin deploy: leave `VITE_API_BASE_URL` empty and serve frontend/backend behind the same origin.
+- Bad: `VITE_API_BASE_URL=http://localhost:5173`.
+
+#### 6. Tests Required
+
+- Run `npm run build` from `kaiwu/`.
+- For proxy changes, smoke test a Vite dev server request to `/api/health` and confirm it returns the backend health response.
+- Run `rg "localhost:5001" kaiwu/src kaiwuback/server kaiwuback/main.py -g "!*.bak"` and expect no production runtime matches.
+
+#### 7. Wrong vs Correct
+
+Wrong:
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:5173
+```
+
+Correct local proxy:
+
+```dotenv
+VITE_API_BASE_URL=
+```
+
+Correct local direct backend:
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:5001
+```
 
 ### Hook Layer
 

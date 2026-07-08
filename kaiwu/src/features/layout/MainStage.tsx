@@ -1,20 +1,24 @@
-import { ArrowLeft, ArrowUp, Bot, Brain, ChevronDown, ChevronRight, Cpu, Download, ExternalLink, FileStack, FileText, HelpCircle, Search, Settings2, UserRound } from 'lucide-react';
+import { ArrowLeft, ArrowUp, Bot, Brain, ChevronDown, ChevronRight, Cpu, Download, ExternalLink, FileStack, FileText, HelpCircle, ImageIcon, Search, Settings2, UserRound } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { Check, Pencil, Trash2 } from 'lucide-react';
 import { directions, modelOptions, settingsSections } from '../../data';
 import { ConversationPanel } from '../chat/ConversationPanel';
 import { SkillLibraryPage } from './SkillLibraryPage';
+import { ProjectImagePreviewModal } from './ProjectImagePreviewModal';
+import { ProjectLazyImage } from './ProjectLazyImage';
 import { BrandHeader } from '../home/BrandHeader';
 import { ChatInput } from '../home/ChatInput';
 import { WorkflowSteps } from '../home/WorkflowSteps';
 import { FeatureCards } from '../home/FeatureCards';
 import { FreeMode } from '../home/FreeMode';
+import type { ProjectImage } from '../../types';
 
 type MainStageProps = Record<string, any>;
 
 const RECENT_PROJECT_FILES_LIMIT = 10;
-const PROJECT_FILE_PREVIEW_TYPES = new Set(['HTML', 'HTM', 'PDF', 'TXT', 'MD', 'CSV', 'JSON']);
+const PROJECT_FILE_FRAME_PREVIEW_TYPES = new Set(['HTML', 'HTM', 'PDF', 'TXT', 'MD', 'CSV', 'JSON']);
+const PROJECT_FILE_IMAGE_PREVIEW_TYPES = new Set(['JPG', 'JPEG', 'PNG', 'WEBP', 'GIF', 'BMP', 'AVIF', 'SVG']);
 
 type ProjectFileLike = {
   name: string;
@@ -72,6 +76,8 @@ export function MainStage(props: MainStageProps) {
     openProjectFile,
     deleteProjectFolders,
     deleteProjectFile,
+    deleteProjectFiles,
+    deleteProjectImages,
     projectFolders,
     projectImages,
     projectSearchQuery,
@@ -144,15 +150,21 @@ export function MainStage(props: MainStageProps) {
 
   const [folderEditMode, setFolderEditMode] = useState(false);
   const [selectedProjectFolderNames, setSelectedProjectFolderNames] = useState<string[]>([]);
+  const [folderDetailEditMode, setFolderDetailEditMode] = useState(false);
+  const [selectedProjectImageNames, setSelectedProjectImageNames] = useState<string[]>([]);
+  const [selectedProjectFileKeys, setSelectedProjectFileKeys] = useState<string[]>([]);
+  const [projectImagePreviewIndex, setProjectImagePreviewIndex] = useState<number | null>(null);
   const activeProjectFolder = projectFolders[selectedFolderIndex] || projectFolders[0];
+  const activeProjectFolderId = activeProjectFolder?.id || activeProjectFolder?.name;
+  const isImageLibraryFolder = activeProjectFolder?.kind === 'image_library' || activeProjectFolderId === '图片库' || activeProjectFolder?.name === '图片库';
   const projectQuery = projectSearchQuery.trim().toLocaleLowerCase();
   const matchesProjectName = (name: string) => !projectQuery || name.toLocaleLowerCase().includes(projectQuery);
   const visibleProjectFolders = projectFolders.filter((folder: { name: string }) => matchesProjectName(folder.name));
-  const visibleProjectFolderNames = visibleProjectFolders.map((folder: { name: string }) => folder.name);
+  const visibleProjectFolderNames = visibleProjectFolders.map((folder: { name: string; id?: string }) => folder.id || folder.name);
   const visibleProjectFolderKey = visibleProjectFolderNames.join('|');
   const visibleRealProjectFiles = realProjectFiles
     .filter((file: { folder: string; name: string; source?: string }) => {
-      if (projectView === 'folder') return activeProjectFolder && file.folder === activeProjectFolder.name;
+      if (projectView === 'folder') return activeProjectFolder && file.folder === activeProjectFolderId;
       if (projectView === 'ai') return file.source === 'ai' || file.folder === 'AI 对话产出';
       if (projectView === 'uploaded') return file.source === 'manual_upload';
       return true;
@@ -161,9 +173,14 @@ export function MainStage(props: MainStageProps) {
   const projectFileTableItems = projectView === 'home'
     ? visibleRealProjectFiles.slice(0, RECENT_PROJECT_FILES_LIMIT)
     : visibleRealProjectFiles;
-  const visibleProjectImages = projectImages.filter((image: { name: string }) => matchesProjectName(image.name));
+  const visibleProjectImages = projectImages.filter((image: ProjectImage) => matchesProjectName(image.name));
+  const visibleProjectImageKey = visibleProjectImages.map((image: ProjectImage) => image.name).join('|');
+  const projectFileKey = (file: ProjectFileLike) => `${file.folder}/${file.name}`;
+  const visibleProjectFileKey = visibleRealProjectFiles.map((file: ProjectFileLike) => projectFileKey(file)).join('|');
+  const selectedFolderDetailItemCount = isImageLibraryFolder ? selectedProjectImageNames.length : selectedProjectFileKeys.length;
   const selectedProjectFileType = selectedProjectFile?.type?.toUpperCase() || '';
-  const canPreviewSelectedProjectFile = PROJECT_FILE_PREVIEW_TYPES.has(selectedProjectFileType);
+  const canPreviewSelectedProjectFileAsFrame = PROJECT_FILE_FRAME_PREVIEW_TYPES.has(selectedProjectFileType);
+  const canPreviewSelectedProjectFileAsImage = PROJECT_FILE_IMAGE_PREVIEW_TYPES.has(selectedProjectFileType);
   const getProjectFileSourceLabel = (file: { source?: string; folder: string }) => {
     if (file.source === 'manual_upload') return '手动上传';
     if (file.source === 'ai' || file.folder === 'AI 对话产出') return 'AI 对话产出';
@@ -235,11 +252,54 @@ export function MainStage(props: MainStageProps) {
   };
   const handleRenameSelectedProjectFolder = () => {
     if (selectedProjectFolderNames.length !== 1) return;
-    const target = projectFolders.find((folder: { name: string }) => folder.name === selectedProjectFolderNames[0]);
+    const target = projectFolders.find((folder: { name: string; id?: string }) => (folder.id || folder.name) === selectedProjectFolderNames[0]);
     if (!target) return;
     setProjectFolderEditTarget?.(target);
     setProjectModal('rename-folder');
     cancelProjectFolderEdit();
+  };
+  const toggleProjectImageSelection = (imageName: string) => {
+    setSelectedProjectImageNames((current) => (
+      current.includes(imageName)
+        ? current.filter((name) => name !== imageName)
+        : [...current, imageName]
+    ));
+  };
+  const toggleProjectFileSelection = (file: ProjectFileLike) => {
+    const key = projectFileKey(file);
+    setSelectedProjectFileKeys((current) => (
+      current.includes(key)
+        ? current.filter((item) => item !== key)
+        : [...current, key]
+    ));
+  };
+  const cancelProjectFolderDetailEdit = () => {
+    setFolderDetailEditMode(false);
+    setSelectedProjectImageNames([]);
+    setSelectedProjectFileKeys([]);
+  };
+  const handleRenameActiveProjectFolder = () => {
+    if (!activeProjectFolder) return;
+    setProjectFolderEditTarget?.(activeProjectFolder);
+    setProjectModal('rename-folder');
+    cancelProjectFolderDetailEdit();
+  };
+  const handleDeleteSelectedProjectFolderItems = async () => {
+    if (isImageLibraryFolder) {
+      if (!deleteProjectImages || selectedProjectImageNames.length === 0) return;
+      const deleted = await deleteProjectImages(selectedProjectImageNames);
+      if (!deleted) return;
+      setProjectImagePreviewIndex(null);
+      cancelProjectFolderDetailEdit();
+      return;
+    }
+
+    if (!deleteProjectFiles || selectedProjectFileKeys.length === 0) return;
+    const selectedKeySet = new Set(selectedProjectFileKeys);
+    const files = visibleRealProjectFiles.filter((file: ProjectFileLike) => selectedKeySet.has(projectFileKey(file)));
+    const deleted = await deleteProjectFiles(files);
+    if (!deleted) return;
+    cancelProjectFolderDetailEdit();
   };
   const handleRenameSelectedProjectFile = () => {
     if (!selectedProjectFile) return;
@@ -259,6 +319,9 @@ export function MainStage(props: MainStageProps) {
     if (projectView !== 'home') {
       cancelProjectFolderEdit();
     }
+    if (projectView !== 'folder') {
+      cancelProjectFolderDetailEdit();
+    }
   }, [projectView]);
 
   useEffect(() => {
@@ -267,6 +330,22 @@ export function MainStage(props: MainStageProps) {
       return next.length === current.length ? current : next;
     });
   }, [visibleProjectFolderKey]);
+
+  useEffect(() => {
+    setSelectedProjectImageNames((current) => {
+      const visibleNames = new Set(visibleProjectImages.map((image: ProjectImage) => image.name));
+      const next = current.filter((name) => visibleNames.has(name));
+      return next.length === current.length ? current : next;
+    });
+  }, [visibleProjectImageKey]);
+
+  useEffect(() => {
+    setSelectedProjectFileKeys((current) => {
+      const visibleKeys = new Set(visibleRealProjectFiles.map((file: ProjectFileLike) => projectFileKey(file)));
+      const next = current.filter((key) => visibleKeys.has(key));
+      return next.length === current.length ? current : next;
+    });
+  }, [visibleProjectFileKey]);
 
   return (
             <main className="main-stage">
@@ -457,7 +536,7 @@ export function MainStage(props: MainStageProps) {
                         <div className="project-file-detail-shell">
                           <aside className="project-file-info-panel">
                             <div className="project-file-icon">
-                              <FileText size={24} />
+                              {canPreviewSelectedProjectFileAsImage ? <ImageIcon size={24} /> : <FileText size={24} />}
                             </div>
                             <div>
                               <span className="project-file-eyebrow">{selectedProjectFile.type || 'FILE'}</span>
@@ -491,7 +570,11 @@ export function MainStage(props: MainStageProps) {
                               </div>
                               <span className="project-file-type-chip">{selectedProjectFile.type || 'FILE'}</span>
                             </div>
-                            {canPreviewSelectedProjectFile ? (
+                            {canPreviewSelectedProjectFileAsImage ? (
+                              <div className="project-file-image-preview">
+                                <img src={selectedProjectFile.url} alt={selectedProjectFile.name} loading="lazy" decoding="async" />
+                              </div>
+                            ) : canPreviewSelectedProjectFileAsFrame ? (
                               <iframe src={selectedProjectFile.url} title={`预览 ${selectedProjectFile.name}`} />
                             ) : (
                               <div className="project-file-preview-empty">
@@ -509,34 +592,103 @@ export function MainStage(props: MainStageProps) {
                   )}
                   {projectView === 'folder' && activeProjectFolder && (
                     <section className="project-section folder-detail-panel">
-                      <button className="library-back-button" onClick={() => setProjectView('home')} type="button">返回项目库</button>
+                      <div className="folder-detail-topbar">
+                        <button className="library-back-button" onClick={() => setProjectView('home')} type="button">
+                          <ArrowLeft size={15} />
+                          返回项目库
+                        </button>
+                        <div className="folder-detail-actions">
+                          {folderDetailEditMode ? (
+                            <>
+                              <button className="folder-edit-button" onClick={cancelProjectFolderDetailEdit} type="button">取消</button>
+                              <button
+                                className="folder-delete-selected-button"
+                                disabled={selectedFolderDetailItemCount === 0}
+                                onClick={handleDeleteSelectedProjectFolderItems}
+                                type="button"
+                              >
+                                <Trash2 size={14} />
+                                删除所选{selectedFolderDetailItemCount > 0 ? `（${selectedFolderDetailItemCount}）` : ''}
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button className="folder-edit-button" onClick={handleRenameActiveProjectFolder} type="button">
+                                <Pencil size={14} />
+                                重命名
+                              </button>
+                              <button className="folder-edit-button" onClick={() => setFolderDetailEditMode(true)} type="button">编辑</button>
+                            </>
+                          )}
+                        </div>
+                      </div>
                       <div className="section-title-row">
                         <h3>{activeProjectFolder.name}</h3>
                         <span>{activeProjectFolder.desc}</span>
                       </div>
-                      {activeProjectFolder.name === '图片库' ? (
+                      {isImageLibraryFolder ? (
                         visibleProjectImages.length > 0 ? (
                           <div className="project-image-grid">
-                            {visibleProjectImages.map((img: { name: string; url: string; modified: string }) => (
-                              <a key={img.name} className="project-image-card" href={img.url} target="_blank" rel="noreferrer">
-                                <img src={img.url} alt={img.name} />
-                                <span>{img.modified}</span>
-                              </a>
-                            ))}
+                            {visibleProjectImages.map((img: ProjectImage, imageIndex: number) => {
+                              const selected = selectedProjectImageNames.includes(img.name);
+                              return (
+                                <button
+                                  key={img.name}
+                                  className={`project-image-card${folderDetailEditMode ? ' is-selecting' : ''}${selected ? ' is-selected' : ''}`}
+                                  onClick={() => {
+                                    if (folderDetailEditMode) {
+                                      toggleProjectImageSelection(img.name);
+                                      return;
+                                    }
+                                    setProjectImagePreviewIndex(imageIndex);
+                                  }}
+                                  type="button"
+                                  aria-pressed={folderDetailEditMode ? selected : undefined}
+                                >
+                                  {folderDetailEditMode && (
+                                    <span className={selected ? 'project-image-select-box selected' : 'project-image-select-box'}>
+                                      {selected && <Check size={13} />}
+                                    </span>
+                                  )}
+                                  <ProjectLazyImage src={img.url} alt={img.name} />
+                                  <span className="project-image-date">{img.modified}</span>
+                                </button>
+                              );
+                            })}
                           </div>
                         ) : (
                           <div className="file-empty-state">暂无匹配图片</div>
                         )
                       ) : (
                         <div className="file-table">
-                          {visibleRealProjectFiles.map((file: ProjectFileLike, i: number) => (
-                            <button key={`folder-real-${i}`} className="file-row" onClick={() => openProjectFile(file)} type="button">
-                              <span className="file-type tone-slate">{file.type}</span>
-                              <span className="file-main"><strong>{file.name}</strong><small>{file.folder} · {getProjectFileSourceLabel(file)}</small></span>
-                              <span className="file-updated">{file.modified}</span>
-                              <span className="file-action">查看</span>
-                            </button>
-                          ))}
+                          {visibleRealProjectFiles.map((file: ProjectFileLike, i: number) => {
+                            const fileSelected = selectedProjectFileKeys.includes(projectFileKey(file));
+                            return (
+                              <button
+                                key={`folder-real-${i}`}
+                                className={`file-row${folderDetailEditMode ? ' is-selecting' : ''}${fileSelected ? ' is-selected' : ''}`}
+                                onClick={() => {
+                                  if (folderDetailEditMode) {
+                                    toggleProjectFileSelection(file);
+                                    return;
+                                  }
+                                  openProjectFile(file);
+                                }}
+                                type="button"
+                                aria-pressed={folderDetailEditMode ? fileSelected : undefined}
+                              >
+                                {folderDetailEditMode && (
+                                  <span className={fileSelected ? 'file-select-box selected' : 'file-select-box'}>
+                                    {fileSelected && <Check size={13} />}
+                                  </span>
+                                )}
+                                <span className="file-type tone-slate">{file.type}</span>
+                                <span className="file-main"><strong>{file.name}</strong><small>{file.folder} · {getProjectFileSourceLabel(file)}</small></span>
+                                <span className="file-updated">{file.modified}</span>
+                                <span className="file-action">{folderDetailEditMode ? (fileSelected ? '已选' : '选择') : '查看'}</span>
+                              </button>
+                            );
+                          })}
                           {visibleRealProjectFiles.length === 0 && <div className="file-empty-state">暂无匹配文件</div>}
                         </div>
                       )}
@@ -579,20 +731,21 @@ export function MainStage(props: MainStageProps) {
                       </div>
                       {visibleProjectFolders.length > 0 ? (
                         <div className="folder-grid">
-                          {visibleProjectFolders.map((folder: { name: string; desc: string; tone: string; count?: string }, index: number) => {
-                            const folderIndex = projectFolders.findIndex((item: { name: string }) => item.name === folder.name);
-                            const count = folder.name === '图片库' ? `${projectImages.length} 个文件` : (folder.count || '0 个文件');
-                            const selected = selectedProjectFolderNames.includes(folder.name);
+                          {visibleProjectFolders.map((folder: { id?: string; name: string; desc: string; tone: string; count?: string; kind?: string }, index: number) => {
+                            const folderId = folder.id || folder.name;
+                            const folderIndex = projectFolders.findIndex((item: { name: string; id?: string }) => (item.id || item.name) === folderId);
+                            const count = folder.kind === 'image_library' || folderId === '图片库' ? `${projectImages.length} 个文件` : (folder.count || '0 个文件');
+                            const selected = selectedProjectFolderNames.includes(folderId);
                             return (
-                              <article key={folder.name} className={`folder-card tone-${folder.tone}${folderEditMode ? ' is-editing' : ''}${selected ? ' is-selected' : ''}`}>
+                              <article key={folderId} className={`folder-card tone-${folder.tone}${folderEditMode ? ' is-editing' : ''}${selected ? ' is-selected' : ''}`}>
                                 <button
                                   className="folder-open-button"
                                   onClick={() => {
                                     if (folderEditMode) {
-                                      toggleProjectFolderSelection(folder.name);
+                                      toggleProjectFolderSelection(folderId);
                                       return;
                                     }
-                                    refreshProjectFiles?.(folder.name);
+                                    refreshProjectFiles?.(folderId);
                                     setSelectedFolderIndex(folderIndex);
                                     setProjectView('folder');
                                   }}
@@ -635,6 +788,14 @@ export function MainStage(props: MainStageProps) {
                         {projectFileTableItems.length === 0 && <div className="file-empty-state">暂无匹配文件</div>}
                       </div>
                     </section>
+                  )}
+                  {projectImagePreviewIndex !== null && (
+                    <ProjectImagePreviewModal
+                      images={visibleProjectImages}
+                      currentIndex={projectImagePreviewIndex}
+                      onChange={setProjectImagePreviewIndex}
+                      onClose={() => setProjectImagePreviewIndex(null)}
+                    />
                   )}
                 </section>
               ) : (
