@@ -1,0 +1,26 @@
+/* Free Mode */
+
+.free-mode-card {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 50;
+  width: 200px;
+  overflow: hidden;
+  background: #0f172a;
+  padding: 12px 12px 12px 56px;
+  color: #fff;
+  clip-path: polygon(25% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.free-mode-card h3 {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.free-mode-card p {
+  font-size: 10px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.6);
+}

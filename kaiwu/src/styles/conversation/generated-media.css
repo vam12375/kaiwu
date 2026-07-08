@@ -1,0 +1,152 @@
+/* ===== 图片展示 ===== */
+
+.doubao-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 320px));
+  gap: 12px;
+  padding: 8px 0 0 42px;
+}
+
+.doubao-image-card {
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  transition: transform 0.15s ease;
+}
+
+.doubao-image-card:hover {
+  transform: translateY(-1px);
+}
+
+.doubao-image-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+}
+
+.doubao-image-label {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  text-align: center;
+  border-top: 1px solid #f1f5f9;
+}
+
+.generated-image-card {
+  max-width: 320px;
+}
+
+.generated-image-thumb {
+  width: 100%;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff;
+  cursor: zoom-in;
+}
+
+.generated-image-thumb img {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #ffffff;
+}
+
+@media (max-width: 900px) {
+  .doubao-images-grid {
+    padding-left: 0;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .doubao-message-inner {
+    max-width: 92%;
+  }
+
+  .doubao-composer-inner {
+    max-width: 100%;
+  }
+
+  .doubao-header-center h2 {
+    max-width: 200px;
+  }
+}
+
+/* ===== SVG Logo 卡片（5套统一） ===== */
+
+.md-svg-container {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  margin: 6px 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  display: block;
+}
+
+.md-svg-container svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  min-height: 200px;
+}
+
+.md-svg-save-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  color: #fff;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+  border: 0;
+  backdrop-filter: blur(4px);
+}
+
+.md-svg-container:hover .md-svg-save-btn,
+div:hover > .md-svg-save-btn {
+  opacity: 1;
+}
+
+.md-svg-save-btn:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+/* Coding preview save button */
+.coding-save-btn {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.35);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.3;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 0;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+.coding-save-btn:hover {
+  opacity: 1;
+  background: rgba(15, 23, 42, 0.75);
+}
+

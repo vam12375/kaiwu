@@ -26,6 +26,8 @@ kaiwu/
     └── styles.css               # Global class-based styling
 ```
 
+Style files are split by domain under `src/styles/`. `src/styles.css` should stay small and only import foundational/shared CSS; feature components should import their owning domain CSS directly as side-effect imports.
+
 The old docs mention `pages/` and `context/`, but the current codebase uses `features/*` plus hooks. Do not create `pages/` or `context/` just because older docs mention them.
 
 ---
@@ -139,7 +141,9 @@ Do not put new transport logic directly into feature components when a hook or A
 - Hooks use `use*` filenames and exports.
 - Pure event helpers use descriptive names such as `reduceAgentEvent()`.
 - Type aliases use PascalCase.
-- CSS classes currently use kebab-case and are globally scoped in `styles.css`.
+- CSS classes currently use kebab-case and remain globally scoped.
+- `src/styles.css` is the foundational/shared style entrypoint. Keep its `@import` order stable unless you are intentionally changing cascade behavior.
+- Put durable new styles in the closest matching file under `src/styles/` and import that file from the owning component.
 
 ---
 

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
 
 import type { ShowToast, ToastInput, ToastVariant } from '../../types';
+import '../../styles/feedback/toast.css';
 
 type ToastItem = Required<Pick<ToastInput, 'message' | 'variant' | 'duration'>> & {
   id: number;

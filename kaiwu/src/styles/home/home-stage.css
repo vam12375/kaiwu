@@ -1,0 +1,57 @@
+/* =============================================================================
+   NEW HOMEPAGE COMPONENTS — brand header, chat input, workflow steps,
+   feature cards, free mode
+   ============================================================================= */
+
+/* Main stage scrollable inner container */
+
+.main-stage-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.main-stage-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.main-stage-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.main-stage-scroll::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.08);
+  border-radius: 4px;
+}
+
+/* Workflow + Cards Section */
+
+.workflow-cards-section {
+  width: 100%;
+  padding: 40px 0 0;
+  z-index: 1;
+}
+
+.workflow-cards-relative {
+  position: relative;
+}
+
+.workflow-steps-col {
+  position: absolute;
+  left: 24px;
+  top: -48px;
+  bottom: 0;
+  width: 140px;
+  z-index: 10;
+}
+
+.feature-cards-wrapper {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+

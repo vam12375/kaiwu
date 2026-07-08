@@ -1,0 +1,443 @@
+.wb-settings {
+  position: relative;
+  z-index: 4;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 238px minmax(0, 1fr);
+  gap: 18px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  overflow: hidden;
+}
+
+.wb-settings-nav {
+  padding: 14px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wb-settings-nav button {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: transparent;
+  color: #475569;
+  font-size: 13px;
+  text-align: left;
+  transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.wb-settings-nav button.active,
+.wb-settings-nav button:hover {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+}
+
+.settings-nav-icon {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.wb-settings-nav button.active .settings-nav-icon,
+.wb-settings-nav button:hover .settings-nav-icon {
+  background: linear-gradient(135deg, #0f172a, #334155);
+  color: #ffffff;
+}
+
+.wb-settings-main {
+  position: relative;
+  min-width: 0;
+  padding: 28px 34px 60px;
+  overflow: auto;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.settings-close {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 20px;
+  line-height: 1;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.wb-settings-main h2 {
+  margin: 0 0 14px;
+  color: #0f172a;
+  font-size: 26px;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.settings-rule {
+  height: 1px;
+  margin-bottom: 18px;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.wb-setting-list {
+  max-width: 730px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wb-setting-list h3 {
+  margin: 14px 0 6px;
+  color: #333333;
+  font-size: 14px;
+}
+
+.wb-setting-row,
+.wb-path-row,
+.font-size-setting,
+.memory-card,
+.import-memory-row,
+.model-saved-row,
+.help-list button {
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 18px;
+}
+
+.wb-setting-row {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 16px;
+}
+
+.wb-setting-row strong,
+.wb-path-row strong,
+.font-size-setting strong,
+.import-memory-row strong {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.wb-setting-row p,
+.wb-path-row p,
+.import-memory-row p,
+.settings-desc {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.select-button,
+.wb-setting-row > button:not(.switch),
+.wb-path-row button,
+.import-memory-row button,
+.model-saved-row button {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 13px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: #334155;
+  font-size: 12px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.switch {
+  width: 42px;
+  height: 24px;
+  flex: none;
+  padding: 3px;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.switch span {
+  width: 18px;
+  height: 18px;
+  display: block;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.16);
+  transition: transform 0.16s ease;
+}
+
+.switch.on {
+  background: linear-gradient(135deg, #0f172a, #334155);
+}
+
+.switch.on span {
+  transform: translateX(18px);
+}
+
+.font-size-setting {
+  padding: 14px 16px 18px;
+}
+
+.font-scale {
+  display: grid;
+  grid-template-columns: 26px 1fr 26px;
+  align-items: center;
+  gap: 10px;
+  color: #666666;
+  font-size: 12px;
+}
+
+.scale-line {
+  position: relative;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scale-line::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 16px;
+  height: 1px;
+  background: #bbbbbb;
+}
+
+.scale-line i {
+  position: relative;
+  z-index: 1;
+  width: 1px;
+  height: 10px;
+  background: #bbbbbb;
+}
+
+.scale-line i.active {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #333333;
+}
+
+.wb-path-row {
+  padding: 14px 16px;
+}
+
+.wb-path-row > div {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  gap: 8px;
+}
+
+.wb-path-row span {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #555555;
+  border: 1px solid #eeeeee;
+  font-size: 12px;
+}
+
+.memory-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+}
+
+.memory-card p {
+  margin: 0;
+  color: #555555;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.memory-card div {
+  text-align: right;
+}
+
+.memory-card strong {
+  display: block;
+  color: #333333;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.memory-card span {
+  color: #777777;
+  font-size: 12px;
+}
+
+.import-memory-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0 14px;
+  border: 0;
+  background: transparent;
+}
+
+.model-saved-row {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 32px 32px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.model-saved-row p {
+  margin: 4px 0 0;
+  color: #666666;
+  font-size: 12px;
+}
+
+.runtime-table {
+  border: 1px solid #eeeeee;
+  background: #fafafa;
+}
+
+.runtime-table > div {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr) 70px;
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px;
+  border-bottom: 1px solid #eeeeee;
+  color: #444444;
+  font-size: 12px;
+}
+
+.runtime-table > div:last-child {
+  border-bottom: 0;
+}
+
+.help-list button {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  color: #333333;
+  font-size: 14px;
+}
+
+.policy-links {
+  text-align: center;
+  margin-top: 14px;
+  color: #777777;
+  font-size: 12px;
+}
+
+.account-profile-card {
+  min-height: 94px;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #0f172a, #334155);
+  color: #ffffff;
+}
+
+.account-large-avatar {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.16);
+  font-weight: 900;
+}
+
+.account-profile-card strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 18px;
+}
+
+.account-profile-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+}
+
+.account-profile-card button {
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+
+@media (max-width: 900px) {
+  .project-file-detail-shell {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .project-file-preview-panel {
+    min-height: 520px;
+  }
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 176px 1fr;
+  }
+
+  .composer-area {
+    width: calc(100vw - 216px);
+  }
+
+  .skill-row,
+  .toolbar-left {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .toolbar-select span:nth-child(2) {
+    white-space: nowrap;
+  }
+}
+

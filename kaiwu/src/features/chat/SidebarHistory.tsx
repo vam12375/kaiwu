@@ -1,6 +1,7 @@
 import type { Dispatch, MouseEvent, SetStateAction } from 'react';
 
 import type { ConvHistory } from '../../types';
+import '../../styles/layout/sidebar-history.css';
 
 type SidebarHistoryProps = {
   conversations: ConvHistory[];

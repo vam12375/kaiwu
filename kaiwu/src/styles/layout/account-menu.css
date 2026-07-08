@@ -1,0 +1,136 @@
+.sidebar-footer {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  min-height: 72px;
+  margin-top: auto;
+}
+
+.account-footer {
+  width: 100%;
+}
+
+.account-bottom-wrap {
+  width: 100%;
+}
+
+.footer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #333333;
+  font-size: 12px;
+}
+
+.account-trigger {
+  width: 100%;
+  height: 38px;
+  padding: 0 8px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  justify-content: flex-start;
+}
+
+.account-trigger:hover {
+  background: #ffffff;
+}
+
+.account-points {
+  margin: 0 0 7px;
+  padding: 0 8px;
+}
+
+.account-credit-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 10px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.account-credit-card strong {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.account-popover {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  z-index: 80;
+  width: 218px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+.account-divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.account-popover button {
+  width: 100%;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: transparent;
+  color: #334155;
+  font-size: 12px;
+  text-align: left;
+}
+
+.account-popover button span {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.account-menu-icon {
+  width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.account-popover button:hover {
+  background: #f8fafc;
+}
+
+.account-popover button strong {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.account-popover .logout-row {
+  color: #dc2626;
+}
+
+.footer-avatar {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0f172a, #334155);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
