@@ -115,6 +115,38 @@ This prevents the browser from queueing dozens of original image requests at onc
 
 ---
 
+## Project File Detail Previews
+
+Project library file entries expose `ProjectFile.type` as the backend file suffix uppercased without the dot, for example `.jpg` becomes `JPG`. Detail-page preview logic should branch by that type instead of assuming all inline previews can use the same renderer.
+
+Use `<img>` for image file types and keep `iframe` for document-like file types such as HTML/PDF/TXT/MD/CSV/JSON:
+
+```tsx
+const PROJECT_FILE_FRAME_PREVIEW_TYPES = new Set(['HTML', 'HTM', 'PDF', 'TXT', 'MD', 'CSV', 'JSON']);
+const PROJECT_FILE_IMAGE_PREVIEW_TYPES = new Set(['JPG', 'JPEG', 'PNG', 'WEBP', 'GIF', 'BMP', 'AVIF', 'SVG']);
+
+const type = selectedProjectFile?.type?.toUpperCase() || '';
+const isImagePreview = PROJECT_FILE_IMAGE_PREVIEW_TYPES.has(type);
+const isFramePreview = PROJECT_FILE_FRAME_PREVIEW_TYPES.has(type);
+```
+
+Images should be rendered with `object-fit: contain` inside a stable preview container so large generated images do not stretch or resize the project detail layout. Unsupported file types should continue to show the existing unsupported-preview empty state.
+
+---
+
+## Project Folder Detail Editing
+
+Project library folder summaries may include stable `id` and semantic `kind` fields. Use `folder.id || folder.name` for backend mutations, selection state, and refresh calls. Use `folder.kind === 'image_library'` to detect the image library, with `folder.name === '图片库'` only as a backward-compatible fallback.
+
+Folder detail pages should keep the current folder controls in the same top row as “返回项目库”:
+
+- normal mode: `重命名` opens the existing folder rename modal for the active folder, and `编辑` enters item selection mode.
+- edit mode: `取消` clears selection, and `删除所选（n）` performs one confirmed batch delete.
+
+For 图片库, item deletion should call the project image API so the backend removes the original image, preview cache, metadata, and 图片库 archive copy. For normal folders, batch deletion can reuse the project file delete API, but the UI should show one destructive confirmation for the whole selection rather than one per row.
+
+---
+
 ## Accessibility And Interaction
 
 - Add `type="button"` to buttons that are not form submits.

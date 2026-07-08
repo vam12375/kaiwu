@@ -84,6 +84,14 @@ def get_project_image_metadata_map() -> dict[str, dict[str, Any]]:
     return _read_project_image_meta()
 
 
+def delete_project_image_metadata(filename: str) -> None:
+    meta = _read_project_image_meta()
+    if filename not in meta:
+        return
+    meta.pop(filename, None)
+    _write_project_image_meta(meta)
+
+
 def project_image_webp_preview_name(original_filename: str) -> str:
     return f"{original_filename}.webp"
 

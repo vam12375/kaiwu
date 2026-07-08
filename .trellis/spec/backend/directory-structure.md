@@ -78,6 +78,7 @@ When adding an endpoint:
 ### 2. Signatures
 
 - `GET /api/project-images` -> `list[ProjectImageSummary]`
+- `DELETE /api/project-images` with `{ "names": string[] }` -> `{ "status": "ok", "deleted": string[] }`
 - `GET /project-image-previews/{filename:path}` -> WebP preview bytes or `404`.
 - `save_image_to_library(image_url: str, style: str, metadata: dict[str, Any] | None = None) -> str`
 - `ensure_project_image_webp_preview(image_path: Path) -> Path | None`
@@ -110,6 +111,15 @@ Core filesystem fields (`name`, `url`, `size`, `modified`) must win over metadat
 
 For generated PNG/JPG/JPEG files, create WebP previews with Pillow. Do not list preview files as project images, and do not replace or delete originals. SVG/GIF/WebP originals may fall back to original URLs.
 
+Deleting project images through `DELETE /api/project-images` removes the original file from `project-images/`, removes the matching WebP preview from `project-image-previews/`, removes the `.image-meta.json` entry, and removes the matching copy from `project-files/图片库/`. It must not remove the separate `AI 对话产出` archive copy as a side effect of deleting from 图片库.
+
+Project folder summaries may include stable identity fields:
+
+- `id: string` - internal folder identity/path used for mutations.
+- `kind: "folder" | "image_library" | "video_library" | string` - semantic folder kind used by the frontend when display names change.
+
+For virtual library folders such as 图片库 and 视频库, display-name renames update folder state metadata while keeping the internal `id` stable.
+
 ### 4. Validation & Error Matrix
 
 - Missing `.image-meta.json` -> return image entries with required fields only.
@@ -120,6 +130,8 @@ For generated PNG/JPG/JPEG files, create WebP previews with Pillow. Do not list 
 - Preview route path traversal -> `404 {"error": "not found"}`.
 - Preview URL passed to `/api/download-image` -> resolve back to the original image path when possible.
 - Corrupt metadata that attempts to override `name`, `url`, `size`, or `modified` -> ignore the override by merging filesystem fields last.
+- `DELETE /api/project-images` with an invalid filename -> `400 {"error": "invalid filename"}` or `400 {"error": "filename required"}`.
+- `DELETE /api/project-images` for a missing image -> `404 {"error": "image not found"}`.
 
 ### 5. Good/Base/Bad Cases
 
@@ -134,6 +146,7 @@ For generated PNG/JPG/JPEG files, create WebP previews with Pillow. Do not list 
 - Backend syntax: `python -m compileall kaiwuback/server`.
 - Frontend type/build: `Set-Location kaiwu; npm run build` when `ProjectImage` fields or preview UI changes.
 - API smoke: `GET http://localhost:5001/api/project-images` returns `200` and JSON parse succeeds.
+- API smoke: `DELETE /api/project-images` for a temporary image removes the original, preview, metadata entry, and 图片库 archive copy.
 - WebP smoke: create a temporary PNG under `IMG_STORE`, call `ensure_project_image_webp_preview()`, assert the `.webp` file exists, then delete both files.
 - Manual UI smoke: open project library -> 图片库, click an image, confirm the app opens the preview modal instead of a new browser tab.
 
