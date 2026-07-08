@@ -34,6 +34,7 @@ type ReferenceImagePreview = ImageReferenceInput & {
 type GeneratedImagePreview = {
   style: string;
   url: string;
+  original_url?: string;
 };
 
 type ConversationPanelProps = {
@@ -225,7 +226,7 @@ export function ConversationPanel({
   };
 
   const downloadImage = (image: GeneratedImagePreview) => {
-    window.open(imageDownloadUrl(image.url), '_blank');
+    window.open(imageDownloadUrl(image.original_url || image.url), '_blank');
   };
 
   const sendImageGeneration = () => {

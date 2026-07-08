@@ -68,6 +68,8 @@ MD_STORE = _BACKEND_ROOT / "conversations"
 MD_STORE.mkdir(parents=True, exist_ok=True)
 IMG_STORE = _BACKEND_ROOT / "project-images"
 IMG_STORE.mkdir(parents=True, exist_ok=True)
+PROJECT_IMAGE_PREVIEW_STORE = _BACKEND_ROOT / "project-image-previews"
+PROJECT_IMAGE_PREVIEW_STORE.mkdir(parents=True, exist_ok=True)
 PROJECT_LIB = _BACKEND_ROOT / "project-files"
 for folder in ["编程文件库", "AI 对话产出", "创业资料", "产品设计", "营销素材", "最近文件"]:
     (PROJECT_LIB / folder).mkdir(parents=True, exist_ok=True)

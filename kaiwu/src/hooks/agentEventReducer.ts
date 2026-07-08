@@ -3,13 +3,13 @@ import type { AgentTaskEvent } from '../api/tasks';
 export type AgentMessage = {
   role: 'user' | 'ai';
   content: string;
-  images?: { style: string; url: string; prompt: string }[];
+  images?: { style: string; url: string; original_url?: string; prompt: string }[];
   svgLogos?: { style: string; code: string }[];
 };
 
 export type AgentEventState = {
   aiContent: string;
-  images: { style: string; url: string; prompt: string }[];
+  images: { style: string; url: string; original_url?: string; prompt: string }[];
   svgLogos: { style: string; code: string }[];
   messages: AgentMessage[];
   conversationId?: number | null;
@@ -62,7 +62,7 @@ export function reduceAgentEvent(state: AgentEventState, event: AgentTaskEvent):
       handled: true,
       state: replaceLastAiMessage({
         ...state,
-        images: [...state.images, { style: event.style, url: event.url, prompt: event.prompt }],
+        images: [...state.images, { style: event.style, url: event.url, original_url: event.original_url, prompt: event.prompt }],
       }),
     };
   }

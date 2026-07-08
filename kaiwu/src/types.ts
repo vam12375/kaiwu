@@ -82,6 +82,8 @@ export type ProjectFile = {
 export type ProjectImage = {
   name: string;
   url: string;
+  original_url?: string;
+  preview_url?: string;
   size: number;
   modified: string;
   prompt?: string;
