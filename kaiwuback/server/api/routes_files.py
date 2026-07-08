@@ -11,7 +11,15 @@ from fastapi import Request
 from fastapi.responses import JSONResponse, FileResponse
 from starlette.responses import Response
 
-from server.config import IMG_STORE, PROJECT_LIB
+from server.config import IMG_STORE, PROJECT_IMAGE_PREVIEW_STORE, PROJECT_LIB, PUBLIC_BASE_URL, public_url
+from server.utils.file_io import (
+    backfill_project_image_metadata_from_task_events,
+    ensure_project_image_webp_preview,
+    get_project_image_metadata_map,
+    project_image_display_url,
+    project_image_original_name_from_preview,
+    project_image_original_url,
+)
 
 PROJECT_FOLDER_META = PROJECT_LIB / ".folder-meta.json"
 PROJECT_FILE_META = PROJECT_LIB / ".file-meta.json"
@@ -134,7 +142,7 @@ def _project_file_entry(folder_name: str, f, meta: dict[str, dict] | None = None
         "type": f.suffix.upper().lstrip(".") or "FILE",
         "size": f.stat().st_size,
         "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M"),
-        "url": f"http://localhost:5001/project-files/{quote(folder_name, safe='')}/{quote(f.name, safe='')}",
+        "url": public_url(f"/project-files/{quote(folder_name, safe='')}/{quote(f.name, safe='')}"),
         "source": _infer_file_source(folder_name, f.name, file_meta),
     }
 
@@ -274,6 +282,17 @@ def _delete_project_file(folder: str, filename: str):
 LOCAL_IMAGE_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
 
+def _matches_public_base_url(parsed) -> bool:
+    public_base = urlparse(PUBLIC_BASE_URL)
+    return bool(
+        parsed.netloc
+        and public_base.scheme
+        and public_base.netloc
+        and parsed.scheme == public_base.scheme
+        and parsed.netloc == public_base.netloc
+    )
+
+
 def _attachment_headers(filename: str) -> dict[str, str]:
     fallback = "".join(
         ch if 32 <= ord(ch) < 127 and ch not in {'"', "\\", ";"} else "_"
@@ -291,7 +310,7 @@ def _project_image_path_from_url(url: str) -> Path | None:
     parsed = urlparse(url)
     is_local_project_image = (
         parsed.path.startswith("/project-images/")
-        and (not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS)
+        and (not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS or _matches_public_base_url(parsed))
     )
     if not is_local_project_image:
         return None
@@ -309,6 +328,46 @@ def _project_image_path_from_url(url: str) -> Path | None:
     return image_path
 
 
+def _project_image_preview_path_from_url(url: str) -> Path | None:
+    parsed = urlparse(url)
+    is_local_project_image_preview = (
+        parsed.path.startswith("/project-image-previews/")
+        and (not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS or _matches_public_base_url(parsed))
+    )
+    if not is_local_project_image_preview:
+        return None
+
+    filename = unquote(parsed.path.removeprefix("/project-image-previews/"))
+    if not filename:
+        return None
+
+    root = PROJECT_IMAGE_PREVIEW_STORE.resolve()
+    preview_path = (root / filename).resolve()
+    try:
+        preview_path.relative_to(root)
+    except ValueError:
+        return None
+    return preview_path
+
+
+def _project_image_original_path_from_preview_url(url: str) -> Path | None:
+    preview_path = _project_image_preview_path_from_url(url)
+    if preview_path is None:
+        return None
+
+    original_filename = project_image_original_name_from_preview(preview_path.name)
+    if not original_filename:
+        return None
+
+    root = IMG_STORE.resolve()
+    image_path = (root / original_filename).resolve()
+    try:
+        image_path.relative_to(root)
+    except ValueError:
+        return None
+    return image_path
+
+
 def register_file_routes(app):
     """向 FastAPI app 注册文件/图片相关路由"""
 
@@ -316,14 +375,32 @@ def register_file_routes(app):
     def api_list_project_images():
         images = []
         if IMG_STORE.exists():
-            for f in sorted(IMG_STORE.glob("*"), key=lambda x: x.stat().st_mtime, reverse=True):
-                if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'):
-                    images.append({
-                        "name": f.name,
-                        "url": f"http://localhost:5001/project-images/{f.name}",
-                        "size": f.stat().st_size,
-                        "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime('%Y-%m-%d %H:%M'),
-                    })
+            image_files = [
+                f for f in sorted(IMG_STORE.glob("*"), key=lambda x: x.stat().st_mtime, reverse=True)
+                if f.suffix.lower() in ('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp')
+            ]
+            image_metadata = get_project_image_metadata_map()
+            ai_generated_image_files = [f for f in image_files if f.name.startswith("AI生图")]
+            missing_metadata = any(
+                not all(image_metadata.get(f.name, {}).get(field) for field in ("prompt", "model", "ratio", "resolution"))
+                for f in ai_generated_image_files
+            )
+            if missing_metadata:
+                backfill_project_image_metadata_from_task_events()
+                image_metadata = get_project_image_metadata_map()
+            for f in image_files:
+                metadata = image_metadata.get(f.name, {})
+                display_url = project_image_display_url(f.name)
+                original_url = project_image_original_url(f.name)
+                images.append({
+                    **metadata,
+                    "name": f.name,
+                    "url": display_url,
+                    "original_url": original_url,
+                    "preview_url": display_url,
+                    "size": f.stat().st_size,
+                    "modified": datetime.fromtimestamp(f.stat().st_mtime).strftime('%Y-%m-%d %H:%M'),
+                })
         return images[:50]
 
     @app.get("/project-images/{filename:path}")
@@ -331,6 +408,30 @@ def register_file_routes(app):
         path = IMG_STORE / filename
         if path.exists():
             return FileResponse(path)
+        return JSONResponse({"error": "not found"}, status_code=404)
+
+    @app.get("/project-image-previews/{filename:path}")
+    def serve_project_image_preview(filename: str):
+        root = PROJECT_IMAGE_PREVIEW_STORE.resolve()
+        path = (root / filename).resolve()
+        try:
+            path.relative_to(root)
+        except ValueError:
+            return JSONResponse({"error": "not found"}, status_code=404)
+        if path.exists():
+            return FileResponse(path)
+
+        original_filename = project_image_original_name_from_preview(path.name)
+        if original_filename:
+            original_path = (IMG_STORE.resolve() / original_filename).resolve()
+            try:
+                original_path.relative_to(IMG_STORE.resolve())
+            except ValueError:
+                original_path = None
+            if original_path is not None and original_path.exists():
+                preview_path = ensure_project_image_webp_preview(original_path)
+                if preview_path is not None and preview_path.exists():
+                    return FileResponse(preview_path)
         return JSONResponse({"error": "not found"}, status_code=404)
 
     @app.get("/api/project-files")
@@ -633,12 +734,12 @@ def register_file_routes(app):
             return JSONResponse({"error": "url required"}, status_code=400)
 
         parsed = urlparse(url)
-        local_path = _project_image_path_from_url(url)
+        local_path = _project_image_original_path_from_preview_url(url) or _project_image_path_from_url(url)
         if local_path is not None:
             if not local_path.is_file():
                 return JSONResponse({"error": "image not found"}, status_code=404)
             return FileResponse(local_path, headers=_attachment_headers(local_path.name))
-        if not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS:
+        if not parsed.netloc or parsed.hostname in LOCAL_IMAGE_HOSTS or _matches_public_base_url(parsed):
             return JSONResponse({"error": "unsupported image url"}, status_code=400)
 
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:

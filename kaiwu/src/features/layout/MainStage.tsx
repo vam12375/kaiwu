@@ -5,11 +5,14 @@ import { Check, Pencil, Trash2 } from 'lucide-react';
 import { directions, modelOptions, settingsSections } from '../../data';
 import { ConversationPanel } from '../chat/ConversationPanel';
 import { SkillLibraryPage } from './SkillLibraryPage';
+import { ProjectImagePreviewModal } from './ProjectImagePreviewModal';
+import { ProjectLazyImage } from './ProjectLazyImage';
 import { BrandHeader } from '../home/BrandHeader';
 import { ChatInput } from '../home/ChatInput';
 import { WorkflowSteps } from '../home/WorkflowSteps';
 import { FeatureCards } from '../home/FeatureCards';
 import { FreeMode } from '../home/FreeMode';
+import type { ProjectImage } from '../../types';
 
 type MainStageProps = Record<string, any>;
 
@@ -144,6 +147,7 @@ export function MainStage(props: MainStageProps) {
 
   const [folderEditMode, setFolderEditMode] = useState(false);
   const [selectedProjectFolderNames, setSelectedProjectFolderNames] = useState<string[]>([]);
+  const [projectImagePreviewIndex, setProjectImagePreviewIndex] = useState<number | null>(null);
   const activeProjectFolder = projectFolders[selectedFolderIndex] || projectFolders[0];
   const projectQuery = projectSearchQuery.trim().toLocaleLowerCase();
   const matchesProjectName = (name: string) => !projectQuery || name.toLocaleLowerCase().includes(projectQuery);
@@ -161,7 +165,7 @@ export function MainStage(props: MainStageProps) {
   const projectFileTableItems = projectView === 'home'
     ? visibleRealProjectFiles.slice(0, RECENT_PROJECT_FILES_LIMIT)
     : visibleRealProjectFiles;
-  const visibleProjectImages = projectImages.filter((image: { name: string }) => matchesProjectName(image.name));
+  const visibleProjectImages = projectImages.filter((image: ProjectImage) => matchesProjectName(image.name));
   const selectedProjectFileType = selectedProjectFile?.type?.toUpperCase() || '';
   const canPreviewSelectedProjectFile = PROJECT_FILE_PREVIEW_TYPES.has(selectedProjectFileType);
   const getProjectFileSourceLabel = (file: { source?: string; folder: string }) => {
@@ -517,11 +521,11 @@ export function MainStage(props: MainStageProps) {
                       {activeProjectFolder.name === '图片库' ? (
                         visibleProjectImages.length > 0 ? (
                           <div className="project-image-grid">
-                            {visibleProjectImages.map((img: { name: string; url: string; modified: string }) => (
-                              <a key={img.name} className="project-image-card" href={img.url} target="_blank" rel="noreferrer">
-                                <img src={img.url} alt={img.name} />
+                            {visibleProjectImages.map((img: ProjectImage, imageIndex: number) => (
+                              <button key={img.name} className="project-image-card" onClick={() => setProjectImagePreviewIndex(imageIndex)} type="button">
+                                <ProjectLazyImage src={img.url} alt={img.name} />
                                 <span>{img.modified}</span>
-                              </a>
+                              </button>
                             ))}
                           </div>
                         ) : (
@@ -635,6 +639,14 @@ export function MainStage(props: MainStageProps) {
                         {projectFileTableItems.length === 0 && <div className="file-empty-state">暂无匹配文件</div>}
                       </div>
                     </section>
+                  )}
+                  {projectImagePreviewIndex !== null && (
+                    <ProjectImagePreviewModal
+                      images={visibleProjectImages}
+                      currentIndex={projectImagePreviewIndex}
+                      onChange={setProjectImagePreviewIndex}
+                      onClose={() => setProjectImagePreviewIndex(null)}
+                    />
                   )}
                 </section>
               ) : (

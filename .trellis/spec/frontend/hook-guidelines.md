@@ -29,7 +29,7 @@ Current exceptions:
 
 - `useSseEvents()` uses raw `fetch` because it reads a stream.
 - File/image downloads use raw `fetch` or `window.open`.
-- A few older `App.tsx` and `ConversationPanel.tsx` calls still use hardcoded `http://localhost:5001`; prefer `API_BASE_URL` and API helpers for new JSON calls.
+- Do not hardcode backend origins such as `http://localhost:5001` in frontend source. Use `API_BASE_URL` and API helpers; local split-origin development belongs in `VITE_API_BASE_URL`.
 
 Do not call `/api/chat` from new frontend code. Current task flow uses `/api/tasks` via `src/api/tasks.ts`.
 

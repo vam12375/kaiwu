@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUp, Bookmark, Bot, Box, ChevronDown, ChevronLeft, Copy, Download, ImagePlus, Square, X } from 'lucide-react';
 
 import { imageModelOptions, imageRatioOptions, imageResolutionOptions, modelOptions, projectFolders } from '../../data';
-import { API_BASE_URL } from '../../api/client';
+import { API_BASE_URL, apiJson } from '../../api/client';
 import type { Direction, ImageModelId, ImageRatio, ImageResolution, LibraryModalType, PickerType, ShowToast } from '../../types';
 import { renderMarkdown } from '../../utils';
 import type { AgentMessage } from '../../hooks/agentEventReducer';
@@ -34,6 +34,7 @@ type ReferenceImagePreview = ImageReferenceInput & {
 type GeneratedImagePreview = {
   style: string;
   url: string;
+  original_url?: string;
 };
 
 type ConversationPanelProps = {
@@ -104,12 +105,10 @@ const NODE_ACTIONS: Record<string, { label: string; prompt: string }> = {
 };
 
 function saveToProject(content: string, title: string, showToast: ShowToast) {
-  fetch('http://localhost:5001/api/save-to-project', {
+  apiJson<{ status: string; message?: string }>('/api/save-to-project', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ content, title }),
   })
-    .then((response) => response.json())
     .then((data) => {
       if (data.status === 'ok') {
         showToast({ message: data.message || '已保存到项目库', variant: 'success' });
@@ -227,7 +226,7 @@ export function ConversationPanel({
   };
 
   const downloadImage = (image: GeneratedImagePreview) => {
-    window.open(imageDownloadUrl(image.url), '_blank');
+    window.open(imageDownloadUrl(image.original_url || image.url), '_blank');
   };
 
   const sendImageGeneration = () => {

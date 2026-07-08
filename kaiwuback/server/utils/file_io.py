@@ -1,10 +1,229 @@
 """文件 I/O 工具 —— HTML生成、文件归档、图片保存、PDF转换"""
+import json
 import os, uuid, requests as req
 from pathlib import Path
 from datetime import datetime
+from typing import Any
+from urllib.parse import quote, unquote, urlparse
 
-from server.config import PROJECT_LIB, IMG_STORE
+from server.config import PROJECT_IMAGE_PREVIEW_STORE, PROJECT_LIB, IMG_STORE, public_url
 from server.utils.markdown import markdown_to_html
+
+PROJECT_IMAGE_META = IMG_STORE / ".image-meta.json"
+PROJECT_IMAGE_WEBP_SUFFIXES = {".png", ".jpg", ".jpeg"}
+PROJECT_IMAGE_WEBP_QUALITY = 82
+
+
+def _read_project_image_meta() -> dict[str, dict[str, Any]]:
+    if not PROJECT_IMAGE_META.exists():
+        return {}
+    try:
+        data = json.loads(PROJECT_IMAGE_META.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return {}
+        return {str(key): value for key, value in data.items() if isinstance(value, dict)}
+    except Exception as exc:
+        print(f"[IMG] Metadata read failed: {str(exc)[:120]}", flush=True)
+        return {}
+
+
+def _write_project_image_meta(meta: dict[str, dict[str, Any]]) -> None:
+    PROJECT_IMAGE_META.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _clean_meta_text(value: Any, max_length: int = 2000) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    return text[:max_length]
+
+
+def _normalise_project_image_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
+    clean_metadata: dict[str, Any] = {}
+    text_fields = {
+        "prompt": 4000,
+        "style": 200,
+        "model": 120,
+        "ratio": 40,
+        "resolution": 40,
+        "source": 80,
+    }
+    for field, max_length in text_fields.items():
+        text = _clean_meta_text(metadata.get(field), max_length)
+        if text:
+            clean_metadata[field] = text
+
+    reference_count = metadata.get("reference_count")
+    if isinstance(reference_count, int) and reference_count >= 0:
+        clean_metadata["reference_count"] = reference_count
+
+    clean_metadata["created_at"] = _clean_meta_text(metadata.get("created_at"), 40) or datetime.now().strftime("%Y-%m-%d %H:%M")
+    return clean_metadata
+
+
+def save_project_image_metadata(filename: str, metadata: dict[str, Any] | None) -> None:
+    if not filename or not metadata:
+        return
+
+    clean_metadata = _normalise_project_image_metadata(metadata)
+    if not clean_metadata:
+        return
+
+    meta = _read_project_image_meta()
+    meta[filename] = {**meta.get(filename, {}), **clean_metadata}
+    _write_project_image_meta(meta)
+
+
+def get_project_image_metadata(filename: str) -> dict[str, Any]:
+    return dict(_read_project_image_meta().get(filename, {}))
+
+
+def get_project_image_metadata_map() -> dict[str, dict[str, Any]]:
+    return _read_project_image_meta()
+
+
+def project_image_webp_preview_name(original_filename: str) -> str:
+    return f"{original_filename}.webp"
+
+
+def project_image_original_name_from_preview(preview_filename: str) -> str | None:
+    if not preview_filename.endswith(".webp"):
+        return None
+    original_filename = preview_filename[:-5]
+    return original_filename or None
+
+
+def project_image_original_url(filename: str) -> str:
+    return public_url(f"/project-images/{quote(filename, safe='')}")
+
+
+def project_image_display_url(filename: str) -> str:
+    image_path = IMG_STORE / filename
+    preview_path = ensure_project_image_webp_preview(image_path)
+    if preview_path is not None:
+        return public_url(f"/project-image-previews/{quote(preview_path.name, safe='')}")
+    return project_image_original_url(filename)
+
+
+def ensure_project_image_webp_preview(image_path: Path) -> Path | None:
+    """Create or refresh a WebP preview for a project image."""
+    if image_path.suffix.lower() not in PROJECT_IMAGE_WEBP_SUFFIXES:
+        return None
+
+    preview_path = PROJECT_IMAGE_PREVIEW_STORE / project_image_webp_preview_name(image_path.name)
+    try:
+        if preview_path.exists() and preview_path.stat().st_mtime >= image_path.stat().st_mtime:
+            return preview_path
+
+        from PIL import Image, ImageOps
+
+        with Image.open(image_path) as image:
+            preview = ImageOps.exif_transpose(image)
+            if preview.mode not in {"RGB", "RGBA"}:
+                preview = preview.convert("RGBA" if "A" in preview.getbands() else "RGB")
+            preview.save(
+                preview_path,
+                "WEBP",
+                quality=PROJECT_IMAGE_WEBP_QUALITY,
+                method=6,
+            )
+        return preview_path
+    except ImportError as exc:
+        print(f"[IMG] WebP preview unavailable: {str(exc)[:120]}", flush=True)
+    except Exception as exc:
+        print(f"[IMG] WebP preview failed for {image_path.name}: {str(exc)[:120]}", flush=True)
+    return None
+
+
+def _coerce_json_dict(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        try:
+            data = json.loads(value)
+            return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
+    return {}
+
+
+def _project_image_filename_from_url(url: Any) -> str | None:
+    if not isinstance(url, str) or "/project-images/" not in url:
+        return None
+    parsed = urlparse(url)
+    filename = Path(unquote(parsed.path)).name
+    return filename or None
+
+
+def backfill_project_image_metadata_from_task_events() -> int:
+    """Backfill image metadata from persisted task inputs and image events."""
+    try:
+        import pymysql
+        from server.persistence.database import get_db
+    except Exception as exc:
+        print(f"[IMG] Metadata backfill unavailable: {str(exc)[:120]}", flush=True)
+        return 0
+
+    try:
+        db = get_db()
+        try:
+            with db.cursor(pymysql.cursors.DictCursor) as cur:
+                cur.execute(
+                    """
+                    SELECT
+                        e.payload AS image_payload,
+                        t.input AS task_input,
+                        t.created_at AS task_created_at
+                    FROM agent_events e
+                    JOIN agent_tasks t ON t.id = e.task_id
+                    WHERE e.`type` = 'image'
+                    ORDER BY e.created_at ASC
+                    """
+                )
+                rows = cur.fetchall()
+        finally:
+            db.close()
+    except Exception as exc:
+        print(f"[IMG] Metadata backfill failed: {str(exc)[:120]}", flush=True)
+        return 0
+
+    meta = _read_project_image_meta()
+    updated = 0
+    for row in rows:
+        image_payload = _coerce_json_dict(row.get("image_payload"))
+        task_input = _coerce_json_dict(row.get("task_input"))
+        filename = _project_image_filename_from_url(image_payload.get("url"))
+        if not filename:
+            continue
+
+        reference_images = task_input.get("reference_images")
+        reference_count = len(reference_images) if isinstance(reference_images, list) else 0
+        created_at = row.get("task_created_at")
+        candidate = _normalise_project_image_metadata({
+            "prompt": image_payload.get("prompt") or task_input.get("message"),
+            "style": image_payload.get("style"),
+            "model": task_input.get("image_model"),
+            "ratio": task_input.get("image_ratio"),
+            "resolution": task_input.get("image_resolution"),
+            "source": "AI 生图",
+            "reference_count": reference_count,
+            "created_at": created_at.strftime("%Y-%m-%d %H:%M") if hasattr(created_at, "strftime") else created_at,
+        })
+        existing = meta.get(filename, {})
+        merged = dict(existing)
+        for key, value in candidate.items():
+            if value is not None and (key not in merged or merged.get(key) in ("", None)):
+                merged[key] = value
+        if merged != existing:
+            meta[filename] = merged
+            updated += 1
+
+    if updated:
+        _write_project_image_meta(meta)
+        print(f"[IMG] Metadata backfilled: {updated}", flush=True)
+    return updated
 
 
 def generate_html_file(content: str, title: str) -> str:
@@ -73,7 +292,7 @@ def image_ratio_to_size(ratio: str) -> str:
     return "2K"
 
 
-def save_image_to_library(image_url: str, style: str) -> str:
+def save_image_to_library(image_url: str, style: str, metadata: dict[str, Any] | None = None) -> str:
     """Download image from URL and save to project image library. Dual archive."""
     import uuid
     resp = req.get(image_url, timeout=30)
@@ -86,6 +305,8 @@ def save_image_to_library(image_url: str, style: str) -> str:
     (PROJECT_LIB / "AI 对话产出").mkdir(parents=True, exist_ok=True)
     (PROJECT_LIB / "图片库" / filename).write_bytes(resp.content)
     (PROJECT_LIB / "AI 对话产出" / filename).write_bytes(resp.content)
+    ensure_project_image_webp_preview(filepath)
+    save_project_image_metadata(filename, {"style": style, **(metadata or {})})
     print(f"[IMG] Saved: {filename} (图片库 + AI 对话产出)", flush=True)
     return filename
 

@@ -86,7 +86,7 @@ function parseConversationMessages(messages: { role: string; content: string }[]
       content = content.replace(/<!--suggestions:\[.*?\]-->/, '').trim();
     }
 
-    const images: { style: string; url: string; prompt: string }[] = [];
+    const images: { style: string; url: string; original_url?: string; prompt: string }[] = [];
     const imageRegex = /!\[(.+?)\]\((.+?)\)/g;
     let match: RegExpExecArray | null;
     while ((match = imageRegex.exec(content)) !== null) {

@@ -35,12 +35,15 @@ Keep error messages concise. Do not include API keys, request headers, full prom
 ### 2. Signatures
 
 - `GET /api/download-image?url=<image-url>` -> image bytes as an attachment, or `{"error": "<message>"}`.
+- Local WebP preview URLs use `/project-image-previews/<original-filename>.webp` and should download the matching original image when possible.
 
 ### 3. Contracts
 
 - `url` is required.
 - Local generated images must use `/project-images/<filename>` on `localhost`, `127.0.0.1`, `::1`, or a relative `/project-images/...` URL.
+- Local generated image previews may use `/project-image-previews/<filename>.webp` on the same allowed origins.
 - Local project images are read from `IMG_STORE` directly rather than fetched through HTTP.
+- Preview URLs are mapped back to `IMG_STORE/<original-filename>` before returning the attachment.
 - Attachment responses must use an ASCII-safe `Content-Disposition` header with `filename*` for non-ASCII names.
 
 ### 4. Validation & Error Matrix
@@ -48,17 +51,20 @@ Keep error messages concise. Do not include API keys, request headers, full prom
 - Missing `url` -> `400 {"error": "url required"}`.
 - Unsupported or unsafe local URL -> `400 {"error": "unsupported image url"}`.
 - Local project image missing -> `404 {"error": "image not found"}`.
+- Local preview URL with missing original image -> `404 {"error": "image not found"}`.
 - Remote image fetch failure -> `502 {"error": "<truncated upstream error>"}`.
 
 ### 5. Good/Base/Bad Cases
 
 - Good: `http://localhost:5001/project-images/AI%E7%94%9F%E5%9B%BE_x.jpg` returns `200` with `filename*=UTF-8''...`.
+- Good: `http://localhost:5001/project-image-previews/AI%E7%94%9F%E5%9B%BE_x.jpg.webp` returns the original `AI生图_x.jpg` attachment.
 - Base: `http://localhost:5001/project-images/missing.jpg` returns `404`, not a server error.
 - Bad: `http://localhost:5001/api/conversations` is rejected instead of being proxied as an image download.
 
 ### 6. Tests Required
 
 - Smoke or integration test a non-ASCII local filename and assert status `200`, byte length, and `filename*=UTF-8''` in `Content-Disposition`.
+- Smoke a local preview URL and assert the returned attachment filename is the original filename, not the `.webp` preview filename.
 - Assert a missing local image returns `404`.
 - Assert an invalid URL returns `400`.
 - Run `python -m compileall kaiwuback/server`.

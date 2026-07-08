@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:5001';
+  ((import.meta as any).env?.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
 
 export async function apiJson<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {

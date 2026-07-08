@@ -82,8 +82,18 @@ export type ProjectFile = {
 export type ProjectImage = {
   name: string;
   url: string;
+  original_url?: string;
+  preview_url?: string;
   size: number;
   modified: string;
+  prompt?: string;
+  style?: string;
+  model?: string;
+  ratio?: string;
+  resolution?: string;
+  source?: string;
+  reference_count?: number;
+  created_at?: string;
 };
 
 export type SkillSource = 'market' | 'external' | 'custom';

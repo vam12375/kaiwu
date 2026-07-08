@@ -101,6 +101,20 @@ For task image/SVG events, use the `images` and `svgLogos` fields on `AgentMessa
 
 ---
 
+## High-Volume Image Lists
+
+For project-library grids or thumbnail strips that can render many stored images, do not assign original image URLs directly to every `<img>` at render time. Use `ProjectLazyImage` from `src/features/layout/ProjectLazyImage.tsx` or an equivalent IntersectionObserver-based component that only unlocks `src` near the viewport and limits concurrent image loads.
+
+```tsx
+<ProjectLazyImage src={image.url} alt={image.name} />
+```
+
+`ProjectImage.url` is a display URL and may point to a WebP preview. Download actions should prefer `image.original_url || image.url`, so users receive the original generated image when the backend provides one.
+
+This prevents the browser from queueing dozens of original image requests at once, which can leave the visible gallery blank while offscreen images compete for network slots.
+
+---
+
 ## Accessibility And Interaction
 
 - Add `type="button"` to buttons that are not form submits.

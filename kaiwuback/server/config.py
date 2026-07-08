@@ -44,6 +44,15 @@ SEEDREAM_API_KEY = os.getenv("SEEDREAM_API_KEY", "")
 SEEDREAM_URL = "https://ark.cn-beijing.volces.com/api/v3/images/generations"
 SEEDREAM_MODEL = "doubao-seedream-5-0-lite-260128"
 
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").strip().rstrip("/")
+
+
+def public_url(path: str) -> str:
+    normalized_path = "/" + path.lstrip("/")
+    if not PUBLIC_BASE_URL:
+        return normalized_path
+    return f"{PUBLIC_BASE_URL}{normalized_path}"
+
 # ═══════════════════════════════════════
 # 差异性技能库 & 报告模板
 # ═══════════════════════════════════════
@@ -59,6 +68,8 @@ MD_STORE = _BACKEND_ROOT / "conversations"
 MD_STORE.mkdir(parents=True, exist_ok=True)
 IMG_STORE = _BACKEND_ROOT / "project-images"
 IMG_STORE.mkdir(parents=True, exist_ok=True)
+PROJECT_IMAGE_PREVIEW_STORE = _BACKEND_ROOT / "project-image-previews"
+PROJECT_IMAGE_PREVIEW_STORE.mkdir(parents=True, exist_ok=True)
 PROJECT_LIB = _BACKEND_ROOT / "project-files"
 for folder in ["编程文件库", "AI 对话产出", "创业资料", "产品设计", "营销素材", "最近文件"]:
     (PROJECT_LIB / folder).mkdir(parents=True, exist_ok=True)
