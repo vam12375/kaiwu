@@ -97,6 +97,7 @@ import {
 import {
   deleteProjectFile as deleteProjectFileApi,
   deleteProjectFolder,
+  deleteProjectImages as deleteProjectImagesApi,
   fetchProjectFiles,
   fetchProjectFolders,
   renameProjectFile as renameProjectFileApi,
@@ -116,14 +117,22 @@ import { useSkillLibrary } from './hooks/useSkillLibrary';
 
 const projectFolderTones = ['blue', 'purple', 'green', 'amber', 'teal', 'rose', 'indigo', 'slate'];
 
+function getProjectFolderId(folder: Pick<ProjectFolder, 'name' | 'id'>): string {
+  return folder.id || folder.name;
+}
+
 function mergeProjectFolders(serverFolders: Array<Omit<ProjectFolder, 'tone'>>): ProjectFolder[] {
   const serverByName = new Map(serverFolders.map((folder) => [folder.name, folder]));
+  const serverById = new Map(serverFolders.map((folder) => [folder.id || folder.name, folder]));
   const templateByName = new Map(projectFolderTemplates.map((folder) => [folder.name, folder]));
   const merged: ProjectFolder[] = projectFolderTemplates.flatMap((template) => {
-    const serverFolder = serverByName.get(template.name);
+    const serverFolder = serverById.get(template.name) || serverByName.get(template.name);
     if (!serverFolder) return [];
     return {
       ...template,
+      id: serverFolder.id || template.name,
+      kind: serverFolder.kind,
+      name: serverFolder.name || template.name,
       count: serverFolder?.count || '0 个文件',
       desc: serverFolder?.desc || template.desc,
       deletable: true,
@@ -132,9 +141,12 @@ function mergeProjectFolders(serverFolders: Array<Omit<ProjectFolder, 'tone'>>):
   });
 
   serverFolders.forEach((folder, index) => {
-    if (templateByName.has(folder.name)) return;
+    const folderId = folder.id || folder.name;
+    if (templateByName.has(folderId) || templateByName.has(folder.name)) return;
     merged.push({
+      id: folderId,
       name: folder.name,
+      kind: folder.kind,
       count: folder.count || '0 个文件',
       desc: folder.desc || '自定义项目资料文件夹',
       deletable: true,
@@ -425,16 +437,23 @@ function AppShell() {
       .catch(() => {});
   }, []);
 
+  const refreshProjectImages = useCallback(() => {
+    return apiJson<ProjectImage[]>('/api/project-images')
+      .then((data) => setProjectImages(data))
+      .catch(() => {});
+  }, []);
+
   const handleRenameProjectFolder = useCallback(async (folder: ProjectFolder, payload: ProjectFolderPayload) => {
     const name = payload.name.trim();
     if (!name) return false;
 
     try {
-      await renameProjectFolderApi(folder.name, {
+      await renameProjectFolderApi(getProjectFolderId(folder), {
         name,
         desc: payload.desc.trim(),
       });
-      setSelectedProjectFile((current) => current && current.folder === folder.name ? null : current);
+      const folderId = getProjectFolderId(folder);
+      setSelectedProjectFile((current) => current && current.folder === folderId ? null : current);
       setProjectView('home');
       setSelectedFolderIndex(0);
       await refreshProjectFolders();
@@ -473,10 +492,17 @@ function AppShell() {
 
   const handleDeleteProjectFolders = useCallback(async (folderNames: string | string[]) => {
     const names = Array.isArray(folderNames) ? folderNames : [folderNames];
-    const deletableNames = names.filter((folderName) => projectFolders.some((item) => item.name === folderName));
-    if (deletableNames.length === 0) return false;
+    const foldersByIdentity = new Map(projectFolders.map((folder) => [getProjectFolderId(folder), folder]));
+    projectFolders.forEach((folder) => foldersByIdentity.set(folder.name, folder));
+    const deletableFolders: ProjectFolder[] = [];
+    names.forEach((folderName) => {
+      const folder = foldersByIdentity.get(folderName);
+      if (!folder || deletableFolders.some((item) => getProjectFolderId(item) === getProjectFolderId(folder))) return;
+      deletableFolders.push(folder);
+    });
+    if (deletableFolders.length === 0) return false;
 
-    const folderLabel = deletableNames.length === 1 ? `“${deletableNames[0]}”` : `${deletableNames.length} 个`;
+    const folderLabel = deletableFolders.length === 1 ? `“${deletableFolders[0].name}”` : `${deletableFolders.length} 个`;
     const confirmed = await requestConfirm({
       title: '删除文件夹',
       message: `确定删除${folderLabel}文件夹吗？文件夹内的文件也会一起删除。`,
@@ -487,23 +513,25 @@ function AppShell() {
     if (!confirmed) return false;
 
     try {
-      await Promise.all(deletableNames.map((folderName) => deleteProjectFolder(folderName)));
-      setRealProjectFiles((current) => current.filter((file) => !deletableNames.includes(file.folder)));
-      setSelectedProjectFile((current) => current && deletableNames.includes(current.folder) ? null : current);
-      if (deletableNames.includes('图片库')) {
+      const deletableIds = deletableFolders.map(getProjectFolderId);
+      await Promise.all(deletableFolders.map((folder) => deleteProjectFolder(getProjectFolderId(folder))));
+      setRealProjectFiles((current) => current.filter((file) => !deletableIds.includes(file.folder)));
+      setSelectedProjectFile((current) => current && deletableIds.includes(current.folder) ? null : current);
+      if (deletableFolders.some((folder) => folder.kind === 'image_library' || getProjectFolderId(folder) === '图片库')) {
         setProjectImages([]);
       }
       setProjectView('home');
       setSelectedFolderIndex(0);
       await refreshProjectFolders();
       await refreshProjectFiles();
-      showToast({ message: `已删除${deletableNames.length === 1 ? '文件夹' : `${deletableNames.length} 个文件夹`}`, variant: 'success' });
+      await refreshProjectImages();
+      showToast({ message: `已删除${deletableFolders.length === 1 ? '文件夹' : `${deletableFolders.length} 个文件夹`}`, variant: 'success' });
       return true;
     } catch {
       showToast({ message: '删除失败，请稍后重试', variant: 'error' });
       return false;
     }
-  }, [projectFolders, refreshProjectFiles, refreshProjectFolders, requestConfirm, showToast]);
+  }, [projectFolders, refreshProjectFiles, refreshProjectFolders, refreshProjectImages, requestConfirm, showToast]);
 
   const handleDeleteProjectFile = useCallback(async (file: ProjectFile) => {
     const confirmed = await requestConfirm({
@@ -530,12 +558,75 @@ function AppShell() {
     }
   }, [refreshProjectFiles, refreshProjectFolders, requestConfirm, showToast]);
 
+  const handleDeleteProjectFiles = useCallback(async (files: ProjectFile[]) => {
+    const uniqueFiles = files.filter((file, index, list) => (
+      list.findIndex((item) => item.folder === file.folder && item.name === file.name) === index
+    ));
+    if (uniqueFiles.length === 0) return false;
+
+    const fileLabel = uniqueFiles.length === 1 ? `“${uniqueFiles[0].name}”` : `${uniqueFiles.length} 个文件`;
+    const confirmed = await requestConfirm({
+      title: '删除文件',
+      message: `确定删除${fileLabel}吗？此操作无法撤销。`,
+      confirmLabel: '删除',
+      cancelLabel: '取消',
+      variant: 'danger',
+    });
+    if (!confirmed) return false;
+
+    try {
+      await Promise.all(uniqueFiles.map((file) => deleteProjectFileApi(file)));
+      setRealProjectFiles((current) => current.filter((item) => (
+        !uniqueFiles.some((file) => file.folder === item.folder && file.name === item.name)
+      )));
+      setSelectedProjectFile((current) => (
+        current && uniqueFiles.some((file) => file.folder === current.folder && file.name === current.name) ? null : current
+      ));
+      await refreshProjectFiles();
+      await refreshProjectFolders();
+      showToast({ message: `已删除${uniqueFiles.length === 1 ? '文件' : `${uniqueFiles.length} 个文件`}`, variant: 'success' });
+      return true;
+    } catch {
+      showToast({ message: '删除文件失败，请稍后重试', variant: 'error' });
+      return false;
+    }
+  }, [refreshProjectFiles, refreshProjectFolders, requestConfirm, showToast]);
+
+  const handleDeleteProjectImages = useCallback(async (imageNames: string | string[]) => {
+    const names = (Array.isArray(imageNames) ? imageNames : [imageNames]).filter(Boolean);
+    const deletableNames = names.filter((name, index, list) => (
+      projectImages.some((image) => image.name === name) && list.indexOf(name) === index
+    ));
+    if (deletableNames.length === 0) return false;
+
+    const imageLabel = deletableNames.length === 1 ? `“${deletableNames[0]}”` : `${deletableNames.length} 张图片`;
+    const confirmed = await requestConfirm({
+      title: '删除图片',
+      message: `确定删除${imageLabel}吗？此操作无法撤销。`,
+      confirmLabel: '删除',
+      cancelLabel: '取消',
+      variant: 'danger',
+    });
+    if (!confirmed) return false;
+
+    try {
+      await deleteProjectImagesApi(deletableNames);
+      setProjectImages((current) => current.filter((image) => !deletableNames.includes(image.name)));
+      await refreshProjectImages();
+      await refreshProjectFiles();
+      await refreshProjectFolders();
+      showToast({ message: `已删除${deletableNames.length === 1 ? '图片' : `${deletableNames.length} 张图片`}`, variant: 'success' });
+      return true;
+    } catch {
+      showToast({ message: '删除图片失败，请稍后重试', variant: 'error' });
+      return false;
+    }
+  }, [projectImages, refreshProjectFiles, refreshProjectFolders, refreshProjectImages, requestConfirm, showToast]);
+
   // Load project images
   useEffect(() => {
-    apiJson<ProjectImage[]>('/api/project-images')
-      .then((data) => setProjectImages(data))
-      .catch(() => {});
-  }, [messages.length]);
+    refreshProjectImages();
+  }, [messages.length, refreshProjectImages]);
 
   // Load real project files
   useEffect(() => {
@@ -656,6 +747,8 @@ function AppShell() {
           openProjectFile={openProjectFile}
           deleteProjectFolders={handleDeleteProjectFolders}
           deleteProjectFile={handleDeleteProjectFile}
+          deleteProjectFiles={handleDeleteProjectFiles}
+          deleteProjectImages={handleDeleteProjectImages}
           projectFolders={projectFolders}
           projectImages={projectImages}
           projectSearchQuery={projectSearchQuery}
