@@ -7,28 +7,19 @@ from typing import Any
 from urllib.parse import quote, unquote, urlparse
 
 from server.config import PROJECT_IMAGE_PREVIEW_STORE, PROJECT_LIB, IMG_STORE, public_url
+from server.persistence import project_metadata
 from server.utils.markdown import markdown_to_html
 
-PROJECT_IMAGE_META = IMG_STORE / ".image-meta.json"
 PROJECT_IMAGE_WEBP_SUFFIXES = {".png", ".jpg", ".jpeg"}
 PROJECT_IMAGE_WEBP_QUALITY = 82
 
 
 def _read_project_image_meta() -> dict[str, dict[str, Any]]:
-    if not PROJECT_IMAGE_META.exists():
-        return {}
-    try:
-        data = json.loads(PROJECT_IMAGE_META.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            return {}
-        return {str(key): value for key, value in data.items() if isinstance(value, dict)}
-    except Exception as exc:
-        print(f"[IMG] Metadata read failed: {str(exc)[:120]}", flush=True)
-        return {}
+    return project_metadata.read_image_meta()
 
 
 def _write_project_image_meta(meta: dict[str, dict[str, Any]]) -> None:
-    PROJECT_IMAGE_META.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    project_metadata.write_image_meta(meta)
 
 
 def _clean_meta_text(value: Any, max_length: int = 2000) -> str | None:

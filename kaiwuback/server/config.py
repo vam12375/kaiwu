@@ -86,6 +86,19 @@ DB_CONFIG = {
     "charset": os.getenv("KAIWU_DB_CHARSET", "utf8mb4"),
 }
 
+DB_POOL_CONFIG = {
+    "pool_size": _env_int("KAIWU_DB_POOL_SIZE", 5),
+    "max_overflow": _env_int("KAIWU_DB_MAX_OVERFLOW", 10),
+    "pool_timeout": _env_int("KAIWU_DB_POOL_TIMEOUT", 30),
+    "pool_recycle": _env_int("KAIWU_DB_POOL_RECYCLE", 3600),
+}
+
+DB_CONNECT_ARGS = {
+    "connect_timeout": _env_int("KAIWU_DB_CONNECT_TIMEOUT", 5),
+    "read_timeout": _env_int("KAIWU_DB_READ_TIMEOUT", 30),
+    "write_timeout": _env_int("KAIWU_DB_WRITE_TIMEOUT", 30),
+}
+
 # ═══════════════════════════════════════
 # 数据真实性铁律
 # ═══════════════════════════════════════

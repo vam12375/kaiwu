@@ -1,14 +1,10 @@
 """数据库持久化层 —— 对话CRUD + MD文件写入"""
-import os
 from pathlib import Path
 from datetime import datetime
 import pymysql
 
-from server.config import DB_CONFIG, MD_STORE
-
-
-def get_db():
-    return pymysql.connect(**DB_CONFIG)
+from server.config import MD_STORE
+from server.persistence.db import get_db
 
 
 def _safe_filename(title: str) -> str:

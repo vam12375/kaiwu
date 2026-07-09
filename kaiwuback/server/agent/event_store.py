@@ -37,48 +37,14 @@ class EventStore:
             db = get_db()
             try:
                 with db.cursor() as cur:
-                    cur.execute(
-                        """
-                        CREATE TABLE IF NOT EXISTS agent_tasks (
-                            id VARCHAR(36) PRIMARY KEY,
-                            conversation_id BIGINT NULL,
-                            status VARCHAR(32) NOT NULL,
-                            node_id VARCHAR(32) NULL,
-                            input LONGTEXT NOT NULL,
-                            result LONGTEXT NULL,
-                            error TEXT NULL,
-                            created_at DATETIME NOT NULL,
-                            updated_at DATETIME NOT NULL,
-                            INDEX idx_agent_tasks_conversation (conversation_id),
-                            INDEX idx_agent_tasks_status (status),
-                            INDEX idx_agent_tasks_updated (updated_at)
-                        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
-                        """
-                    )
-                    cur.execute(
-                        """
-                        CREATE TABLE IF NOT EXISTS agent_events (
-                            id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                            task_id VARCHAR(36) NOT NULL,
-                            `type` VARCHAR(64) NOT NULL,
-                            payload LONGTEXT NOT NULL,
-                            seq INT NOT NULL,
-                            created_at DATETIME NOT NULL,
-                            UNIQUE KEY uniq_agent_events_task_seq (task_id, seq),
-                            INDEX idx_agent_events_task (task_id, seq),
-                            CONSTRAINT fk_agent_events_task
-                                FOREIGN KEY (task_id) REFERENCES agent_tasks(id)
-                                ON DELETE CASCADE
-                        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
-                        """
-                    )
-                db.commit()
+                    cur.execute("SELECT event_seq FROM agent_tasks LIMIT 0")
+                    cur.execute("SELECT seq FROM agent_events LIMIT 0")
                 self._schema_ready = True
             finally:
                 db.close()
         except Exception as exc:
             self._db_available = False
-            print(f"[EVENT_STORE] MySQL unavailable, using memory store: {exc}", flush=True)
+            print(f"[EVENT_STORE] MySQL schema unavailable, using memory store: {exc}", flush=True)
 
     def create_task(self, payload: dict[str, Any]) -> dict[str, Any]:
         self.ensure_schema()
@@ -108,8 +74,8 @@ class EventStore:
                 cur.execute(
                     """
                     INSERT INTO agent_tasks
-                        (id, conversation_id, status, node_id, input, result, error, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        (id, conversation_id, status, node_id, input, result, error, event_seq, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         task_id,
@@ -119,6 +85,7 @@ class EventStore:
                         json.dumps(payload, ensure_ascii=False),
                         None,
                         None,
+                        0,
                         now,
                         now,
                     ),
@@ -289,8 +256,12 @@ class EventStore:
         db = get_db()
         try:
             with db.cursor() as cur:
-                cur.execute("SELECT COALESCE(MAX(seq), 0) + 1 FROM agent_events WHERE task_id = %s", (task_id,))
-                seq = cur.fetchone()[0]
+                cur.execute("SELECT event_seq FROM agent_tasks WHERE id = %s FOR UPDATE", (task_id,))
+                row = cur.fetchone()
+                if not row:
+                    raise RuntimeError("task not found")
+                seq = int(row[0] or 0) + 1
+                cur.execute("UPDATE agent_tasks SET event_seq = %s WHERE id = %s", (seq, task_id))
                 cur.execute(
                     "INSERT INTO agent_events (task_id, `type`, payload, seq, created_at) VALUES (%s, %s, %s, %s, %s)",
                     (task_id, event_type, json.dumps(payload, ensure_ascii=False), seq, now),
@@ -308,6 +279,12 @@ class EventStore:
             with self._condition:
                 self._condition.notify_all()
             return event
+        except Exception:
+            try:
+                db.rollback()
+            except Exception:
+                pass
+            raise
         finally:
             db.close()
 
