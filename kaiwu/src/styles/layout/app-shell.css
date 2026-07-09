@@ -1,0 +1,19 @@
+.desktop-app {
+  width: 100vw;
+  height: 100vh;
+  background: #f8fafc;
+}
+
+.shell {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 216px 1fr;
+  background: #f8fafc;
+  transition: grid-template-columns 0.22s ease;
+}
+
+.shell.sidebar-collapsed {
+  grid-template-columns: 1fr;
+}
+

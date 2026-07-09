@@ -1,0 +1,55 @@
+/* Typing indicator */
+
+.doubao-typing {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 0;
+}
+
+.doubao-typing span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #94a3b8;
+  animation: doubaoBounce 1.2s ease-in-out infinite;
+}
+
+.doubao-typing span:nth-child(1) { animation-delay: 0s; }
+.doubao-typing span:nth-child(2) { animation-delay: 0.15s; }
+.doubao-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes doubaoBounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+/* Action buttons under AI messages */
+
+.doubao-actions {
+  display: flex;
+  gap: 4px;
+  padding-left: 42px;
+}
+
+.doubao-actions button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #94a3b8;
+  transition: all 0.15s ease;
+}
+
+.doubao-actions button:hover {
+  background: #f1f5f9;
+  color: #64748b;
+}
+

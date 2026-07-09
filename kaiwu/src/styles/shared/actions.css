@@ -1,0 +1,25 @@
+.primary-action {
+  height: 38px;
+  padding: 0 15px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0f172a, #334155);
+  color: #ffffff;
+  box-shadow: 0 14px 26px rgba(15, 23, 42, 0.16);
+}
+
+.primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  box-shadow: none;
+}
+
+
+.secondary-action {
+  height: 38px;
+  padding: 0 15px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: #334155;
+}
+

@@ -4,6 +4,10 @@ import { Search } from 'lucide-react';
 import { skillOptions } from '../../data';
 import { createProjectFolder, uploadProjectFile } from '../../api/projectFiles';
 import type { CustomSkillInput, ProjectFile, ProjectFolder, ShowToast, SkillLibraryItem } from '../../types';
+import '../../styles/modals/modal-base.css';
+import '../../styles/modals/app-modal-forms.css';
+import '../../styles/modals/recharge-modal.css';
+import '../../styles/settings/settings-page.css';
 
 type AppModalsProps = Record<string, any> & {
   showToast: ShowToast;

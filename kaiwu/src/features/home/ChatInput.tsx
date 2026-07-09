@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Plus, Mic, MicOff, ArrowUp, Bot, ChevronDown, Sparkles, Square, X } from 'lucide-react';
 import { modelOptions } from '../../data';
 import type { ShowToast, SkillLibraryItem } from '../../types';
+import '../../styles/home/chat-input.css';
 
 type ChatInputProps = {
   activeDirection: string;

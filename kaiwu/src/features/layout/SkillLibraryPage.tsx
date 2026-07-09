@@ -3,6 +3,9 @@ import { CheckCircle2, Plus, Search, Sparkles } from 'lucide-react';
 
 import { skillCategories } from '../../data';
 import type { SkillCategory, SkillLibraryItem, SkillModal, SkillView } from '../../types';
+import '../../styles/project/library-shared.css';
+import '../../styles/project/skill-library-page.css';
+import '../../styles/project/tones.css';
 
 type SkillLibraryPageProps = {
   activeSkillCategory: SkillCategory;
