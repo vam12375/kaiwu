@@ -68,11 +68,15 @@ export function reduceAgentEvent(state: AgentEventState, event: AgentTaskEvent):
   }
 
   if (event.type === 'file_saved') {
+    const msg = event.message || '';
+    const isReport = msg.includes('报告') || msg.includes('方案') || msg.includes('手册') || msg.includes('文案');
+    const prefix = isReport ? '\n\n✅ ' : '\n\n📁 ';
+    const suffix = isReport ? '\n\n📁 文件已保存至「编程文件库」+「AI 对话产出」' : '';
     return {
       handled: true,
       state: replaceLastAiMessage({
         ...state,
-        aiContent: `${state.aiContent}\n\n📁 ${event.message}`,
+        aiContent: `${state.aiContent}${prefix}${msg}${suffix}`,
       }),
     };
   }

@@ -1,7 +1,7 @@
 """意图识别模块"""
 import json, re
 from server.llm_client import call_deepseek
-from server.config import REPORT_MODEL
+from server.config import KAIWU_BYPASS_NODE_PREREQUISITES, REPORT_MODEL
 
 # 会话级状态存储
 _session_state: dict = {}
@@ -30,7 +30,6 @@ def get_uploaded_files_text() -> str:
 def clear_uploaded_files():
     """清除所有上传文件"""
     _uploaded_files.clear()
-from server.config import REPORT_MODEL
 
 INTENT_PROMPT = """你是意图调度Agent。你的唯一职责：识别用户意图，分配唯一Node节点或转交兜底Agent。
 
@@ -72,6 +71,10 @@ def recognize_intent(user_input: str, model: str = None) -> dict:
     # ════════════════════════════════════
     research_signal = ["调研", "行业", "赛道", "市场分析", "大盘研判", "行业报告"]
     has_research = any(kw in lower_input for kw in research_signal)
+    export_triggers = ["导出", "生成html", "生成HTML", "生成文件", "做成文件", "导出为文件"]
+    if any(kw in user_input for kw in export_triggers) or any(kw in lower_input for kw in ["export", "html"]):
+        return {"node": "export", "topic": user_input[:30], "summary": user_input, "constraints": ""}
+
     # 具体品类词（可扩展）
     category_words = ["服装", "网球", "餐饮", "美妆", "宠物", "咖啡", "茶饮", "运动", "家居", "电子", "汽车", "教育", "医疗", "金融", "母婴", "零食", "酒", "鞋", "箱包", "香氛", "香水"]
     has_category = any(kw in lower_input for kw in category_words)
@@ -226,11 +229,12 @@ def save_session_state(history: list, node_id: str):
 
 NODE_TRIGGERS = {
     "node0": ["用户诊断", "了解我", "诊断", "帮我分析一下我的情况", "评估我的资源"],
-    "node1": ["市场调研报告", "生成调研报告", "调研报告", "行业研判", "行业大盘", "行业报告"],
+    "node1": ["开始调研", "市场调研报告", "生成调研报告", "调研报告", "行业研判", "行业大盘", "行业报告"],
     "node1.5": ["提炼品牌精神", "提取人群共性", "生成品牌屋", "生成设计提示词", "品牌精神", "品牌价值观", "品牌屋生成"],
-    "node2": ["商业方案", "品牌落地规划", "商业策划", "落地执行方案"],
-    "node3": ["产品设计", "做什么产品", "做哪些产品", "做什么样的服务", "产品规划", "设计产品", "产品方案"],
-    "node4": ["商业PPT", "融资PPT", "项目汇报PPT", "汇报演示"],
+    "node2": ["做商业方案", "生成商业方案", "导出商业方案", "商业方案", "品牌落地规划", "商业策划", "落地执行方案"],
+    "node3": ["产品设计", "生成产品手册", "导出产品手册", "做什么产品", "做哪些产品", "做什么样的服务", "产品规划", "设计产品", "产品方案"],
+    "node4": ["生成营销方案", "导出营销方案", "营销方案", "营销策划", "营销推广", "商业PPT", "融资PPT", "项目汇报PPT", "汇报演示"],
+    "node5": ["生成自媒体文案", "自媒体文案", "营销文案", "文案", "种草", "短视频脚本", "产品详情页", "私域话术"],
 }
 
 REGENERATE_TRIGGERS = ["重新生成", "重做", "刷新全套", "重新做", "重跑"]
@@ -241,7 +245,8 @@ DEPENDENCIES = {
     "node2": {"hard": ["node1"], "soft": []},
     "node1.5": {"hard": ["node1", "node2"], "soft": []},
     "node3": {"hard": ["node2"], "soft": []},
-    "node4": {"hard": ["node1", "node2"], "soft": ["node1.5"]},
+    "node4": {"hard": ["node2", "node3"], "soft": ["node1.5"]},
+    "node5": {"hard": ["node4"], "soft": ["node1.5"]},
 }
 
 MANUAL_TRIGGERS = {
@@ -293,6 +298,8 @@ def validate_node_prerequisites(node_id: str, history: list) -> dict:
             "node1": ["市场规模", "消费者画像", "竞争格局", "行业增速", "人群特征"],
             "node1.5": ["品牌精神", "品牌屋", "品牌价值观", "品牌理念", "品牌命名", "品牌差异化", "三合一提示词", "Logo设计提示词"],
             "node2": ["商业方案", "产品线", "营销渠道", "财务目标", "品牌价值观", "品牌命名", "品牌理念"],
+            "node3": ["产品落地手册", "产品设计", "产品定位", "SKU", "定价", "启动方案"],
+            "node4": ["内容营销方案", "营销方案", "营销策略", "传播矩阵", "发布节奏", "5A"],
         }
         indicators = dep_indicators.get(dep, [])
         if not any(kw in all_text for kw in indicators):
@@ -308,16 +315,30 @@ def validate_node_prerequisites(node_id: str, history: list) -> dict:
         if not any(kw in all_text for kw in indicators):
             missing_soft.append(dep)
 
+    if missing_hard and KAIWU_BYPASS_NODE_PREREQUISITES:
+        print(
+            f"[INTENT] Bypassing missing node prerequisites for test flow: {missing_hard}",
+            flush=True,
+        )
+        return {"ok": True, "missing_hard": missing_hard, "missing_soft": missing_soft, "message": ""}
+
     if missing_hard:
-        dep_names = {"node0":"用户诊断","node1":"行业调研报告","node1.5":"品牌精神数据","node2":"商业方案","node3":"Logo方案"}
+        dep_names = {
+            "node0": "用户诊断",
+            "node1": "行业调研报告",
+            "node1.5": "品牌精神数据",
+            "node2": "商业方案",
+            "node3": "产品设计方案",
+            "node4": "营销方案",
+        }
         names = [dep_names.get(d,d) for d in missing_hard]
         msg = f"⚠️ 当前节点需要先完成：{', '.join(names)}。请先执行前置节点后再试。"
         return {"ok": False, "missing_hard": missing_hard, "missing_soft": missing_soft, "message": msg}
 
     if missing_soft:
-        dep_names = {"node1.5":"品牌精神数据"}
+        dep_names = {"node0": "用户诊断", "node1.5": "品牌精神数据"}
         names = [dep_names.get(d,d) for d in missing_soft]
-        msg = f"💡 建议先执行 {names[0]} 以获得更精准的品牌约束。是否跳过直接生成？（回复 1 继续执行或回复 2 先执行Node1.5）"
+        msg = f"💡 建议先执行 {names[0]} 以获得更精准的上下文约束。是否跳过直接生成？（回复 1 继续执行或回复 2 先执行前置节点）"
         return {"ok": True, "missing_hard": [], "missing_soft": missing_soft, "message": msg}
 
     return {"ok": True, "missing_hard": [], "missing_soft": [], "message": ""}

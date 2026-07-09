@@ -4,8 +4,20 @@ import time
 import threading
 from pathlib import Path
 from datetime import datetime
+from urllib.parse import quote
 
+from server.config import PROJECT_LIB, public_url
 from server.utils.common import generate_html_file, save_project_file
+
+
+def _project_file_url(file_path: str) -> str:
+    """Convert a saved project file path into the public project-files URL."""
+    path = Path(file_path).resolve()
+    root = PROJECT_LIB.resolve()
+    relative = path.relative_to(root)
+    folder = quote(relative.parent.as_posix(), safe="")
+    filename = quote(relative.name, safe="")
+    return public_url(f"/project-files/{folder}/{filename}")
 
 
 def handle_summary(message: str, history: list, model: str = None):
@@ -61,10 +73,11 @@ def handle_summary(message: str, history: list, model: str = None):
     if file_path and Path(file_path).exists():
         import subprocess
         subprocess.run(["open", "-a", "Google Chrome", file_path], check=False)
+        file_url = _project_file_url(file_path)
         content_text = f"✅ **{report_title}** 已生成\n\n存放位置：\n- 编程文件库\n- AI 对话产出\n\n已在 Chrome 中打开。"
         yield f"data: {json.dumps({'type': 'content', 'content': content_text})}\n\n"
         file_msg = f"{report_title}已保存至「编程文件库」+「AI 对话产出」"
-        yield f"data: {json.dumps({'type': 'file_saved', 'message': file_msg, 'folder': '编程文件库', 'auto_preview': True, 'desktop_path': file_path})}\n\n"
+        yield f"data: {json.dumps({'type': 'file_saved', 'message': file_msg, 'folder': '编程文件库', 'auto_preview': True, 'desktop_path': file_path, 'url': file_url})}\n\n"
 
     yield f"data: {json.dumps({'type': 'progress', 'node': 'summary', 'message': '完成', 'percent': 100})}\n\n"
     yield f"data: {json.dumps({'type': 'done'})}\n\n"
@@ -72,21 +85,35 @@ def handle_summary(message: str, history: list, model: str = None):
 
 def handle_export(message: str, history: list, intent: dict):
     """处理文件导出请求，SSE 流式推送进度"""
-    source_node = "node1"
+    source_node = ""
+    explicit_source_rules = [
+        ("node5", ["导出自媒体文案报告", "导出营销文案报告", "自媒体文案报告", "营销文案报告", "内容营销体系报告"]),
+        ("node4", ["导出营销方案报告", "导出营销方案", "营销方案报告", "内容营销方案报告", "系统化内容营销解决方案"]),
+        ("node3", ["导出产品手册报告", "导出产品手册", "产品手册报告", "产品落地手册报告", "产品落地执行手册"]),
+        ("node2", ["导出商业方案报告", "导出商业方案", "商业方案报告", "商业计划书", "品牌商业计划书"]),
+        ("node1", ["导出调研报告", "导出市场调研报告", "调研报告", "市场调研报告"]),
+    ]
+    for node, keywords in explicit_source_rules:
+        if any(keyword in message for keyword in keywords):
+            source_node = node
+            break
+
     node_keywords = {
         "node1": ["调研", "市场", "行业", "竞品", "用户画像", "洞察", "TAM", "SAM", "需求"],
         "node2": ["商业方案", "定位", "产品矩阵", "盈利", "风控", "供应链", "赛道"],
-        "node3": ["Logo", "logo", "图片", "素材", "海报", "视觉", "设计图"],
+        "node3": ["产品手册", "产品落地", "产品设计", "SKU", "产品定位", "成本核算", "启动方案"],
         "node1.5": ["品牌理念", "品牌故事", "Slogan", "品牌屋", "品牌精神", "品牌策略"],
-        "node5": ["种草", "文案", "详情页", "话术", "短视频", "营销投放", "小红书", "抖音"],
-        "node4": ["PPT", "大纲", "页面要点", "汇报", "方案汇报"],
+        "node4": ["营销方案", "营销策略", "内容营销", "传播矩阵", "发布节奏", "5A", "营销推广"],
+        "node5": ["自媒体文案", "营销文案", "种草", "文案", "详情页", "话术", "短视频", "小红书", "抖音"],
     }
-    max_score = 0
-    for node, keywords in node_keywords.items():
-        score = sum(1 for kw in keywords if kw in message or (history and any(kw in m.get("content", "") for m in history)))
-        if score > max_score:
-            max_score = score
-            source_node = node
+    if not source_node:
+        source_node = "node1"
+        max_score = 0
+        for node, keywords in node_keywords.items():
+            score = sum(1 for kw in keywords if kw in message)
+            if score > max_score:
+                max_score = score
+                source_node = node
 
     # 优先从节点输出缓存取内容，避免历史消息错位
     from server.agent.runtime import get_node_output
@@ -94,19 +121,40 @@ def handle_export(message: str, history: list, intent: dict):
     if cached:
         full_content = cached
     else:
-        content_parts = []
+        full_content = ""
+        node_stop_markers = {
+            "node1": "node1 市场调研完整输出",
+            "node2": "node2 商业方案完整输出",
+            "node3": "node3 产品落地手册完整输出",
+            "node4": "node4 内容营销方案完整输出",
+            "node5": "node5 内容营销体系完整输出",
+        }
+        target_marker = node_stop_markers.get(source_node, "")
+        ai_messages = []
         if history:
             for m in history:
                 if m.get("role") == "ai" and m.get("content"):
-                    content_parts.append(m["content"])
-        full_content = "\n\n".join(content_parts[-3:]) if content_parts else message
+                    ai_messages.append(m["content"])
+        for content in reversed(ai_messages):
+            if target_marker and target_marker in content:
+                full_content = content
+                break
+        if not full_content:
+            full_content = ai_messages[-1] if ai_messages else message
     if not full_content.strip():
         full_content = message
-    title = intent.get('topic', 'AI导出')[:30]
+    title_map = {
+        "node1": "深度商业调研报告",
+        "node2": "品牌商业方案报告",
+        "node3": "产品落地执行手册",
+        "node4": "系统化内容营销方案",
+        "node5": "自媒体文案报告",
+    }
+    title = title_map.get(source_node, intent.get('topic', 'AI导出'))[:30]
 
     yield f"data: {json.dumps({'type': 'progress', 'node': 'export', 'message': f'已识别上下文：{source_node}，正在生成HTML文件...', 'percent': 50})}\n\n"
 
-    folder_map = {"node1": "创业资料", "node2": "创业资料", "node1.5": "产品设计", "node3": "产品设计", "node5": "营销素材", "node4": "AI 对话产出"}
+    folder_map = {"node1": "创业资料", "node2": "创业资料", "node1.5": "产品设计", "node3": "产品设计", "node5": "营销素材", "node4": "营销素材"}
     target_folder = folder_map.get(source_node, "AI 对话产出")
 
     try:
@@ -114,7 +162,8 @@ def handle_export(message: str, history: list, intent: dict):
         path1 = save_project_file(html_content, title, "编程文件库", "html")
         save_project_file(html_content, title, target_folder, "html")
         save_project_file(html_content, title, "AI 对话产出", "html")
-        yield f"data: {json.dumps({'type': 'file_saved', 'message': f'已调取{source_node}数据生成HTML，存入「编程文件库」+「{target_folder}」', 'folder': target_folder, 'auto_preview': True})}\n\n"
+        file_url = _project_file_url(path1)
+        yield f"data: {json.dumps({'type': 'file_saved', 'message': f'已调取{source_node}数据生成HTML，存入「编程文件库」+「{target_folder}」', 'folder': target_folder, 'auto_preview': True, 'desktop_path': path1, 'url': file_url, 'file_url': file_url})}\n\n"
         yield f"data: {json.dumps({'type': 'content', 'content': f'✅ 文件已生成\\n\\n调取节点：{source_node}\\n文件类型：HTML\\n存放位置：编程文件库 + {target_folder}'})}\n\n"
     except Exception as e:
         yield f"data: {json.dumps({'type': 'content', 'content': f'文件生成失败：{str(e)[:200]}'})}\n\n"

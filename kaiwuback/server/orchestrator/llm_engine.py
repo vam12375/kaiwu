@@ -157,7 +157,10 @@ def generate_ai_response(node_id: str, user_input: str, history: list = None, mo
 
     node_prompt = NODE_SYSTEM_PROMPTS.get(node_id, NODE_SYSTEM_PROMPTS["node1"])
     if is_followup:
-        system = DATA_INTEGRITY + "\n\n" + node_prompt + "\n\n⚠️ 追问模式：用户正在追问上一轮输出的某个具体部分。基于上述节点专业框架回答，但只聚焦用户追问的具体问题，深入展开该部分内容（含表格和具体数据），不要重新生成完整报告。"
+        if node_id == "node0":
+            system = DATA_INTEGRITY + "\n\n" + node_prompt + "\n\n⚠️ 追问模式：用户正在继续诊断对话。请基于对话上下文自然地推进下一轮诊断。如果用户已确认信息无误并要求生成报告，请直接输出完整的 # 品牌全案策略 · 对话信息摘要 报告，不要输出过渡语。"
+        else:
+            system = DATA_INTEGRITY + "\n\n" + node_prompt + "\n\n⚠️ 追问模式：用户正在追问上一轮输出的某个具体部分。基于上述节点专业框架回答，但只聚焦用户追问的具体问题，深入展开该部分内容（含表格和具体数据），不要重新生成完整报告。"
     else:
         system = DATA_INTEGRITY + "\n\n" + node_prompt
 
@@ -225,6 +228,12 @@ def generate_ai_response(node_id: str, user_input: str, history: list = None, mo
         # token 预算：深度分析节点需要更大空间，node0 诊断需要容纳 §1-§7 输出
         max_tok_map = {"node1": 40000, "node2": 25000, "node3": 17000, "node4": 40000, "node5": 40000, "node0": 16000}
         max_tok = max_tok_map.get(node_id, 8192)
+
+        # Node0 第6轮确认：用户信息确认完毕，需要输出完整 dialogue_brief，提高 token 上限
+        if node_id == "node0" and is_followup:
+            confirm_signals = ["确认", "准确", "没问题", "可以", "生成", "ok", "好的", "正确", "无误", "没毛病", "是的"]
+            if any(kw in user_input.lower() for kw in confirm_signals):
+                max_tok = 32000
         result = call_llm(system, dated_input, model=model, max_tokens=max_tok)
         return result
     except Exception as e:

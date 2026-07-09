@@ -91,7 +91,6 @@ import {
   quickSkillsByDirection,
   modelOptions,
   imageModelOptions,
-  heroText,
   projectFolders as projectFolderTemplates,
 } from './data';
 import {
@@ -185,7 +184,6 @@ function AppShell() {
   const [libraryModal, setLibraryModal] = useState<LibraryModalType>(null);
   const [activeDirection, setActiveDirection] = useState<Direction>('通用');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [typedHeroText, setTypedHeroText] = useState('');
   const [activeSettingsSection, setActiveSettingsSection] = useState<SettingsSection>('系统设置');
   const [activePage, setActivePage] = useState<SidebarPage>('home');
   const [projectView, setProjectView] = useState<ProjectView>('home');
@@ -225,7 +223,6 @@ function AppShell() {
   const [projectFileEditTarget, setProjectFileEditTarget] = useState<ProjectFile | null>(null);
   const [projectUploadTargetFolder, setProjectUploadTargetFolder] = useState<ProjectFolder | null>(null);
   const [codingPreviewUrl, setCodingPreviewUrl] = useState<string>('');
-  const [selectedCardImage, setSelectedCardImage] = useState<string | undefined>();
   const [imageModel, setImageModel] = useState<ImageModelId>(imageModelOptions[0]);
   const [imageRatio, setImageRatio] = useState<ImageRatio>('1:1');
   const [imageResolution, setImageResolution] = useState<ImageResolution>('2K');
@@ -300,6 +297,7 @@ function AppShell() {
     setProjectImages,
     setActivePage,
     setCodingMode,
+    setCodingPreviewUrl,
     showToast,
   });
   const {
@@ -635,42 +633,6 @@ function AppShell() {
     refreshProjectFolders();
   }, [messages.length, refreshProjectFiles, refreshProjectFolders]);
 
-  // Typing effect for hero text
-  useEffect(() => {
-    let index = 0;
-    let deleting = false;
-    let timeoutId: number | undefined;
-
-    const tick = () => {
-      if (!deleting) {
-        index += 1;
-        setTypedHeroText(heroText.slice(0, index));
-        if (index === heroText.length) {
-          deleting = true;
-          timeoutId = window.setTimeout(tick, 1600);
-          return;
-        }
-        timeoutId = window.setTimeout(tick, heroText[index - 1] === '\n' ? 260 : 58);
-        return;
-      }
-
-      index -= 1;
-      setTypedHeroText(heroText.slice(0, index));
-      if (index === 0) {
-        deleting = false;
-        timeoutId = window.setTimeout(tick, 480);
-        return;
-      }
-      timeoutId = window.setTimeout(tick, 24);
-    };
-
-    timeoutId = window.setTimeout(tick, 520);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
-
   const openProjectFile = (file: ProjectFile) => {
     setActiveCreativeMode(null);
     setSelectedProjectFile(file);
@@ -808,13 +770,10 @@ function AppShell() {
           skillView={skillView}
           stopGeneration={stopGeneration}
           suggestedQuestions={suggestedQuestions}
-          typedHeroText={typedHeroText}
           uploadedFiles={uploadedFiles}
           videoLibraryOpen={videoLibraryOpen}
           videoModelOpen={videoModelOpen}
           videoSettingOpen={videoSettingOpen}
-          selectedCardImage={selectedCardImage}
-          setSelectedCardImage={setSelectedCardImage}
           selectedComposerSkill={selectedComposerSkill}
           setSelectedComposerSkill={setSelectedComposerSkill}
           showToast={showToast}

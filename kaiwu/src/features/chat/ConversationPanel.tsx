@@ -45,6 +45,10 @@ type GeneratedImagePreview = {
   original_url?: string;
 };
 
+type PreviewWindowGlobal = Window & typeof globalThis & {
+  __kaiwuPendingPreviewWindow?: Window | null;
+};
+
 type ConversationPanelProps = {
   activeDirection: Direction;
   activeNodeId: string;
@@ -106,11 +110,28 @@ function imageDownloadUrl(imageUrl: string) {
 }
 
 const NODE_ACTIONS: Record<string, { label: string; prompt: string }> = {
-  node1: { label: '📄 生成深度商业调研报告', prompt: '生成深度商业调研报告' },
-  node2: { label: '📋 生成品牌商业计划书', prompt: '帮我生成品牌商业计划书' },
-  node3: { label: '📦 生成产品手册', prompt: '生成产品手册' },
-  node4: { label: '📊 生成系统化内容营销解决方案', prompt: '生成系统化内容营销解决方案' },
+  node1: { label: '📄 导出调研报告', prompt: '导出调研报告' },
+  node2: { label: '📋 导出商业方案', prompt: '导出商业方案报告' },
+  node3: { label: '📦 导出产品手册', prompt: '导出产品手册报告' },
+  node4: { label: '📊 导出营销方案', prompt: '导出营销方案报告' },
+  node5: { label: '✍️ 导出自媒体文案', prompt: '导出自媒体文案报告' },
 };
+
+const NEXT_NODE_PROMPTS = new Set([
+  '开始进行调研',
+  '开始生成商业方案',
+  '开始产品设计',
+  '开始生成营销方案',
+  '开始生成自媒体文案',
+]);
+
+function reserveReportPreviewWindow() {
+  const previewWindow = window.open('', '_blank');
+  if (!previewWindow) return;
+  previewWindow.document.title = '报告生成中';
+  previewWindow.document.body.innerHTML = '<div style="font-family: system-ui, sans-serif; padding: 32px; color: #334155;">报告生成中，请稍候...</div>';
+  (window as PreviewWindowGlobal).__kaiwuPendingPreviewWindow = previewWindow;
+}
 
 function saveToProject(content: string, title: string, showToast: ShowToast) {
   apiJson<{ status: string; message?: string }>('/api/save-to-project', {
@@ -195,12 +216,39 @@ export function ConversationPanel({
 }: ConversationPanelProps) {
   const [referenceImages, setReferenceImages] = useState<ReferenceImagePreview[]>([]);
   const [previewImage, setPreviewImage] = useState<GeneratedImagePreview | null>(null);
+  const [actionableNodeIds, setActionableNodeIds] = useState<Set<string>>(new Set());
+  const [actionableMessageIndices, setActionableMessageIndices] = useState<Map<string, number>>(new Map());
 
   useEffect(() => () => {
     referenceImages.forEach((image) => {
       if (image.url.startsWith('blob:')) URL.revokeObjectURL(image.url);
     });
   }, [referenceImages]);
+
+  useEffect(() => {
+    if (isLoading || messages.length === 0 || !NODE_ACTIONS[activeNodeId]) return;
+
+    const lastAiIndex = [...messages].reverse().findIndex((message) => message.role === 'ai');
+    if (lastAiIndex < 0) return;
+
+    const messageIndex = messages.length - 1 - lastAiIndex;
+    setActionableNodeIds((previous) => {
+      const next = new Set(previous);
+      next.add(activeNodeId);
+      return next;
+    });
+    setActionableMessageIndices((previous) => {
+      const next = new Map(previous);
+      next.set(activeNodeId, messageIndex);
+      return next;
+    });
+  }, [activeNodeId, isLoading, messages]);
+
+  useEffect(() => {
+    if (messages.length > 0) return;
+    setActionableNodeIds(new Set());
+    setActionableMessageIndices(new Map());
+  }, [messages.length]);
 
   const openReferenceImagePicker = () => {
     const input = document.createElement('input');
@@ -250,17 +298,21 @@ export function ConversationPanel({
     });
   };
 
-  const runPrompt = (prompt: string, followupNode: string | null) => {
+  const runPrompt = (prompt: string, followupNode: string | null, options: { clearSuggested?: boolean } = {}) => {
     if (convTextareaRef.current) convTextareaRef.current.value = prompt;
     setInputText(prompt);
-    setSuggestedQuestions([]);
+    if (options.clearSuggested !== false) {
+      setSuggestedQuestions([]);
+    } else {
+      reserveReportPreviewWindow();
+    }
     followupNodeRef.current = followupNode;
     window.setTimeout(() => {
-      void handleSend();
+      void handleSend({ preserveSuggestedQuestions: options.clearSuggested === false });
     }, 80);
   };
 
-  const nodeAction = NODE_ACTIONS[activeNodeId];
+  const suggestedQuestionFollowupNode = (question: string) => (NEXT_NODE_PROMPTS.has(question) ? null : activeNodeId);
 
   return (
     <section className="doubao-conversation">
@@ -391,6 +443,43 @@ export function ConversationPanel({
                       dangerouslySetInnerHTML={{ __html: renderMarkdown(message.images?.length ? stripRenderedMarkdownImages(message.content) : message.content) }}
                     />
                   )}
+                  {message.role === 'ai' &&
+                    [...actionableNodeIds]
+                      .filter((nodeId) => NODE_ACTIONS[nodeId] && messageIndex === actionableMessageIndices.get(nodeId))
+                      .map((nodeId) => {
+                        const action = NODE_ACTIONS[nodeId];
+                        return (
+                          <button
+                            key={nodeId}
+                            className="node-action-card"
+                            onClick={() => runPrompt(action.prompt, null, { clearSuggested: false })}
+                            type="button"
+                            style={{
+                              marginTop: 12,
+                              padding: '10px 14px',
+                              borderRadius: 8,
+                              background: 'var(--surface)',
+                              border: '1px solid var(--border)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              transition: 'background 0.15s',
+                              width: '100%',
+                            }}
+                            onMouseEnter={(event) => {
+                              event.currentTarget.style.background = 'var(--border)';
+                            }}
+                            onMouseLeave={(event) => {
+                              event.currentTarget.style.background = 'var(--surface)';
+                            }}
+                          >
+                            <span style={{ fontSize: 16, flexShrink: 0 }}>{action.label.slice(0, 2)}</span>
+                            <span style={{ fontSize: 13, color: 'var(--text-primary)', flex: 1 }}>{action.label.slice(3)}</span>
+                            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>→</span>
+                          </button>
+                        );
+                      })}
                 </div>
               </div>
 
@@ -494,25 +583,12 @@ export function ConversationPanel({
             <button
               key={index}
               className="suggested-question-chip"
-              onClick={() => runPrompt(question, activeNodeId)}
+              onClick={() => runPrompt(question, suggestedQuestionFollowupNode(question))}
               type="button"
             >
               {question}
             </button>
           ))}
-        </div>
-      )}
-
-      {nodeAction && !isLoading && messages.length > 0 && (
-        <div className="suggested-questions-bar">
-          <button
-            className="suggested-question-chip"
-            style={{ background: 'var(--brand-accent)', color: '#fff', borderColor: 'var(--brand-accent)', fontWeight: 600 }}
-            onClick={() => runPrompt(nodeAction.prompt, null)}
-            type="button"
-          >
-            {nodeAction.label}
-          </button>
         </div>
       )}
 

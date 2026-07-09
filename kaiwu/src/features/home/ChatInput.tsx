@@ -1,8 +1,16 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { type CSSProperties, useState, useRef, useEffect, useCallback } from 'react';
 import { Plus, Mic, MicOff, ArrowUp, Bot, ChevronDown, Sparkles, Square, X } from 'lucide-react';
 import { modelOptions } from '../../data';
 import type { ShowToast, SkillLibraryItem } from '../../types';
 import '../../styles/home/chat-input.css';
+
+export type StartupSkillSelection = {
+  title: string;
+  label: string;
+  description: string;
+  color: string;
+  prompt: string;
+};
 
 type ChatInputProps = {
   activeDirection: string;
@@ -11,6 +19,9 @@ type ChatInputProps = {
   onPresetConsumed?: () => void;
   selectedSkill?: SkillLibraryItem | null;
   onSelectedSkillRemove?: () => void;
+  startupSkill?: StartupSkillSelection | null;
+  onStartupSkillRemove?: () => void;
+  placeholder?: string;
   // kaiwu integration
   homeTextareaRef: React.RefObject<HTMLTextAreaElement | null>;
   inputText: string;
@@ -31,6 +42,9 @@ export function ChatInput({
   onPresetConsumed,
   selectedSkill,
   onSelectedSkillRemove,
+  startupSkill,
+  onStartupSkillRemove,
+  placeholder = '描述你的创业想法、目标用户、当前卡点，开物会帮你拆成可执行方案...',
   homeTextareaRef,
   inputText,
   setInputText,
@@ -121,7 +135,7 @@ export function ChatInput({
               if (e.key === 'Enter' && !e.shiftKey && !isComposingRef.current) { e.preventDefault(); onSend(); }
               else if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); onSend(); }
             }}
-            placeholder="描述你的创业想法、目标用户、当前卡点，开物会帮你拆成可执行方案..."
+            placeholder={placeholder}
             className="chat-input-textarea"
             rows={3}
           />
@@ -131,6 +145,30 @@ export function ChatInput({
               <img src={previewImage} alt="" />
               <button className="chat-preview-remove" onClick={() => setPreviewImage(undefined)} aria-label="移除图片">
                 <X size={12} />
+              </button>
+            </div>
+          )}
+
+          {startupSkill && (
+            <div
+              className="chat-startup-skill-card"
+              style={{ '--startup-skill-color': startupSkill.color } as CSSProperties}
+            >
+              <span className="chat-startup-skill-icon">
+                <Sparkles size={15} />
+              </span>
+              <div>
+                <strong>{startupSkill.title}</strong>
+                <span>{startupSkill.label} · {startupSkill.description}</span>
+              </div>
+              <button
+                className="chat-startup-skill-remove"
+                onClick={onStartupSkillRemove}
+                type="button"
+                aria-label="移除首页技能卡"
+                title="移除首页技能卡"
+              >
+                <X size={13} />
               </button>
             </div>
           )}

@@ -1,5 +1,4 @@
 import base64
-import json
 import re
 import shutil
 from binascii import Error as BinasciiError
@@ -11,12 +10,19 @@ from fastapi import Request
 from fastapi.responses import JSONResponse, FileResponse
 from starlette.responses import Response
 
-from server.config import IMG_STORE, PROJECT_LIB, PUBLIC_BASE_URL, public_url
-from server.utils.file_io import backfill_project_image_metadata_from_task_events, get_project_image_metadata_map
+from server.config import IMG_STORE, PROJECT_IMAGE_PREVIEW_STORE, PROJECT_LIB, PUBLIC_BASE_URL, public_url
+from server.persistence import project_metadata
+from server.utils.file_io import (
+    backfill_project_image_metadata_from_task_events,
+    delete_project_image_metadata,
+    ensure_project_image_webp_preview,
+    get_project_image_metadata_map,
+    project_image_display_url,
+    project_image_original_name_from_preview,
+    project_image_original_url,
+    project_image_webp_preview_name,
+)
 
-PROJECT_FOLDER_META = PROJECT_LIB / ".folder-meta.json"
-PROJECT_FILE_META = PROJECT_LIB / ".file-meta.json"
-PROJECT_FOLDER_STATE = PROJECT_LIB / ".folder-state.json"
 VIRTUAL_PROJECT_FOLDERS = {"最近文件"}
 DEFAULT_PROJECT_FOLDERS = {"编程文件库", "AI 对话产出", "创业资料", "产品设计", "营销素材"}
 VIRTUAL_LIBRARY_FOLDERS = {"图片库", "视频库"}
@@ -24,63 +30,27 @@ INVALID_NAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
 
 def _read_folder_meta() -> dict[str, str]:
-    if not PROJECT_FOLDER_META.exists():
-        return {}
-    try:
-        data = json.loads(PROJECT_FOLDER_META.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            return {}
-        return {str(key): str(value or "") for key, value in data.items()}
-    except Exception as e:
-        print(f"[FILE] Folder metadata read failed: {str(e)[:120]}", flush=True)
-        return {}
+    return project_metadata.read_folder_meta()
 
 
 def _write_folder_meta(meta: dict[str, str]) -> None:
-    PROJECT_FOLDER_META.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    project_metadata.write_folder_meta(meta)
 
 
 def _read_file_meta() -> dict[str, dict]:
-    if not PROJECT_FILE_META.exists():
-        return {}
-    try:
-        data = json.loads(PROJECT_FILE_META.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            return {}
-        return {str(key): value for key, value in data.items() if isinstance(value, dict)}
-    except Exception as e:
-        print(f"[FILE] File metadata read failed: {str(e)[:120]}", flush=True)
-        return {}
+    return project_metadata.read_file_meta()
 
 
 def _write_file_meta(meta: dict[str, dict]) -> None:
-    PROJECT_FILE_META.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    project_metadata.write_file_meta(meta)
 
 
 def _read_folder_state() -> dict[str, object]:
-    if not PROJECT_FOLDER_STATE.exists():
-        return {"hidden": [], "display_names": {}}
-    try:
-        data = json.loads(PROJECT_FOLDER_STATE.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            return {"hidden": [], "display_names": {}}
-        hidden = data.get("hidden", [])
-        if not isinstance(hidden, list):
-            hidden = []
-        display_names = data.get("display_names", {})
-        if not isinstance(display_names, dict):
-            display_names = {}
-        return {
-            "hidden": [str(name) for name in hidden],
-            "display_names": {str(key): str(value or "") for key, value in display_names.items()},
-        }
-    except Exception as e:
-        print(f"[FILE] Folder state read failed: {str(e)[:120]}", flush=True)
-        return {"hidden": [], "display_names": {}}
+    return project_metadata.read_folder_state()
 
 
 def _write_folder_state(state: dict) -> None:
-    PROJECT_FOLDER_STATE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    project_metadata.write_folder_state(state)
 
 
 def _hide_virtual_folder(folder_name: str) -> None:

@@ -3,6 +3,7 @@ import { useEffect, useState, type SyntheticEvent } from 'react';
 
 import { API_BASE_URL } from '../../api/client';
 import type { ProjectImage } from '../../types';
+import { ProjectLazyImage } from './ProjectLazyImage';
 import '../../styles/modals/modal-base.css';
 import '../../styles/project/project-image-preview.css';
 

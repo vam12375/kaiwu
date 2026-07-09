@@ -1,5 +1,6 @@
 -- Task-driven Agent Runtime persistence tables.
--- Apply before enabling /api/tasks in a production environment.
+-- Legacy standalone SQL kept for manual reference.
+-- Prefer Alembic from kaiwuback/: python -m alembic upgrade head
 
 CREATE TABLE IF NOT EXISTS agent_tasks (
     id VARCHAR(36) PRIMARY KEY,
@@ -9,11 +10,14 @@ CREATE TABLE IF NOT EXISTS agent_tasks (
     input LONGTEXT NOT NULL,
     result LONGTEXT NULL,
     error TEXT NULL,
+    event_seq INT NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     INDEX idx_agent_tasks_conversation (conversation_id),
     INDEX idx_agent_tasks_status (status),
-    INDEX idx_agent_tasks_updated (updated_at)
+    INDEX idx_agent_tasks_updated (updated_at),
+    INDEX idx_agent_tasks_status_updated (status, updated_at),
+    INDEX idx_agent_tasks_conv_updated (conversation_id, updated_at)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS agent_events (
@@ -25,6 +29,7 @@ CREATE TABLE IF NOT EXISTS agent_events (
     created_at DATETIME NOT NULL,
     UNIQUE KEY uniq_agent_events_task_seq (task_id, seq),
     INDEX idx_agent_events_task (task_id, seq),
+    INDEX idx_agent_events_type_created (`type`, created_at),
     CONSTRAINT fk_agent_events_task
         FOREIGN KEY (task_id) REFERENCES agent_tasks(id)
         ON DELETE CASCADE

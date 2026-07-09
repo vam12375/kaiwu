@@ -6,11 +6,8 @@ import { directions, modelOptions, settingsSections } from '../../data';
 import { ConversationPanel } from '../chat/ConversationPanel';
 import { SkillLibraryPage } from './SkillLibraryPage';
 import { ProjectImagePreviewModal } from './ProjectImagePreviewModal';
-import { BrandHeader } from '../home/BrandHeader';
-import { ChatInput } from '../home/ChatInput';
-import { WorkflowSteps } from '../home/WorkflowSteps';
-import { FeatureCards } from '../home/FeatureCards';
-import { FreeMode } from '../home/FreeMode';
+import { ProjectLazyImage } from './ProjectLazyImage';
+import { HomeExperience } from '../home/HomeExperience';
 import type { ProjectImage } from '../../types';
 import '../../styles/layout/main-stage.css';
 import '../../styles/home/home-stage.css';
@@ -145,13 +142,10 @@ export function MainStage(props: MainStageProps) {
     skillView,
     stopGeneration,
     suggestedQuestions,
-    typedHeroText,
     uploadedFiles,
     videoLibraryOpen,
     videoModelOpen,
     videoSettingOpen,
-    selectedCardImage,
-    setSelectedCardImage,
     selectedComposerSkill,
     setSelectedComposerSkill,
     showToast,
@@ -357,7 +351,7 @@ export function MainStage(props: MainStageProps) {
   }, [visibleProjectFileKey]);
 
   return (
-            <main className="main-stage">
+            <main className={!conversationOpen && activePage === 'home' ? 'main-stage home-stage-active' : 'main-stage'}>
               <button
                 className={sidebarCollapsed ? 'sidebar-toggle solo visible' : 'sidebar-toggle solo'}
                 onClick={() => setSidebarCollapsed(false)}
@@ -788,47 +782,22 @@ export function MainStage(props: MainStageProps) {
                   )}
                 </section>
               ) : (
-                <>
-                  <div className="main-stage-scroll">
-                    <BrandHeader />
-
-                    <ChatInput
-                      activeDirection={activeDirection}
-                      quickSkills={quickSkills}
-                      selectedSkill={selectedComposerSkill}
-                      onSelectedSkillRemove={() => setSelectedComposerSkill?.(null)}
-                      presetImage={selectedCardImage}
-                      onPresetConsumed={() => setSelectedCardImage?.(undefined)}
-                      homeTextareaRef={homeTextareaRef}
-                      inputText={inputText}
-                      setInputText={setInputText}
-                      isComposingRef={isComposingRef}
-                      handleSend={handleSend}
-                      stopGeneration={stopGeneration}
-                      isLoading={isLoading}
-                      modelIndex={modelIndex}
-                      setModelIndex={setModelIndex}
-                      showToast={showToast}
-                    />
-
-                    <section className="workflow-cards-section">
-                      <div className="workflow-cards-relative">
-                        <div className="workflow-steps-col">
-                          <WorkflowSteps />
-                        </div>
-                        <div className="feature-cards-wrapper">
-                          <FeatureCards onCardClick={(title, imageUrl) => {
-                            setSelectedCardImage?.(imageUrl);
-                          }} />
-                        </div>
-                      </div>
-                    </section>
-
-                    <div className="footer-note">内容由 AI 生成，请核实完整性</div>
-                  </div>
-
-                  <FreeMode />
-                </>
+                <HomeExperience
+                  activeDirection={activeDirection}
+                  quickSkills={quickSkills}
+                  selectedSkill={selectedComposerSkill}
+                  onSelectedSkillRemove={() => setSelectedComposerSkill?.(null)}
+                  homeTextareaRef={homeTextareaRef}
+                  inputText={inputText}
+                  setInputText={setInputText}
+                  isComposingRef={isComposingRef}
+                  handleSend={handleSend}
+                  stopGeneration={stopGeneration}
+                  isLoading={isLoading}
+                  modelIndex={modelIndex}
+                  setModelIndex={setModelIndex}
+                  showToast={showToast}
+                />
               )}
             </main>
   );

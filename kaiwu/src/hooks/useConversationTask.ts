@@ -40,6 +40,7 @@ export type ConversationTaskCacheEntry = {
 
 export type SendMessageOptions = {
   fallbackMessage?: string;
+  preserveSuggestedQuestions?: boolean;
   referenceImages?: ImageReferenceInput[];
   taskType?: 'image_generation';
 };
@@ -81,6 +82,7 @@ type UseConversationTaskOptions = {
   setProjectImages: Dispatch<SetStateAction<ProjectImage[]>>;
   setActivePage: Dispatch<SetStateAction<SidebarPage>>;
   setCodingMode: Dispatch<SetStateAction<'preview' | 'code'>>;
+  setCodingPreviewUrl: Dispatch<SetStateAction<string>>;
   showToast?: ShowToast;
 };
 
@@ -117,6 +119,7 @@ const REPORT_COMMAND_KEYWORDS = [
   '做商业方案',
   '产品设计',
   '营销文案',
+  '自媒体文案',
   '品牌设计',
 ];
 
@@ -180,7 +183,9 @@ export function useConversationTask(options: UseConversationTaskOptions) {
     if (options.homeTextareaRef.current) options.homeTextareaRef.current.value = '';
     if (options.convTextareaRef.current) options.convTextareaRef.current.value = '';
     options.setInputText('');
-    options.setSuggestedQuestions([]);
+    if (!sendOptions.preserveSuggestedQuestions) {
+      options.setSuggestedQuestions([]);
+    }
 
     const nextConversationTitle = text.slice(0, 20) + (text.length > 20 ? '...' : '');
     const userMessage: AgentMessage = { role: 'user', content: text };
@@ -223,6 +228,7 @@ export function useConversationTask(options: UseConversationTaskOptions) {
       },
       refreshHistory,
       refreshProjectImages,
+      setCodingPreviewUrl: options.setCodingPreviewUrl,
       openCodingPreview: () => {
         options.setActivePage('coding');
         options.setCodingMode('preview');

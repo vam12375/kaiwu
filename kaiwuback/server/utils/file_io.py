@@ -4,29 +4,23 @@ import os, uuid, requests as req
 from pathlib import Path
 from datetime import datetime
 from typing import Any
-from urllib.parse import unquote, urlparse
+from urllib.parse import quote, unquote, urlparse
 
-from server.config import PROJECT_LIB, IMG_STORE
+from server.config import PROJECT_IMAGE_PREVIEW_STORE, PROJECT_LIB, IMG_STORE, public_url
+from server.persistence import project_metadata
 from server.utils.markdown import markdown_to_html
+from server.utils.report_html import render_report_html
 
-PROJECT_IMAGE_META = IMG_STORE / ".image-meta.json"
+PROJECT_IMAGE_WEBP_SUFFIXES = {".png", ".jpg", ".jpeg"}
+PROJECT_IMAGE_WEBP_QUALITY = 82
 
 
 def _read_project_image_meta() -> dict[str, dict[str, Any]]:
-    if not PROJECT_IMAGE_META.exists():
-        return {}
-    try:
-        data = json.loads(PROJECT_IMAGE_META.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            return {}
-        return {str(key): value for key, value in data.items() if isinstance(value, dict)}
-    except Exception as exc:
-        print(f"[IMG] Metadata read failed: {str(exc)[:120]}", flush=True)
-        return {}
+    return project_metadata.read_image_meta()
 
 
 def _write_project_image_meta(meta: dict[str, dict[str, Any]]) -> None:
-    PROJECT_IMAGE_META.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    project_metadata.write_image_meta(meta)
 
 
 def _clean_meta_text(value: Any, max_length: int = 2000) -> str | None:
@@ -174,40 +168,7 @@ def backfill_project_image_metadata_from_task_events() -> int:
 def generate_html_file(content: str, title: str) -> str:
     """Generate a beautified, standards-compliant HTML5 file"""
     body_html = markdown_to_html(content)
-    return f'''<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{title}</title>
-<style>
-*{{margin:0;padding:0;box-sizing:border-box}}
-body{{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f8fafc;color:#0f172a;line-height:1.7;padding:40px 20px}}
-.container{{max-width:900px;margin:0 auto;background:#fff;border-radius:16px;padding:40px 48px;box-shadow:0 1px 3px rgba(15,23,42,.04);border:1px solid rgba(15,23,42,.06)}}
-h1{{font-size:24px;font-weight:700;color:#1e1b4b;margin-bottom:8px}}
-h2{{font-size:18px;font-weight:600;color:#0f172a;margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid rgba(99,102,241,.12)}}
-h3{{font-size:15px;font-weight:600;color:#334155;margin:16px 0 8px}}
-h4{{font-size:14px;font-weight:600;color:#475569;margin:12px 0 6px}}
-p{{margin:8px 0;font-size:14px;color:#475569}}
-strong{{color:#1e1b4b;font-weight:700}}
-table{{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}}
-thead th{{background:#f8fafc;padding:8px 12px;text-align:left;font-weight:600;color:#0f172a;border-bottom:2px solid #e2e8f0}}
-tbody td{{padding:8px 12px;border-bottom:1px solid #f1f5f9;color:#475569}}
-ul,ol{{margin:8px 0 8px 20px}}
-li{{margin:4px 0;font-size:14px;color:#475569}}
-blockquote{{margin:12px 0;padding:10px 16px;border-left:3px solid #6366f1;background:linear-gradient(90deg,rgba(99,102,241,.04),rgba(139,92,246,.02));border-radius:0 8px 8px 0;color:#64748b;font-size:13px}}
-hr{{border:0;height:1px;background:linear-gradient(90deg,rgba(99,102,241,.15),transparent);margin:20px 0}}
-code{{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:.9em;color:#6366f1}}
-.footer{{margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:12px;text-align:center}}
-</style>
-</head>
-<body>
-<div class="container">
-{body_html}
-<div class="footer">曜势科技 · AI自动生成 · {datetime.now().strftime('%Y-%m-%d %H:%M')}</div>
-</div>
-</body>
-</html>'''
+    return render_report_html(body_html, title)
 
 
 def save_project_file(content: str, filename: str, folder: str, file_type: str = "html") -> str:

@@ -46,6 +46,7 @@ def _parse_chart_value(s):
 
 NODE_REPORT_MAP = [
     # (node_ids, template_file, report_title)
+    ({"node5"}, "品牌商业计划书.html", "自媒体文案报告"),
     ({"node4"}, "品牌商业计划书.html", "系统化内容营销解决方案"),
     ({"node3", "node3.1"}, "产品落地执行手册.html", "产品落地执行手册"),
     ({"node2"}, "品牌商业计划书.html", "品牌商业计划书"),
@@ -73,9 +74,12 @@ def detect_nodes_from_history(history: list) -> set:
     # Node3.1: 生成图片
     if any(kw in all_text for kw in ["生成图片", "生成一张", "画一张", "文生图"]):
         nodes.add("node3.1")
-    # Node4: PPT
-    if any(kw in all_text for kw in ["PPT", "大纲", "幻灯片"]):
+    # Node4: 营销方案
+    if any(kw in all_text for kw in ["内容营销方案", "营销方案", "营销策略", "传播矩阵", "发布节奏", "5A漏斗"]):
         nodes.add("node4")
+    # Node5: 自媒体文案
+    if any(kw in all_text for kw in ["自媒体文案", "营销文案", "种草文案", "短视频脚本", "产品详情页", "私域话术", "内容营销体系"]):
+        nodes.add("node5")
     return nodes
 
 
@@ -101,9 +105,11 @@ def generate_summary_report(message, history, model=None):
         report_title = "品牌手册"
     elif any(kw in lower_msg for kw in ["产品手册", "产品落地"]):
         report_title = "产品落地执行手册"
-    elif any(kw in lower_msg for kw in ["营销解决方案", "营销手册"]):
+    elif any(kw in lower_msg for kw in ["自媒体文案", "营销文案", "文案报告", "内容营销体系"]):
+        report_title = "自媒体文案报告"
+    elif any(kw in lower_msg for kw in ["营销解决方案", "营销手册", "营销方案"]):
         report_title = "系统化内容营销解决方案"
-    elif any(kw in lower_msg for kw in ["商业计划书"]):
+    elif any(kw in lower_msg for kw in ["商业计划书", "商业报告", "商业方案"]):
         report_title = "品牌商业计划书"
     elif any(kw in lower_msg for kw in ["调研报告", "调研", "报告"]):
         report_title = "深度商业调研报告"
@@ -116,6 +122,7 @@ def generate_summary_report(message, history, model=None):
     # 按报告类型匹配源节点
     source_node_map = {
         "产品落地": "node3", "产品手册": "node3",
+        "自媒体文案": "node5", "营销文案": "node5",
         "营销": "node4",
         "调研": "node1", "报告": "node1",
         "商业计划书": "node2",
@@ -135,6 +142,7 @@ def generate_summary_report(message, history, model=None):
             "node2": "node2 商业方案完整输出",
             "node3": "node3 产品落地手册完整输出",
             "node4": "node4 内容营销方案完整输出",
+            "node5": "node5 内容营销体系完整输出",
         }
         target_marker = node_stop_markers.get(source_node, "")
         ai_msgs = [m["content"] for m in history if m.get("role") == "ai" and m.get("content")]

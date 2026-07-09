@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/index.md", "reason": "首页替换属于前端 UI/component 变更，需要按前端 spec 入口读取相关指南。"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "确认首页组件、样式和静态资源应放置的位置。"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "迁移静态 HTML 为 React 组件时遵守组件、交互和可访问性规范。"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "保留 App/MainStage 现有状态边界，避免把新交互写成孤立逻辑。"}

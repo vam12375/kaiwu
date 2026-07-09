@@ -243,7 +243,7 @@ class AgentRuntime:
             self.emit(task_id, "progress", {"node": node_id, "message": step_msg, "percent": progress})
             time.sleep(0.4)
 
-        llm_thread.join(timeout=5)
+        llm_thread.join()
         if self._cancelled(task_id):
             return
 
@@ -256,6 +256,10 @@ class AgentRuntime:
         else:
             ai_text = "抱歉，AI 服务暂时不可用。请稍后重试。"
 
+        # 最终兜底：确保 ai_text 永远不为空
+        if not ai_text or not ai_text.strip():
+            ai_text = "抱歉，AI 服务暂时不可用。请稍后重试。"
+
         print(f"[RESPONSE] Node={node_id}, len={len(ai_text)}, err={bool(llm_error[0])}", flush=True)
         sess_save(history, node_id)
         save_session_state(history, node_id)
@@ -266,6 +270,30 @@ class AgentRuntime:
         # node0 完成后将 dialogue_brief.md 存入 AI 对话产出
         if node_id == "node0":
             import re as _re_md
+
+            # 防线1：检测 LLM 是否在诊断中途（非确认阶段）提前输出 dialogue_brief.md。
+            # 如果 brief 在回复开头（<100字），说明 LLM 正确响应了确认指令，不应截断。
+            has_round_6 = bool(_re_md.search(r'第\s*6\s*轮', ai_text))
+            brief_idx = ai_text.find("# 品牌全案策略 · 对话信息摘要")
+            if brief_idx > 100 and not has_round_6:
+                print("[NODE0] Premature dialogue_brief.md detected (no round 6), stripping", flush=True)
+                ai_text = ai_text[:brief_idx].strip()
+                _node_output_cache[node_id] = ai_text
+
+            # 防线2：检测 LLM 是否在 node0 中混入了 Node1 调研内容，自动截断。
+            node1_leak_markers = [
+                "报告一：深度市场调研报告", "一、市场规模分析", "二、核心驱动因素",
+                "三、竞争格局", "四、目标人群画像", "五、商业机会", "六、机会评估",
+                "七、建议方向", "🔮 解语", "## 报告一", "### 报告一",
+            ]
+            for marker in node1_leak_markers:
+                idx = ai_text.find(marker)
+                if idx != -1:
+                    print(f"[NODE0] Truncated Node1 leak at marker: {marker[:30]}", flush=True)
+                    ai_text = ai_text[:idx].strip()
+                    _node_output_cache[node_id] = ai_text
+                    break
+
             m = _re_md.search(
                 r'(# 品牌全案策略 · 对话信息摘要.*?)(?:```\s*$|以上为 node0)',
                 ai_text, _re_md.DOTALL
@@ -702,7 +730,7 @@ class AgentRuntime:
         # 短消息（≤30字）才视为切换指令；长消息是诊断回答，不触发切换
         if len(message.strip()) > 30:
             return False
-        transition_signals = ["开始调研", "做商业方案", "产品设计", "营销方案", "营销文案", "品牌设计"]
+        transition_signals = ["开始调研", "开始进行调研", "做商业方案", "产品设计", "营销方案", "营销文案", "自媒体文案", "品牌设计"]
         return any(keyword in message for keyword in transition_signals)
 
     def _apply_node0_context(self, node_id: str, message: str) -> str:
@@ -710,7 +738,7 @@ class AgentRuntime:
         if last_node != "node0":
             return node_id
         if self._is_node0_transition(message):
-            if any(keyword in message for keyword in ["开始调研", "生成报告"]):
+            if any(keyword in message for keyword in ["开始调研", "开始进行调研", "生成报告"]):
                 return "node1"
             if any(keyword in message for keyword in ["做商业方案", "商业方案"]):
                 return "node2"
@@ -718,7 +746,7 @@ class AgentRuntime:
                 return "node3"
             if "营销方案" in message:
                 return "node4"
-            if "营销文案" in message:
+            if "营销文案" in message or "自媒体文案" in message:
                 return "node5"
             if "品牌设计" in message:
                 return "node1.5"
@@ -728,10 +756,16 @@ class AgentRuntime:
 
     @staticmethod
     def _suggested_questions(node_id: str) -> list[str]:
-        if node_id == "node2":
-            return ["能详细展开品牌定位部分吗？", "产品体系方面有什么建议？", "盈利模式如何落地执行？"]
+        if node_id == "node0":
+            return ["开始进行调研"]
         if node_id == "node1":
-            return ["这个市场的规模增速是多少？", "核心目标人群是谁？", "有哪些竞品值得关注？"]
+            return ["开始生成商业方案"]
+        if node_id == "node2":
+            return ["开始产品设计"]
+        if node_id == "node3":
+            return ["开始生成营销方案"]
+        if node_id == "node4":
+            return ["开始生成自媒体文案"]
         return []
 
     def _cancelled(self, task_id: str) -> bool:

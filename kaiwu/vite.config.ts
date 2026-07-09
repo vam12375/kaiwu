@@ -12,6 +12,18 @@ export default defineConfig({
         target: 'http://localhost:5001',
         changeOrigin: true,
       },
+      '/project-files': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+      },
+      '/project-images': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+      },
+      '/project-image-previews': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+      },
     },
   },
 });

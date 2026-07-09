@@ -18,6 +18,10 @@ type NodeStatus = {
   message: string;
 };
 
+type PreviewWindowGlobal = Window & typeof globalThis & {
+  __kaiwuPendingPreviewWindow?: Window | null;
+};
+
 type AgentTaskControllerDeps = {
   getState: () => AgentEventState;
   setState: (state: AgentEventState) => void;
@@ -30,6 +34,7 @@ type AgentTaskControllerDeps = {
   refreshHistory: () => void;
   refreshProjectImages: () => void;
   openCodingPreview: () => void;
+  setCodingPreviewUrl: (url: string) => void;
   showToast?: ShowToast;
 };
 
@@ -49,6 +54,18 @@ export function createAgentTaskController(deps: AgentTaskControllerDeps) {
       deps.refreshProjectImages();
       deps.showToast?.({ message: event.message || '文件已保存', variant: 'success' });
       if (event.auto_preview) {
+        const previewUrl = event.url || event.file_url;
+        if (previewUrl) {
+          deps.setCodingPreviewUrl(previewUrl);
+          const appWindow = window as PreviewWindowGlobal;
+          const previewWindow = appWindow.__kaiwuPendingPreviewWindow;
+          if (previewWindow && !previewWindow.closed) {
+            previewWindow.location.href = previewUrl;
+            appWindow.__kaiwuPendingPreviewWindow = null;
+          } else {
+            window.open(previewUrl, '_blank', 'noopener,noreferrer');
+          }
+        }
         deps.openCodingPreview();
       }
       return;
@@ -148,4 +165,3 @@ export function createAgentTaskController(deps: AgentTaskControllerDeps) {
 
   return { handleEvent, stop, fail };
 }
-
