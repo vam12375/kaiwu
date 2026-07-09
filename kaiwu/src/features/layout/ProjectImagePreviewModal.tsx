@@ -3,6 +3,8 @@ import { useEffect, useState, type SyntheticEvent } from 'react';
 
 import { API_BASE_URL } from '../../api/client';
 import type { ProjectImage } from '../../types';
+import '../../styles/modals/modal-base.css';
+import '../../styles/project/project-image-preview.css';
 
 type ProjectImagePreviewModalProps = {
   images: ProjectImage[];

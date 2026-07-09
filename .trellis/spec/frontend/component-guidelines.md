@@ -34,7 +34,7 @@ Avoid adding broad `any` props. If a prop set becomes too large, extract a compo
 
 ## Styling
 
-The current app uses global `src/styles.css` classes plus CSS variables declared in `:root`.
+The current app uses global class-based CSS plus CSS variables declared in `:root`. `src/styles.css` is the foundational/shared entrypoint; domain styles live under `src/styles/` and should be imported by the owning component when possible.
 
 Use existing classes and CSS variables where possible:
 
@@ -48,6 +48,8 @@ Use existing classes and CSS variables where possible:
 - radius tokens such as `--radius-sm`, `--radius-md`, `--radius-lg`
 
 Inline styles exist in a few generated preview/image sections, but new durable UI should prefer class names in `styles.css`. Use inline styles only for small dynamic values that are awkward to express as classes.
+
+When adding durable CSS, choose the closest domain file under `src/styles/` (for example chat/conversation, project library, modals, home, settings, coding) and import it from the owning component. Only edit `src/styles.css` for base variables, shared controls, global animations, or legacy fallbacks, and treat import order as part of the cascade contract.
 
 ---
 

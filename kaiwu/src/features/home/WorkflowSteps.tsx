@@ -1,4 +1,5 @@
 import { WORKFLOW_STEPS } from '../../data';
+import '../../styles/home/workflow-steps.css';
 
 export function WorkflowSteps() {
   return (

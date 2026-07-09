@@ -12,6 +12,16 @@ import { WorkflowSteps } from '../home/WorkflowSteps';
 import { FeatureCards } from '../home/FeatureCards';
 import { FreeMode } from '../home/FreeMode';
 import type { ProjectImage } from '../../types';
+import '../../styles/layout/main-stage.css';
+import '../../styles/home/home-stage.css';
+import '../../styles/project/project-gallery.css';
+import '../../styles/project/project-file-detail.css';
+import '../../styles/project/project-library.css';
+import '../../styles/creative/creative-page.css';
+import '../../styles/creative/creative-workspaces.css';
+import '../../styles/coding/coding.css';
+import '../../styles/settings/settings-page.css';
+import '../../styles/settings/settings-workbench.css';
 
 type MainStageProps = Record<string, any>;
 

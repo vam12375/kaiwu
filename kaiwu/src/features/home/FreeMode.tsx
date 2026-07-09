@@ -1,3 +1,5 @@
+import '../../styles/home/free-mode.css';
+
 export function FreeMode() {
   return (
     <div className="free-mode-card">

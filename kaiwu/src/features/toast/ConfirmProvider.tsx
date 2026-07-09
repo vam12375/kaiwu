@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import '../../styles/feedback/confirm.css';
 
 type ConfirmVariant = 'danger' | 'default';
 

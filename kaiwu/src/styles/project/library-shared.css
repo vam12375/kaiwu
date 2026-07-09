@@ -1,0 +1,134 @@
+.library-page {
+  position: relative;
+  z-index: 4;
+  flex: 1;
+  min-height: 0;
+  padding: 26px 34px 28px;
+  overflow: auto;
+}
+
+.library-header,
+.library-toolbar,
+.skill-library-grid,
+.project-section {
+  width: min(1060px, calc(100vw - 280px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.library-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.library-header h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.library-header p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.primary-action {
+  height: 38px;
+  padding: 0 15px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0f172a, #334155);
+  color: #ffffff;
+  box-shadow: 0 14px 26px rgba(15, 23, 42, 0.16);
+}
+
+.primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  box-shadow: none;
+}
+
+.library-header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.library-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.library-search {
+  height: 40px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.library-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.library-search input::placeholder {
+  color: #94a3b8;
+}
+
+.library-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(241, 245, 249, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.library-tabs button {
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.library-tabs button.active {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.library-back-button {
+  align-self: flex-start;
+  height: 32px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.06);
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+}
+

@@ -1,0 +1,44 @@
+/* ── Suggested follow-up questions ── */
+.suggested-questions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 20px 4px;
+  max-width: var(--work-width);
+  margin: 0 auto;
+}
+.suggested-question-chip {
+  padding: 6px 14px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.suggested-question-chip:hover {
+  background: var(--brand-accent);
+  color: #fff;
+  border-color: var(--brand-accent);
+}
+
+/* ── Uploaded file tags ── */
+.uploaded-files-bar {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 8px 20px 4px; max-width: var(--work-width); margin: 0 auto;
+}
+.uploaded-file-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #e8f4fd; border: 1px solid #b8d4e8;
+  border-radius: 6px; padding: 4px 10px; font-size: 12px; color: #1a3a5c;
+}
+.file-tag-icon { font-size: 14px; }
+.file-tag-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-tag-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 16px; color: #888; padding: 0 2px; line-height: 1;
+}
+.file-tag-close:hover { color: #e00; }
+

@@ -1,0 +1,220 @@
+.project-file-detail {
+  width: min(1320px, calc(100vw - 320px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.project-file-detail-top,
+.project-detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.project-detail-back,
+.project-detail-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.project-detail-actions button {
+  height: 36px;
+  padding: 0 13px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.project-detail-actions .primary-action {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.project-detail-actions .danger-action {
+  color: #dc2626;
+  background: #fff1f2;
+  border-color: rgba(220, 38, 38, 0.18);
+}
+
+.project-file-detail-shell {
+  min-height: 700px;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.project-file-info-panel,
+.project-file-preview-panel {
+  min-width: 0;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.06);
+}
+
+.project-file-info-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+
+.project-file-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  color: #0f172a;
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.95), rgba(240, 253, 250, 0.95));
+}
+
+.project-file-eyebrow {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.project-file-info-panel h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 18px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.project-file-info-panel p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.project-file-meta {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.project-file-meta div {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.86);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.project-file-meta dt {
+  margin-bottom: 5px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.project-file-meta dd {
+  margin: 0;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.project-file-preview-panel {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-file-preview-head {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(248, 250, 252, 0.72);
+}
+
+.project-file-preview-head span {
+  display: block;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.project-file-preview-head strong {
+  display: block;
+  margin-top: 3px;
+  color: #0f172a;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.project-file-type-chip {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #334155 !important;
+}
+
+.project-file-preview-panel iframe {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  background: #ffffff;
+}
+
+.project-file-image-preview {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: auto;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.96), rgba(239, 246, 255, 0.78));
+}
+
+.project-file-image-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.project-file-preview-empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 9px;
+  padding: 32px;
+  text-align: center;
+  color: #64748b;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.96), rgba(239, 246, 255, 0.78));
+}
+
+.project-file-preview-empty strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.project-file-preview-empty p {
+  margin: 0;
+  font-size: 12px;
+}
+
