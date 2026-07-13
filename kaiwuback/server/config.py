@@ -1,6 +1,8 @@
 """配置管理 —— 所有敏感信息从环境变量读取"""
 import os
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from dotenv import load_dotenv
 
 _BACKEND_ROOT = Path(__file__).parent.parent
@@ -110,8 +112,28 @@ DB_CONNECT_ARGS = {
 # ═══════════════════════════════════════
 # 数据真实性铁律
 # ═══════════════════════════════════════
-DATA_INTEGRITY = """
+def _current_timezone() -> ZoneInfo:
+    timezone_name = os.getenv("KAIWU_TIMEZONE", "Asia/Shanghai")
+    try:
+        return ZoneInfo(timezone_name)
+    except ZoneInfoNotFoundError:
+        return ZoneInfo("Asia/Shanghai")
+
+
+def current_date_cn() -> str:
+    now = datetime.now(_current_timezone())
+    return f"{now.year}年{now.month}月{now.day}日"
+
+
+def data_integrity_prompt() -> str:
+    return f"""
 [数据真实性铁律]
-当前日期：2026年6月23日。所有数据需基于实际观测，严禁虚构品牌名、人物名、具体数字。
-找不到真实数据时标注[建议人工复核]，不要编造。
+当前日期：{current_date_cn()}。如果节点模板、历史消息或上游内容中出现其他固定日期，以本条当前日期为准。
+所有数据需基于实际观测或明确测算，严禁虚构品牌名、人物名、具体数字、来源名称或发布日期。
+时间敏感数据（市场规模、竞品门店数、融资/营收、政策、价格、用户规模、平台规则）必须标注来源名称与数据截至时间；找不到真实来源时标注[待人工调研确认]或[行业测算，可人工复核]，不要编造。
+不得把旧年份数据包装成当前数据；引用上一年度或更早数据时，必须写明“公开数据截至YYYY年/最新公开来源为YYYY年”，并说明时效限制。
+预测和估算必须显式标注[预测]或[行业测算]，并写出测算依据。当前年份如果只有部分公开数据，应写“YYYY年（截至最新公开数据）”，不要简单写“YYYY年(估)”。未来1-2年数据可以输出，但必须单列为预测补充，不能与已发生/当前数据混写。
 """
+
+
+DATA_INTEGRITY = data_integrity_prompt()

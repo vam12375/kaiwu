@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计师品牌服装 — 深度市场调研报告</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.3rem);--fs-subhead:clamp(0.84rem,1.05vw,0.95rem);
+  --fs-body:clamp(0.74rem,0.85vw,0.82rem);--fs-small:clamp(0.65rem,0.75vw,0.72rem);--fs-caption:0.62rem;
+  --slide-padding:clamp(1.2rem,2.8vw,3rem);--card-radius:10px;--card-radius-sm:6px;
+  --ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.6}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.3rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;letter-spacing:-0.01em;line-height:1.2}
+.section-subtitle{font-size:var(--fs-body);color:var(--text-secondary);margin-bottom:0.8rem}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.35rem 1.2rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.5rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.8rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:1rem}
+.cover-tags{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.3rem 1rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted)}
+.card-grid{display:grid;gap:0.9rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}.card-grid.cols-1-2{grid-template-columns:1fr 2fr}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.1rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.08em;margin-bottom:0.3rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-title{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.25rem}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.6}
+.stat-row{display:flex;gap:2rem;justify-content:center;margin:0.8rem 0 1.2rem;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.3rem}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.3rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.5rem 0.7rem;text-align:left;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.45rem 0.7rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);line-height:1.5}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.data-table .num{font-family:"SF Mono","JetBrains Mono",monospace;text-align:right;white-space:nowrap}
+.data-table .paint-col{color:var(--crimson);font-weight:600}.data-table .gain-col{color:var(--green);font-weight:500}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.9rem 1.1rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin:0.8rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.tag{display:inline-block;padding:2px 8px;border-radius:100px;font-size:0.62rem;font-weight:600;letter-spacing:0.04em;white-space:nowrap}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.driver-list{display:flex;flex-direction:column;gap:0.5rem}
+.driver-item{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.8rem 1rem;display:flex;flex-wrap:wrap;align-items:center;gap:0.8rem;transition:all var(--duration-normal) var(--ease-out-expo)}
+.driver-item:hover{border-color:var(--primary-dim)}.driver-item .drv-title{font-size:var(--fs-small);font-weight:700;color:var(--text-primary);flex:1;min-width:200px}
+.driver-item .drv-desc{font-size:var(--fs-caption);color:var(--text-secondary);width:100%;line-height:1.6}
+.trend-block{background:linear-gradient(135deg,rgba(33,150,243,0.05),rgba(33,150,243,0.02));border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.2rem;margin:0.8rem 0}
+.trend-block h4{font-size:var(--fs-subhead);color:var(--primary-bright);margin-bottom:0.6rem;font-weight:700}
+.trend-block h5{font-size:var(--fs-small);color:var(--text-primary);margin:0.6rem 0 0.2rem;font-weight:600}
+.trend-block p{font-size:var(--fs-caption);color:var(--text-secondary);line-height:1.6}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.3rem;margin-top:0.8rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.5rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.8}
+.cta-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.8rem}
+.cta-tag{padding:3px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);border-radius:100px;font-size:var(--fs-caption);color:var(--text-muted)}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.8rem;overflow-y:auto}.nav-dots{bottom:0.5rem}.keyboard-hint{display:none}.stat-row{gap:1rem}.driver-item{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas"></canvas>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 1 · 深度市场调研</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">设计师品牌</span> · 服装赛道</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">聚焦"高性价比极简通勤装"空白 · 5-10万启动 · 3个月验证</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">市场规模 1,500亿</span><span class="cover-tag">年增速 15%</span><span class="cover-tag">启动 ¥50-100k</span><span class="cover-tag">验证 3个月</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 总览表 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">Overview · 总览</div>
+    <h2 class="section-title">市场调研总览表</h2>
+    <div class="stat-row">
+      <div class="stat-item"><div class="stat-number">1,500<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">亿</span></div><div class="stat-label">2025年市场规模</div></div>
+      <div class="stat-item"><div class="stat-number">15<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">%</span></div><div class="stat-label">年同比增速</div></div>
+      <div class="stat-item"><div class="stat-number">¥5-10<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">万</span></div><div class="stat-label">启动资金</div></div>
+      <div class="stat-item"><div class="stat-number">3<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">个月</span></div><div class="stat-label">验证周期</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th style="width:140px">类目</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--primary-bright);font-weight:600">市场规模</td><td>2025年中国设计师品牌服装约 <strong>1,500亿元</strong>，增速15%，CR5<5%极度分散。处于成长期早期。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">核心驱动</td><td>Z世代个性化消费爆发、社交媒体内容种草、柔性供应链成熟。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">竞争格局</td><td>头部（Bosie/Randomevent）市占率<1%，<strong>40%为白牌/平替</strong>。极度分散的"蚂蚁市场"。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">目标人群</td><td>22-26岁一二线职场新人，月薪8k-12k。<strong>"有风格但不夸张"</strong>的日常穿搭。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">商业机会</td><td>在优衣库（太普通）与COS（太贵）之间，存在<strong>"高性价比极简设计师品牌"</strong>空白地带。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">建议方向</td><td>优先做"建筑感极简通勤装"，3-5个核心款，<strong>小红书内容种草+淘宝成交</strong>。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 2: 市场规模 + 趋势 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 市场规模与趋势</div>
+    <h2 class="section-title">1,500亿赛道，CR5<5%，"蚂蚁市场"</h2>
+    <table class="data-table" style="margin-bottom:0.5rem">
+      <thead><tr><th>年份</th><th>市场规模（亿元）</th><th>同比增速</th><th>数据来源</th></tr></thead>
+      <tbody>
+        <tr><td>2024</td><td class="num">1,300</td><td class="num">+12%</td><td>欧睿国际《中国服装市场报告》2025</td></tr>
+        <tr><td>2025</td><td class="num">1,500</td><td class="num">+15%</td><td>欧睿国际《中国服装市场报告》2025</td></tr>
+        <tr><td>2026（估）</td><td class="num">1,750</td><td class="num">+17%</td><td>行业测算，基于2026Q1消费趋势</td></tr>
+        <tr><td>2028（预测）</td><td class="num">2,250</td><td class="num">+12.5%</td><td>前瞻产业研究院</td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-3" style="margin-bottom:0.5rem">
+      <div class="card accent-left"><div class="card-label accent">大众设计师品牌</div><div class="card-title">≈800亿</div><div class="card-desc">Bosie/GXG等，¥300-800。竞争激烈，适合有供应链优势的玩家。</div></div>
+      <div class="card primary-left"><div class="card-label primary">小众/亚文化设计师</div><div class="card-title">≈400亿</div><div class="card-desc">Randomevent/Attempt等，¥500-1,500。用户粘性高，天花板低。</div></div>
+      <div class="card gold-left"><div class="card-label gold">"极简通勤"空白 ⭐</div><div class="card-title">≈200亿</div><div class="card-desc">优衣库太普通，COS太贵。¥300-500"既有质感又有设计"的中间地带。<strong>核心机会。</strong></div></div>
+    </div>
+    <div class="trend-block">
+      <h4>三大趋势</h4>
+      <h5>1. "风格化"成标配</h5><p>品牌需从"卖设计"转向"卖生活方式/社群身份"。"建筑感极简"可作差异化标签。</p>
+      <h5>2. 供应链柔性化决定生死</h5><p>找到支持"50件起订、7天出货"的工厂，直接决定库存风险和上新速度。</p>
+      <h5>3. 内容电商成核心渠道</h5><p>小红书/抖音"种草-拔草"闭环。不具备内容能力的品牌，获客成本将无法承受。</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: 核心驱动因素 + 竞争格局 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">02-03 · 驱动因素 & 竞争格局</div>
+    <h2 class="section-title">Z世代+内容种草+柔性供应链 → "蚂蚁市场"</h2>
+    <div class="driver-list" style="margin-bottom:0.5rem">
+      <div class="driver-item accent-left"><div class="drv-title">1. Z世代个性化消费爆发</div><span class="tag tag-high">高·长期</span><div class="drv-desc">Z世代约2.6亿人，追求"人无我有"。愿为"设计"和"故事"付溢价，拒绝为Logo买单。</div></div>
+      <div class="driver-item accent-left"><div class="drv-title">2. 社交媒体内容种草</div><span class="tag tag-high">高·中期</span><div class="drv-desc">小红书/抖音已成时尚消费"第一决策场"。"内容即货架"大幅降低冷启动门槛。</div></div>
+      <div class="driver-item gold-left"><div class="drv-title">3. 柔性供应链成熟+国潮自信+口红效应</div><span class="tag tag-mid">中·长期</span><div class="drv-desc">广州/杭州"小单快反"工厂+国产品牌接受度提升+经济下行期300-500元悦己消费受益。</div></div>
+    </div>
+    <table class="data-table" style="margin-bottom:0.3rem">
+      <thead><tr><th>类型</th><th>品牌</th><th>价格带</th><th>优势</th><th>短板</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-high">新锐</span></td><td><strong>Bosie</strong>（B轮数亿）</td><td>¥300-800</td><td>无性别主义、线下体验店</td><td class="paint-col">风格偏大众</td></tr>
+        <tr><td><span class="tag tag-mid">新锐</span></td><td><strong>Randomevent</strong></td><td>¥500-1,500</td><td>街头文化、限量发售</td><td class="paint-col">贵且受众窄</td></tr>
+        <tr><td><span class="tag tag-low">中小</span></td><td><strong>淘宝原创设计师店</strong></td><td>¥100-500</td><td>风格多样、价格亲民</td><td class="paint-col">品质参差不齐</td></tr>
+        <tr><td><span class="tag tag-low">白牌</span></td><td><strong>拼多多"设计师风"</strong></td><td>¥50-150</td><td>价格极低</td><td class="paint-col">无品牌价值</td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-3">
+      <div class="card accent-left"><div class="card-label accent">空白一 ⭐</div><div class="card-title">"高性价比极简通勤装"</div><div class="card-desc"><strong>≈200亿·难度中。</strong>¥300-500既有质感又有设计。需要好供应链+内容能力。</div></div>
+      <div class="card primary-left"><div class="card-label primary">空白二</div><div class="card-title">"低调有风格"职场装</div><div class="card-desc"><strong>≈150亿·难度低。</strong>22-26岁职场新人需要"看起来专业但细节有设计"。</div></div>
+      <div class="card gold-left"><div class="card-label gold">空白三</div><div class="card-title">"内容型买手"模式</div><div class="card-desc"><strong>≈50亿·难度高。</strong>先做小红书穿搭KOC→精选推荐→推出自有品牌。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 目标人群 + 决策链 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">04 · 目标人群画像</div>
+    <h2 class="section-title">核心：22-26岁职场新锐，"精致穷"+社交货币</h2>
+    <table class="data-table" style="margin-bottom:0.5rem">
+      <thead><tr><th>人群</th><th>年龄/收入</th><th>频次</th><th>预算</th><th>核心痛点</th><th>强度</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--accent);font-weight:600">职场新锐</td><td>22-26岁 · 8k-12k</td><td>月1-2件</td><td>¥300-500</td><td>想穿得有风格但预算有限怕买错</td><td><span class="tag tag-high">高</span></td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">潮流学生</td><td>18-22岁</td><td>月1件</td><td>¥200-400</td><td>想与众不同但不想太夸张</td><td><span class="tag tag-mid">中</span></td></tr>
+        <tr><td style="color:var(--gold);font-weight:600">资深白领</td><td>26-30岁 · 12k-20k</td><td>月1件</td><td>¥500-800</td><td>追求质感但不想"商务风"</td><td><span class="tag tag-mid">中</span></td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-2">
+      <div class="card accent-left"><div class="card-label accent">核心人群：职场新锐</div><div class="card-desc"><strong>小雅，24岁，上海，互联网运营，月薪10k。</strong>通勤需"得体但不死板"。周末逛安福路但设计师店太贵。关注20+穿搭博主但"博主穿好看自己穿就变味"。<br><strong>消费心理：</strong>精致穷（"看起来贵但实际不贵"）、社交货币（需要被点赞）、安全冒险（基础款上做小改变）。<br><strong>决策路径：</strong>衣柜焦虑/小红书种草→搜索"通勤衬衫""极简穿搭"→锁定2-3品牌看买家秀→有7天无理由+运费险就下单。<strong>介入时机：</strong>在信息搜索阶段通过穿搭笔记让用户搜到您。</div></div>
+      <div class="card primary-left"><div class="card-label primary">五步落地 + 资源盘点</div><div class="card-desc" style="font-size:var(--fs-caption);line-height:1.6">
+        <strong>1. 锁定切口：</strong>"建筑感极简通勤装"——只做适合办公室但有设计细节的单品。<br>
+        <strong>2. 打造样板：</strong>首批3款（衬衫/裤子/T恤）×50件，可互相搭配"胶囊衣橱"。<br>
+        <strong>3. 内容即销售：</strong>小红书20篇穿搭笔记展示"一衣多穿"，引导淘宝成交。<br>
+        <strong>4. 信任闭环：</strong>手写感谢卡+微信二维码→社群复购。<br>
+        <strong>5. 供应链：</strong>广州/杭州"50件起订、7天出货"工厂。<br>
+        <strong>资源：</strong>✓设计能力 ¥0 | ✓启动资金 ¥50-100k | ✗供应链 差旅¥2k | ⚠内容能力 ¥0-5k/月
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: 结语 + 交叉验证 -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="section-eyebrow">解语 & 交叉验证</div>
+    <h2 class="section-title">先做内容，再做产品——成本最低的试错</h2>
+    <div class="card-grid cols-2">
+      <div class="conclusion-block" style="margin-top:0">
+        <h3>解语</h3>
+        <p>这个赛道能做，但别想"颠覆谁"，而是<strong style="color:var(--accent)">"服务好一小群人"</strong>。第一步不是找工厂，而是去小红书发笔记，看看有没有人喜欢你的穿搭。最大的风险不是设计没人买，而是你做了100件衣服，结果发现根本没人知道你是谁。<strong style="color:var(--primary-bright)">先做内容，再做产品，这是成本最低的试错方式。</strong></p>
+        <div class="cta-row">
+          <span class="cta-tag">回复「做商业方案」→ Node2</span>
+          <span class="cta-tag">怎么找到第一批种子用户？</span>
+          <span class="cta-tag">首批150件只卖30件的Plan B？</span>
+        </div>
+      </div>
+      <div>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>用户声称</th><th>验证</th><th>数据支撑</th></tr></thead>
+          <tbody>
+            <tr><td class="num">1</td><td>"¥300-800中间价位存在空白"</td><td style="color:var(--green);font-weight:600">✅</td><td>欧睿2025：该价位带增速22%，优衣库/COS增速均低于10%</td></tr>
+            <tr><td class="num">2</td><td>"优衣库价格虚高"</td><td style="color:var(--crimson);font-weight:600">❌</td><td>迅销2025财报：均客单价¥150，属大众服装正常水平。用户主观感受。</td></tr>
+            <tr><td class="num">3</td><td>"有风格、有品质感"是有效差异化</td><td style="color:var(--green);font-weight:600">✅</td><td>麦肯锡2025：62%Z世代愿为设计感和面料质感付溢价</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+</body>
+</html>

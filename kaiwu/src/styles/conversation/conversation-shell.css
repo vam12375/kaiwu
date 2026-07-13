@@ -199,6 +199,24 @@
   color: #fff;
   border-top-right-radius: 4px;
 }
+
+.doubao-bubble-report {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.doubao-bubble-report .report-result-card-list {
+  margin-top: 0;
+}
+
+.doubao-bubble-content {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .doubao-bubble-user .md-p,
 .doubao-bubble-user .md-h2,
 .doubao-bubble-user .md-h3,
@@ -212,4 +230,3 @@
 .doubao-bubble-user .md-chart-bar-label,
 .doubao-bubble-user .md-chart-bar-value,
 .doubao-bubble-user .md-chart-legend-item { color: #fff; }
-

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>简序 — 内容营销方案</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.2rem);--fs-subhead:clamp(0.82rem,1vw,0.9rem);
+  --fs-body:clamp(0.72rem,0.82vw,0.78rem);--fs-small:clamp(0.63rem,0.72vw,0.68rem);--fs-caption:0.58rem;
+  --slide-padding:clamp(1.1rem,2.5vw,2.5rem);--card-radius:10px;--ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.5}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.2rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;line-height:1.2}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.3rem 1rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.2rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.6rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:0.8rem}
+.cover-tags{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.25rem 0.8rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted)}
+.card-grid{display:grid;gap:0.45rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.5rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.06em;margin-bottom:0.1rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.5}
+.stat-row{display:flex;gap:1.2rem;justify-content:center;margin:0.3rem 0 0.5rem;flex-wrap:wrap}
+.stat-item{text-align:center}.stat-n{font-size:clamp(1.4rem,2.5vw,1.8rem);font-weight:800;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}.stat-l{font-size:var(--fs-caption);color:var(--text-muted)}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.12rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.25rem 0.4rem;font-weight:600;font-size:var(--fs-caption);border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.22rem 0.4rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);line-height:1.35;font-size:var(--fs-caption)}
+.tag{display:inline-block;padding:1px 5px;border-radius:100px;font-size:0.55rem;font-weight:600}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.story-q{color:var(--gold);font-style:italic;font-size:var(--fs-caption);line-height:1.3;margin-bottom:0.08rem}
+.media-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.45rem;text-align:center;transition:all var(--duration-normal) var(--ease-out-expo)}
+.media-card:hover{border-color:var(--primary-dim);transform:translateY(-2px)}
+.media-icon{font-size:0.9rem}.media-name{font-size:var(--fs-small);font-weight:700;color:var(--text-primary)}.media-desc{font-size:var(--fs-caption);color:var(--text-muted);line-height:1.3}
+.funnel-row{display:flex;gap:0.4rem;margin:0.3rem 0}
+.funnel-step{flex:1;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.4rem;text-align:center}
+.funnel-step .fl{font-size:1rem;font-weight:800;color:var(--accent)}.funnel-step .fn{font-size:var(--fs-caption);color:var(--text-secondary)}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.45rem 0.7rem;border-radius:0 6px 6px 0;margin:0.35rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:0.7rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.25rem}
+.conclusion-block p{font-size:var(--fs-caption);color:var(--text-secondary);line-height:1.5}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:repeat(2,1fr)}.funnel-row{flex-wrap:wrap}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.5rem;overflow-y:auto}.nav-dots{bottom:0.4rem}.keyboard-hint{display:none}.stat-row{gap:0.8rem}.funnel-row{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas"></canvas>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 4 · 内容营销方案</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">简序</span> · 内容营销方案</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">5A漏斗 × 5类故事 × 4媒介矩阵 × 3个月节奏</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">15条内容</span><span class="cover-tag">小红书P0+抖音P1</span><span class="cover-tag">月产20-50条</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 客群+5A -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01-05 · 客群 / 渠道 / 5A矩阵</div>
+    <h2 class="section-title">20-30岁职场新人 · P0小红书 · 15条故事</h2>
+    <div class="card-grid cols-2">
+      <div class="card accent-left"><div class="card-label accent">目标客群 & 渠道</div><div class="card-desc" style="font-size:var(--fs-caption)"><strong>人群：</strong>20-30岁一二线职场新人/大学生，月消费¥500-1,000。<br><strong>痛点：</strong>优衣库太普通、淘宝原创品质不稳、设计师品牌太贵。<br><strong>渠道：</strong><span style="color:var(--accent)">P0小红书</span>→<span style="color:var(--primary-bright)">P1抖音</span>→<span style="color:var(--text-muted)">P2微信私域</span><br><strong>核心逻辑：</strong>用"内容"替代"广告"，用"故事"替代"叫卖"。</div></div>
+      <div>
+        <div class="funnel-row">
+          <div class="funnel-step" style="border-top:2px solid var(--accent)"><div class="fl">A</div><div class="fn">Aware</div><div style="font-size:var(--fs-caption);color:var(--text-muted)">痛点×3</div></div>
+          <div class="funnel-step" style="border-top:2px solid var(--primary-bright)"><div class="fl">A</div><div class="fn">Appeal</div><div style="font-size:var(--fs-caption);color:var(--text-muted)">品牌×3</div></div>
+          <div class="funnel-step" style="border-top:2px solid var(--gold)"><div class="fl">A</div><div class="fn">Ask</div><div style="font-size:var(--fs-caption);color:var(--text-muted)">产品×3</div></div>
+          <div class="funnel-step" style="border-top:2px solid var(--green)"><div class="fl">A</div><div class="fn">Act</div><div style="font-size:var(--fs-caption);color:var(--text-muted)">证言×3</div></div>
+          <div class="funnel-step" style="border-top:2px solid var(--primary-bright)"><div class="fl">A</div><div class="fn">Advocate</div><div style="font-size:var(--fs-caption);color:var(--text-muted)">愿景×3</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: 痛点 + 品牌故事 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">Aware 痛点 + Appeal 品牌</div>
+    <h2 class="section-title">痛点共鸣 → 品牌认同</h2>
+    <div class="card-grid cols-2">
+      <div class="card accent-left"><div class="card-label accent">A01 · 场景痛点</div><div class="story-q">"衣柜里全是优衣库，但总觉得少了点什么。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">女生开衣柜全基础款→试优衣库摇头→刷到结构线T恤→穿上自信出门。"缺的不是衣服，是有'骨架'的T恤。"小红书/抖音。</div></div>
+      <div class="card accent-left"><div class="card-label accent">A02 · 竞品缺陷</div><div class="story-q">"花200块买的淘宝原创T恤，洗一次就变形了。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">T恤扔洗衣机→领口"荷叶边"→对比简序加固细节→"好T恤经得起10次机洗。"小红书/抖音。</div></div>
+      <div class="card accent-left"><div class="card-label accent">A03 · 预算有限</div><div class="story-q">"想穿得'有品位'，但预算只有200块。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">商场设计师品牌¥500+→优衣库"太普通"→简序"¥199，优衣库同源面料，设计师款"。"谁说200块买不到好设计？"小红书/抖音。</div></div>
+      <div class="card primary-left"><div class="card-label primary">B01 · 品牌初心</div><div class="story-q">"我辞职了，只为做一件'不妥协'的T恤。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">创始人坐出租屋设计稿→快时尚设计"爆款"心空虚→走访工厂学面料→"花了5年才学会做一件'对'的T恤。"小红书/抖音/公众号。</div></div>
+      <div class="card primary-left"><div class="card-label primary">B02 · 理念传递</div><div class="story-q">"极简，不是'什么都没有'，而是'一切都恰到好处'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">简序T恤细节明线/肩缝/下摆→对比普通T恤软塌→"每一处细节都深思熟虑。"小红书/抖音。</div></div>
+      <div class="card primary-left"><div class="card-label primary">B03 · 37版重生</div><div class="story-q">"从37版设计稿，到1件满意的T恤。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">闪37版稿→版师加明线→"叫'秩序感'是衣服'骨架'"→样衣出穿上满意。"第37版终于找到了。"小红书/抖音。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: 产品 + 证言 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">Ask 产品 + Act 证言</div>
+    <h2 class="section-title">产品细节建信任 → 真实评价促转化</h2>
+    <div class="card-grid cols-2">
+      <div class="card gold-left"><div class="card-label gold">C01 · 50种面料</div><div class="story-q">"为了找到220g的'黄金克重'，我试了50种面料。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">50种面料→对比220g vs 180g→"220g是不薄不厚的完美平衡点。"小红书/抖音。</div></div>
+      <div class="card gold-left"><div class="card-label gold">C02 · 一衣三穿</div><div class="story-q">"一件T恤，搞定通勤、约会、周末三种场合。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">简序+西装裤上班→+牛仔裤约会→+短裤在家。"一件T恤三种风格一周不重样。"小红书/抖音。</div></div>
+      <div class="card gold-left"><div class="card-label gold">C03 · 0.5mm倔强</div><div class="story-q">"领口那0.5毫米的明线，是我最后的倔强。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">特写领口0.5mm明线→对比普通软塌领口→拉扯回弹→"这0.5毫米是'秩序感'起点。"小红书/抖音。</div></div>
+      <div class="card green-left"><div class="card-label green">D01 · 不撞衫了</div><div class="story-q">"终于找到一件'不撞衫'的T恤了！"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">穿简序街上走→朋友问"在哪买的"→成了朋友圈"穿搭顾问"。小红书/抖音。</div></div>
+      <div class="card green-left"><div class="card-label green">D02 · 路人→博主</div><div class="story-q">"以前穿优衣库像路人，现在穿'简序'像博主。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">优衣库不起眼→换简序气质变→自信走街上。"改变的不只是穿搭还有状态。"小红书/抖音。</div></div>
+      <div class="card green-left"><div class="card-label green">D03 · 洗10次挺括</div><div class="story-q">"洗了10次，领口依然挺括，我服了。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">简序洗10次领口挺→普通洗3次已变形→"品质绝了闭眼入。"小红书/抖音。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 愿景 + 传播 + 结语 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">Advocate 愿景 & 传播 & 结语</div>
+    <h2 class="section-title">让每个人拥有风格 · M1验证→M3稳定</h2>
+    <div class="card-grid cols-3" style="margin-bottom:0.3rem">
+      <div class="card primary-left"><div class="card-label primary">E01 · 品牌使命</div><div class="story-q">"让每个年轻人都能轻松拥有自己的风格。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">不同职业穿简序自信行走→"风格是每个人的权利。"小红书/抖音/公众号。</div></div>
+      <div class="card primary-left"><div class="card-label primary">E02 · 长期主义</div><div class="story-q">"我们想做一件能陪你10年的T恤。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">T恤穿多年褪色版型在线→"像老朋友"→"快时尚时代的'慢'。"公众号。</div></div>
+      <div class="card primary-left"><div class="card-label primary">E03 · 用户共创</div><div class="story-q">"下一件T恤，由你来设计。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">社群讨论→提交设计稿→采纳生产→穿自己设计的T恤。"你的风格你来定义。"小红书/抖音。</div></div>
+    </div>
+    <div class="card-grid cols-2">
+      <div>
+        <div class="card-grid cols-4" style="margin-bottom:0.2rem"><div class="media-card"><div class="media-icon">📱</div><div class="media-name">小红书</div><div class="media-desc">P0·5条/周</div></div><div class="media-card"><div class="media-icon">🎵</div><div class="media-name">抖音</div><div class="media-desc">P1·3条/周</div></div><div class="media-card"><div class="media-icon">🎬</div><div class="media-name">视频号</div><div class="media-desc">1条/周</div></div><div class="media-card"><div class="media-icon">📝</div><div class="media-name">公众号</div><div class="media-desc">1篇/周</div></div></div>
+        <table class="data-table"><thead><tr><th>月</th><th>目标</th><th>产出</th></tr></thead><tbody><tr><td>M1</td><td><span class="tag tag-high">验证</span></td><td>20条</td></tr><tr><td>M2</td><td><span class="tag tag-mid">放大</span></td><td>40条</td></tr><tr><td>M3</td><td><span class="tag tag-low">稳定</span></td><td>50条+4场直播</td></tr></tbody></table>
+      </div>
+      <div class="conclusion-block" style="margin-top:0;padding:0.7rem"><h3 style="font-size:var(--fs-subhead)">结语</h3><p style="font-size:var(--fs-caption)">从一件¥199的T恤开始，用<strong style="color:var(--accent)">"内容"和"故事"</strong>与在优衣库和淘宝之间纠结的年轻人建立情感连接。<strong style="color:var(--primary-bright)">5万预算的考验不是资金，是对用户痛点的理解深度和内容创作的真实度。</strong></p></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+</body>
+</html>

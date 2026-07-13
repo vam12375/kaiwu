@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { fetchExternalSkills, type ExternalSkill } from '../api/skills';
-import { installedSkills, skillMarketItems } from '../data';
+import { installedSkills, normalizeSkillCategory, skillMarketItems } from '../data';
 import type { CustomSkillInput, SkillLibraryItem } from '../types';
 
 const STORAGE_KEYS = {
@@ -144,7 +144,7 @@ export function useSkillLibrary() {
       id: createMarketSkillId(skill.name),
       name: skill.name,
       description: skill.desc,
-      category: skill.category,
+      category: normalizeSkillCategory(skill.category),
       full_content: buildMarketSkillContent(skill),
       source: 'market',
       tone: skill.tone,
@@ -171,13 +171,19 @@ export function useSkillLibrary() {
       items.push({
         ...skill,
         id: createExternalSkillId(skill.id),
-        category: skill.category || '方法论',
+        category: normalizeSkillCategory(skill.category),
         source: 'external',
         tone: skill.tone || 'indigo',
       });
     });
 
-    return [...items, ...customSkills];
+    return [
+      ...items,
+      ...customSkills.map((skill) => ({
+        ...skill,
+        category: normalizeSkillCategory(skill.category),
+      })),
+    ];
   }, [customSkills, externalSkills]);
 
   const installSkill = useCallback((skillId: string) => {
@@ -218,7 +224,7 @@ export function useSkillLibrary() {
       id,
       name,
       description: input.description.trim() || '自定义技能',
-      category: input.category,
+      category: normalizeSkillCategory(input.category),
       connection: input.connection.trim(),
       full_content: buildSkillContent({ ...input, name }),
       source: 'custom',

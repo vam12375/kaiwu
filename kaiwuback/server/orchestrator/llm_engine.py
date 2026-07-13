@@ -2,7 +2,40 @@
 import re
 from server.nodes.prompts import NODE_SYSTEM_PROMPTS
 from server.llm_client import call_llm
-from server.config import DATA_INTEGRITY, DEEPSEEK_REASONING_MODEL
+from server.config import current_date_cn, data_integrity_prompt, DEEPSEEK_REASONING_MODEL
+
+
+_STATIC_DATE_PREFIX_RE = re.compile(r"^\s*当前日期：\d{4}年\d{1,2}月\d{1,2}日。")
+
+
+def _normalize_node_prompt(node_prompt: str) -> str:
+    """去掉旧节点模板里的固定日期，避免与运行时日期互相冲突。"""
+    return _STATIC_DATE_PREFIX_RE.sub("", node_prompt, count=1).lstrip()
+
+
+def _node_currentness_guard(node_id: str, current_date: str) -> str:
+    if node_id != "node1":
+        return ""
+
+    match = re.match(r"(\d{4})年(\d{1,2})月", current_date)
+    if not match:
+        return ""
+
+    current_year = int(match.group(1))
+    previous_year = current_year - 1
+    start_year = current_year - 4
+    next_year = current_year + 1
+    following_year = current_year + 2
+    return f"""
+[Node1 市场调研时效性补充约束]
+当前日期是{current_date}。节点模板中的示例年份只代表结构，不代表必须照抄。
+“近5年市场规模变化趋势”应按当前日期动态重建年份列，优先覆盖{start_year}年至{current_year}年；当前年份写“{current_year}年（截至最新公开数据）”，不要写“{current_year}年(估)”。
+如果只能找到{previous_year}年或更早的公开数据，必须在数据来源列写明“公开数据截至{previous_year}年/来源发布于{previous_year}年”，并在正文说明时效限制。
+任何包含“市场规模/用户规模/门店规模/营收规模”的正文或表格都必须带年份与口径；细分市场表不得写“市场规模（{previous_year}年，估）”这类模糊表头，应改为“市场规模（公开数据截至{previous_year}年）”或“{current_year}年（行业测算，可人工复核）”。
+如果基于{previous_year}年数据推算{current_year}年，必须在单元格或数据来源中标注[行业测算]，并写出增长假设；禁止把旧年估值当作{current_year}年现状。
+未来年份需要保留为“未来1-2年预测补充”单独表格，至少包含{next_year}年和{following_year}年；必须标注[预测]或[行业测算]，不得与已发生市场规模混写。
+结语语气必须专业、正式、克制，使用“您”或“创始人”称呼；禁止使用“老兄”“兄弟”“哥们”“找死”等过于口语或冒犯的表达。
+"""
 
 
 def _extract_pipeline_state(history: list) -> str:
@@ -155,14 +188,21 @@ def generate_ai_response(node_id: str, user_input: str, history: list = None, mo
     """
     from server.intent.recognizer import get_uploaded_files_text, rewrite_query, _session_state
 
-    node_prompt = NODE_SYSTEM_PROMPTS.get(node_id, NODE_SYSTEM_PROMPTS["node1"])
+    current_date = current_date_cn()
+    integrity_prompt = data_integrity_prompt()
+    node_prompt = _normalize_node_prompt(NODE_SYSTEM_PROMPTS.get(node_id, NODE_SYSTEM_PROMPTS["node1"]))
+    base_system = integrity_prompt + "\n\n" + node_prompt
+    currentness_guard = _node_currentness_guard(node_id, current_date)
+    if currentness_guard:
+        base_system = base_system + "\n\n" + currentness_guard
+
     if is_followup:
         if node_id == "node0":
-            system = DATA_INTEGRITY + "\n\n" + node_prompt + "\n\n⚠️ 追问模式：用户正在继续诊断对话。请基于对话上下文自然地推进下一轮诊断。如果用户已确认信息无误并要求生成报告，请直接输出完整的 # 品牌全案策略 · 对话信息摘要 报告，不要输出过渡语。"
+            system = base_system + "\n\n⚠️ 追问模式：用户正在继续诊断对话。请基于对话上下文自然地推进下一轮诊断。如果用户已确认信息无误并要求生成报告，请直接输出完整的 # 品牌全案策略 · 对话信息摘要 报告，不要输出过渡语。"
         else:
-            system = DATA_INTEGRITY + "\n\n" + node_prompt + "\n\n⚠️ 追问模式：用户正在追问上一轮输出的某个具体部分。基于上述节点专业框架回答，但只聚焦用户追问的具体问题，深入展开该部分内容（含表格和具体数据），不要重新生成完整报告。"
+            system = base_system + "\n\n⚠️ 追问模式：用户正在追问上一轮输出的某个具体部分。基于上述节点专业框架回答，但只聚焦用户追问的具体问题，深入展开该部分内容（含表格和具体数据），不要重新生成完整报告。"
     else:
-        system = DATA_INTEGRITY + "\n\n" + node_prompt
+        system = base_system
 
     # 下游节点（node2+）注入管道状态卡片，解决历史截断导致数据丢失
     if not is_followup and node_id in ("node2", "node3", "node4", "node5"):
@@ -214,9 +254,9 @@ def generate_ai_response(node_id: str, user_input: str, history: list = None, mo
                 + session_note + "\n"
                 "要求：基于上文输出完整回答，引用具体数据（标注「参考上文」），结构化呈现。\n\n"
             )
-        dated_input = f"[现在时间是2026年6月26日]\n\n{history_text}{followup_instruction}追问：{processed_input}"
+        dated_input = f"[现在时间是{current_date}]\n\n{history_text}{followup_instruction}追问：{processed_input}"
     else:
-        dated_input = f"[现在时间是2026年6月25日]\n\n{history_text}用户当前提问：{user_input}"
+        dated_input = f"[现在时间是{current_date}]\n\n{history_text}用户当前提问：{user_input}"
 
     try:
         # 用户没指定模型时，按节点分配合适的模型
@@ -226,7 +266,7 @@ def generate_ai_response(node_id: str, user_input: str, history: list = None, mo
             # 其他节点不设 model → call_llm 用 DEEPSEEK_MODEL (deepseek-chat)
 
         # token 预算：深度分析节点需要更大空间，node0 诊断需要容纳 §1-§7 输出
-        max_tok_map = {"node1": 40000, "node2": 25000, "node3": 17000, "node4": 40000, "node5": 40000, "node0": 16000}
+        max_tok_map = {"node1": 40000, "node2": 25000, "node3": 17000, "node4": 40000, "node5": 40000, "node0": 16000, "node6": 12000}
         max_tok = max_tok_map.get(node_id, 8192)
 
         # Node0 第6轮确认：用户信息确认完毕，需要输出完整 dialogue_brief，提高 token 上限

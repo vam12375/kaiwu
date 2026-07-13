@@ -3,7 +3,7 @@ import type { Dispatch, MouseEvent, SetStateAction } from 'react';
 
 import { apiJson } from '../api/client';
 import type { ConvHistory, CreativeMode, ShowToast, SidebarPage } from '../types';
-import type { AgentMessage } from './agentEventReducer';
+import { normalizeReportResultCard, type AgentMessage, type ReportResultCard } from './agentEventReducer';
 import type { ConversationTaskCacheEntry } from './useConversationTask';
 
 type WorkflowPhase = 'idle' | 'analyzing' | 'executing' | 'responding';
@@ -70,10 +70,31 @@ function hasGeneratedImages(messages: AgentMessage[]) {
   return messages.some((message) => message.role === 'ai' && Boolean(message.images?.length));
 }
 
-function parseConversationMessages(messages: { role: string; content: string }[] = []) {
-  let loadedSuggestions: string[] = [];
+const REPORT_CARD_MARKER_REGEX = /<!--kaiwu-report-card:([\s\S]*?)-->/g;
 
-  const parsedMessages = messages.map((message): AgentMessage => {
+function extractReportCards(content: string) {
+  const reportCards: ReportResultCard[] = [];
+  const cleanContent = content
+    .replace(REPORT_CARD_MARKER_REGEX, (_match, rawPayload: string) => {
+      try {
+        const card = normalizeReportResultCard(JSON.parse(rawPayload));
+        if (card) reportCards.push(card);
+      } catch {
+        // Ignore malformed legacy markers and keep the visible message clean.
+      }
+      return '';
+    })
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  return { content: cleanContent, reportCards };
+}
+
+function parseConversationMessages(messages: { role: string; content: string }[] = [], conversationNodeId?: string | null) {
+  let loadedSuggestions: string[] = [];
+  const lastAiIndex = messages.reduce((lastIndex, message, index) => (message.role !== 'user' ? index : lastIndex), -1);
+
+  const parsedMessages = messages.map((message, index): AgentMessage => {
     const role = message.role === 'user' ? 'user' : 'ai';
     let content = message.content;
     const suggestionsMatch = content.match(/<!--suggestions:(\[.*?\])-->/);
@@ -85,6 +106,9 @@ function parseConversationMessages(messages: { role: string; content: string }[]
       }
       content = content.replace(/<!--suggestions:\[.*?\]-->/, '').trim();
     }
+
+    const reportResult = extractReportCards(content);
+    content = reportResult.content;
 
     const images: { style: string; url: string; original_url?: string; prompt: string }[] = [];
     const imageRegex = /!\[(.+?)\]\((.+?)\)/g;
@@ -99,7 +123,9 @@ function parseConversationMessages(messages: { role: string; content: string }[]
     return {
       role,
       content,
+      nodeId: role === 'ai' && index === lastAiIndex ? conversationNodeId || undefined : undefined,
       images: images.length > 0 ? images : undefined,
+      reportCards: reportResult.reportCards.length > 0 ? reportResult.reportCards : undefined,
     };
   });
 
@@ -258,7 +284,7 @@ export function useConversation(options: UseConversationOptions) {
       .then((conversation) => {
         if (!conversation?.messages) return;
 
-        const parsed = parseConversationMessages(conversation.messages);
+        const parsed = parseConversationMessages(conversation.messages, conversation.node_id);
         const cachedSuggestions = options.convCacheRef.current.get(conversation.id)?.suggestedQuestions;
         const nextIsImageMode = conversation.node_id === 'image_generation' || hasGeneratedImages(parsed.messages);
 

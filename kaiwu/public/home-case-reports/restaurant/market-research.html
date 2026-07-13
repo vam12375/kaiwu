@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麻辣香锅 — 深度市场调研报告</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.3rem);--fs-subhead:clamp(0.84rem,1.05vw,0.95rem);
+  --fs-body:clamp(0.74rem,0.85vw,0.82rem);--fs-small:clamp(0.65rem,0.75vw,0.72rem);--fs-caption:0.62rem;
+  --slide-padding:clamp(1.2rem,2.8vw,3rem);--card-radius:10px;--card-radius-sm:6px;
+  --ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.6}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.3rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;letter-spacing:-0.01em;line-height:1.2}
+.section-subtitle{font-size:var(--fs-body);color:var(--text-secondary);margin-bottom:0.8rem;max-width:650px}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}
+.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.35rem 1.2rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.5rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.8rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:1rem}
+.cover-tags{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.3rem 1rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted);letter-spacing:0.1em}
+.card-grid{display:grid;gap:0.9rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card-grid.cols-5{grid-template-columns:repeat(5,1fr)}
+.card-grid.cols-1-2{grid-template-columns:1fr 2fr}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.1rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.08em;margin-bottom:0.3rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-title{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.25rem}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.6}
+.stat-row{display:flex;gap:2rem;justify-content:center;margin:0.8rem 0 1.2rem;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.3rem;letter-spacing:0.05em}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.3rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.5rem 0.7rem;text-align:left;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.45rem 0.7rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);vertical-align:top;line-height:1.5}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.data-table .num{font-family:"SF Mono","JetBrains Mono",monospace;text-align:right;white-space:nowrap}
+.data-table .paint-col{color:var(--crimson);font-weight:600}
+.data-table .gain-col{color:var(--green);font-weight:500}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.9rem 1.1rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin:0.8rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.tag{display:inline-block;padding:2px 8px;border-radius:100px;font-size:0.62rem;font-weight:600;letter-spacing:0.04em;white-space:nowrap}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}
+.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}
+.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.driver-list{display:flex;flex-direction:column;gap:0.5rem}
+.driver-item{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.8rem 1rem;display:flex;flex-wrap:wrap;align-items:center;gap:0.8rem;transition:all var(--duration-normal) var(--ease-out-expo)}
+.driver-item:hover{border-color:var(--primary-dim)}
+.driver-item .drv-title{font-size:var(--fs-small);font-weight:700;color:var(--text-primary);flex:1;min-width:200px}
+.driver-item .drv-desc{font-size:var(--fs-caption);color:var(--text-secondary);width:100%;line-height:1.6}
+.trend-block{background:linear-gradient(135deg,rgba(33,150,243,0.05),rgba(33,150,243,0.02));border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.2rem;margin:0.8rem 0}
+.trend-block h4{font-size:var(--fs-subhead);color:var(--primary-bright);margin-bottom:0.6rem;font-weight:700}
+.trend-block h5{font-size:var(--fs-small);color:var(--text-primary);margin:0.6rem 0 0.2rem;font-weight:600}
+.trend-block p{font-size:var(--fs-caption);color:var(--text-secondary);line-height:1.6}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.3rem;margin-top:0.8rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.5rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.8}
+.cta-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.8rem}
+.cta-tag{padding:3px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);border-radius:100px;font-size:var(--fs-caption);color:var(--text-muted)}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4,.card-grid.cols-5{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.8rem;overflow-y:auto}.nav-dots{bottom:0.5rem}.keyboard-hint{display:none}.stat-row{gap:1rem}.driver-item{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas"></canvas>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 1 · 深度市场调研</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">麻辣香锅</span> · 工作餐赛道</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">聚焦"快香锅·工作餐专门店"空白 · 15万启动 · 3-6个月验证</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">市场规模 1,200亿</span><span class="cover-tag">CR5<5%</span><span class="cover-tag">启动 ¥150,000</span><span class="cover-tag">验证 3-6个月</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 总览表 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">Overview · 总览</div>
+    <h2 class="section-title">市场调研总览表</h2>
+    <div class="stat-row">
+      <div class="stat-item"><div class="stat-number">1,200<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">亿</span></div><div class="stat-label">2025年市场规模</div></div>
+      <div class="stat-item"><div class="stat-number">8.5<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">%</span></div><div class="stat-label">年同比增速</div></div>
+      <div class="stat-item"><div class="stat-number">¥15<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">万</span></div><div class="stat-label">启动资金</div></div>
+      <div class="stat-item"><div class="stat-number">3-6<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">个月</span></div><div class="stat-label">验证周期</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th style="width:140px">类目</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--primary-bright);font-weight:600">市场规模</td><td>2025年中国麻辣香锅市场规模约 <strong>1,200亿元</strong>，增速放缓至8.5%，进入存量竞争。95%+份额由中小品牌/夫妻店占据。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">核心驱动因素</td><td>城市化通勤催生工作餐刚需、Z世代"悦己"消费、供应链标准化技术成熟。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">竞争格局</td><td>头部品牌（麻辣诱惑/拿渡）市占率<5%，<strong>95.3%</strong>为无品牌中小商家。极度分散=品牌化机会巨大。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">目标人群</td><td>25-35岁一二线城市白领，月入8k-20k，追求性价比与口味平衡，对"排队"容忍度低。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">商业机会</td><td>工作日午餐场景下，提供<strong>"比麻辣烫有锅气、比传统香锅快"</strong>的标准化现炒香锅。客单价30-50元。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">建议方向</td><td>以"麻辣香锅·工作餐专门店"定位，写字楼密集区30-50平米档口，<strong>15分钟出餐，30元吃饱吃好</strong>。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 2: 市场规模分析 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 市场规模分析</div>
+    <h2 class="section-title">1,200亿存量博弈，"快香锅"细分崛起</h2>
+    <table class="data-table" style="margin-bottom:0.6rem">
+      <thead><tr><th>年份</th><th>市场规模（亿元）</th><th>同比增速</th><th>数据来源</th></tr></thead>
+      <tbody>
+        <tr><td>2024</td><td class="num">1,106</td><td class="num">+9.2%</td><td>中国烹饪协会《2024年中国餐饮大数据白皮书》</td></tr>
+        <tr><td>2025</td><td class="num">1,200</td><td class="num">+8.5%</td><td>红餐网《2025年中国麻辣香锅品类发展报告》</td></tr>
+        <tr><td>2026（估）</td><td class="num">1,280</td><td class="num">+6.7%</td><td>行业测算，基于2026Q1餐饮消费指数</td></tr>
+        <tr><td>2027（预测）</td><td class="num">1,350</td><td class="num">+5.5%</td><td>弗若斯特沙利文《中国快餐市场预测报告》</td></tr>
+        <tr><td>2028（预测）</td><td class="num">1,410</td><td class="num">+4.4%</td><td>弗若斯特沙利文《中国快餐市场预测报告》</td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-3">
+      <div class="card accent-left"><div class="card-label accent">传统堂食正餐店</div><div class="card-title">≈600亿</div><div class="card-desc">人均50-80元，注重环境社交，翻台率低。存量市场，竞争红海，不适合初创者。</div></div>
+      <div class="card primary-left"><div class="card-label primary">外卖/工作餐档口 ⭐</div><div class="card-title">≈450亿</div><div class="card-desc">人均25-45元，主打"快"和"性价比"，增长最快细分。与"工作日午餐"定位高度吻合。<strong>核心机会。</strong></div></div>
+      <div class="card gold-left"><div class="card-label gold">社区/街边夫妻店</div><div class="card-title">≈150亿</div><div class="card-desc">人均30-60元，口味不稳定，品牌化程度低。可被标准化品牌整合，但需供应链能力。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: 市场阶段 + 趋势 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 市场阶段与趋势</div>
+    <h2 class="section-title">成熟期早期 — 增速放缓至5%，"淘汰赛"开始</h2>
+    <div class="insight-card"><p>市场阶段：<strong style="color:var(--text-primary)">成熟期早期</strong> — 品类认知度92%但品牌忠诚度极低。增量红利消失，进入存量博弈。"谁便宜、谁快、谁近"决定用户选择。</p></div>
+    <div class="trend-block">
+      <h4>未来3-5年三大趋势</h4>
+      <h5>1. "快香锅"品类将独立分化</h5><p>30-40元、15分钟出餐的"快香锅"将与传统正餐香锅分化，形成独立赛道。类似"麻辣烫"从"火锅"中分化。<strong>谁能率先定义并标准化"快香锅"，谁就占据品类心智。</strong></p>
+      <h5>2. 外卖占比将超过堂食（预计2028年达60%）</h5><p>新品牌必须从一开始就具备"外卖友好"设计——汤汁分离、包装防洒、出餐快。同时建立私域（小程序点单）对冲20%平台抽佣。</p>
+      <h5>3. 供应链能力成为胜负手</h5><p>人均30-50元价位，食材成本占比35-40%。只有中央厨房或稳定供应链，才能将毛利率维持在60%+。夫妻店模式将因成本劣势被淘汰。</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 核心驱动因素 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">02 · 核心驱动因素</div>
+    <h2 class="section-title">五大驱动力推动"快香锅"赛道崛起</h2>
+    <div class="driver-list">
+      <div class="driver-item accent-left"><div class="drv-title">1. 城市化与通勤时间延长</div><span class="tag tag-high">影响高 · 长期</span><div class="drv-desc">通勤时间普遍超1小时，午餐被压缩至30-40分钟。麻辣香锅作为"有锅气"的现炒品类，比麻辣烫有满足感，比盖浇饭有仪式感，完美契合"时间紧但想吃好"。</div></div>
+      <div class="driver-item accent-left"><div class="drv-title">2. Z世代"悦己"消费观</div><span class="tag tag-high">影响高 · 长期</span><div class="drv-desc">25-35岁白领追求"吃好"带来的情绪价值。一份"现炒、热气腾腾"的香锅能提供短暂"治愈感"，愿意为更好的食材和更快的服务支付30-50元溢价。</div></div>
+      <div class="driver-item gold-left"><div class="drv-title">3. 外卖平台补贴与运力提升</div><span class="tag tag-mid">影响中 · 中期</span><div class="drv-desc">美团/饿了么加大"高客单价快餐"补贴力度，降低用户尝试新品牌门槛。但补贴政策不确定，品牌需建立私域流量对冲平台风险。</div></div>
+      <div class="driver-item gold-left"><div class="drv-title">4. 供应链标准化技术成熟</div><span class="tag tag-mid">影响中 · 长期</span><div class="drv-desc">复合调味料、预调理肉制品技术成熟，使"现炒"香锅标准化成为可能。无需依赖大厨，创业门槛降低，但口味壁垒也变低。</div></div>
+      <div class="driver-item gold-left"><div class="drv-title">5. 健康化趋势的"反向红利"</div><span class="tag tag-low">影响低 · 短期</span><div class="drv-desc">轻食沙拉因"难吃"流失用户时，麻辣香锅作为"重口味"代表获报复性消费红利。但这种红利不可持续，需在"重口味"和"相对健康"间找平衡。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: 竞争格局 -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="section-eyebrow">03 · 竞争格局</div>
+    <h2 class="section-title">95.3%为无品牌商家，品牌化机会巨大</h2>
+    <table class="data-table" style="margin-bottom:0.6rem">
+      <thead><tr><th>类型</th><th>品牌</th><th>价格带</th><th>核心优势</th><th>明显短板</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-high">头部</span></td><td><strong>麻辣诱惑</strong>（300+门店）</td><td>¥60-100</td><td>品牌知名度高，供应链成熟</td><td class="paint-col">价格高、出餐慢、品牌老化</td></tr>
+        <tr><td><span class="tag tag-high">头部</span></td><td><strong>拿渡</strong>（200+门店）</td><td>¥50-80</td><td>口味稳定，加盟体系完善</td><td class="paint-col">缺乏创新，门店形象陈旧</td></tr>
+        <tr><td><span class="tag tag-mid">新锐</span></td><td><strong>犟骨头·香锅饭</strong>（150+店）</td><td>¥25-40</td><td>出餐快、性价比高</td><td class="paint-col">口味单一，缺乏"锅气"</td></tr>
+        <tr><td><span class="tag tag-mid">垂直</span></td><td><strong>辣小鸭·麻辣香锅</strong></td><td>¥35-55</td><td>主打"一人食"，外卖运营强</td><td class="paint-col">品牌力弱，依赖外卖平台</td></tr>
+        <tr><td><span class="tag tag-low">中小</span></td><td><strong>张记香锅（夫妻店）</strong></td><td>¥30-50</td><td>口味好，有老客</td><td class="paint-col">无品牌、无标准化、抗风险差</td></tr>
+        <tr><td><span class="tag tag-low">白牌</span></td><td><strong>街边无名香锅摊</strong></td><td>¥15-25</td><td>价格极低、方便</td><td class="paint-col">卫生堪忧、口味不稳定</td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-2">
+      <div class="card accent-left"><div class="card-label accent">头部护城河</div><div class="card-desc">麻辣诱惑/拿渡：品牌认知+供应链规模。消费者想吃"正经香锅"时会想到它们。15万预算无法在规模上抗衡。</div></div>
+      <div class="card primary-left"><div class="card-label primary">突破口：快 + 性价比</div><div class="card-desc">头部品牌致命弱点是<strong>"慢"和"贵"</strong>。工作餐场景下，用户没时间排队，也不愿付¥60+。以"15分钟出餐、30元吃饱"切入，是攻破头部护城河的最佳突破口。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: 差异化机会 -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="section-eyebrow">03 · 差异化机会</div>
+    <h2 class="section-title">三大空白地带，优先"快香锅·工作餐专门店"</h2>
+    <div class="card-grid cols-3">
+      <div class="card accent-left"><div class="card-label accent">机会一 ⭐</div><div class="card-title">"快香锅·工作餐专门店"</div><div class="card-desc"><strong>容量：</strong>约450亿 · <strong>难度：</strong>中<br>6-8款一人份套餐¥30-40，15分钟出餐。堂食+自提+外卖三线并行。目前<strong>无品牌明确占据"快香锅"心智</strong>——这是品类定义权机会。日100单×¥35=月营收¥10.5万，月净利约¥2.5万。</div></div>
+      <div class="card primary-left"><div class="card-label primary">机会二</div><div class="card-title">"一人食·标准化套餐"</div><div class="card-desc"><strong>容量：</strong>约200亿 · <strong>难度：</strong>低<br>传统香锅默认2-3人起吃。提供"一人份、30元、有肉有菜"标准化套餐，直接转化大量"想吃但吃不了"的潜在用户。只需将大份拆解+优化单人包装。</div></div>
+      <div class="card gold-left"><div class="card-label gold">机会三</div><div class="card-title">"潮牌视觉+私域社群"双引擎</div><div class="card-desc"><strong>难度：</strong>低 · 创始人广告策划能力是核心武器<br>行业整体形象"土、乱、脏"。荧光色+涂鸦风+Slogan"炒掉你的班味"瞬间形成差异化。加企业微信建社群，复购贡献<strong>纯利润</strong>，不受平台影响。</div></div>
+    </div>
+    <div class="insight-card"><p><strong style="color:var(--text-primary)">机会1是核心赛道，机会2是核心武器，机会3是核心护城河。</strong>三者结合构成完整商业模型，与创始人15万预算、3人团队、广告策划能力高度匹配。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 7: 目标人群 + 决策链 -->
+<section class="slide" id="slide-7">
+  <div class="slide-inner">
+    <div class="section-eyebrow">04 · 目标人群画像</div>
+    <h2 class="section-title">四类用户，核心是25-30岁白领"效率+犒劳"需求</h2>
+    <table class="data-table" style="margin-bottom:0.6rem">
+      <thead><tr><th>人群</th><th>年龄/收入</th><th>消费频次</th><th>预算</th><th>核心痛点</th><th>需求强度</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--accent);font-weight:600">核心白领</td><td>25-30岁 · 8k-15k</td><td>每周2-3次</td><td>¥30-40</td><td>午餐选择少，想吃有锅气的但怕排队</td><td><span class="tag tag-high">高</span></td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">资深白领</td><td>30-35岁 · 15k-25k</td><td>每周1-2次</td><td>¥40-50</td><td>想犒劳自己但不想太油腻或太贵</td><td><span class="tag tag-mid">中</span></td></tr>
+        <tr><td style="color:var(--gold);font-weight:600">外卖依赖者</td><td>22-28岁 · 6k-10k</td><td>每周4-5次</td><td>¥25-35</td><td>外卖品质参差不齐，怕踩雷</td><td><span class="tag tag-mid">中</span></td></tr>
+        <tr><td style="color:var(--green);font-weight:600">价格敏感学生</td><td>18-22岁 · 1k-3k</td><td>每月2-3次</td><td>¥15-25</td><td>想吃但预算有限</td><td><span class="tag tag-low">低</span></td></tr>
+      </tbody>
+    </table>
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.6rem">
+      <div class="card accent-left" style="flex:1;text-align:center"><div class="card-label accent">Step 1</div><div class="card-title">触发需求</div><div class="card-desc" style="font-size:var(--fs-caption)">11:30肚子叫<br>"中午吃什么"</div></div>
+      <div class="card primary-left" style="flex:1;text-align:center"><div class="card-label primary">Step 2</div><div class="card-title">信息搜索</div><div class="card-desc" style="font-size:var(--fs-caption)">大众点评/美团<br>¥30-50 · 评分4.0+ · <500m</div></div>
+      <div class="card gold-left" style="flex:1;text-align:center"><div class="card-label gold">Step 3</div><div class="card-title">比较评估</div><div class="card-desc" style="font-size:var(--fs-caption)">A店"味道一般"<br>B店"排队久"<br><strong style="color:var(--gold)">→ 犹豫不决</strong></div></div>
+      <div class="card green-left" style="flex:1;text-align:center"><div class="card-label green">Step 4</div><div class="card-title">购买决策</div><div class="card-desc" style="font-size:var(--fs-caption)"><strong style="color:var(--green)">"15分钟出餐"<br>+"一人份套餐"</strong><br>→ 毫不犹豫下单</div></div>
+      <div class="card" style="flex:1;text-align:center;border-left:3px solid var(--primary-bright)"><div class="card-label" style="color:var(--primary-bright)">Step 5</div><div class="card-title">复购/推荐</div><div class="card-desc" style="font-size:var(--fs-caption)">好吃+快+性价比<br>→ 明天还来<br>→ 推荐给同事</div></div>
+    </div>
+    <div class="insight-card"><p>最佳介入时机：<strong style="color:var(--text-primary)">Step 3（比较评估阶段）</strong>——通过"快"和"一人食"标签，直接打消"排队久"和"吃不完"的顾虑。菜单上明确标注"15分钟上菜，超时免单"。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 8: 商业机会 + 评估 -->
+<section class="slide" id="slide-8">
+  <div class="slide-inner">
+    <div class="section-eyebrow">05-06 · 商业机会 & 评估</div>
+    <h2 class="section-title">五大机会 × 三维评分 = 快香锅工作餐最优</h2>
+    <table class="data-table" style="margin-bottom:0.6rem">
+      <thead><tr><th>#</th><th>需求描述</th><th>市场容量</th><th>紧迫度</th><th>可行性</th></tr></thead>
+      <tbody>
+        <tr style="background:rgba(212,168,83,0.04)"><td class="num" style="color:var(--gold)">1</td><td><strong>"快"香锅：15分钟内吃上现炒香锅</strong></td><td class="num">450亿</td><td><span class="tag tag-high">高</span></td><td><span class="tag tag-high">高</span></td></tr>
+        <tr style="background:rgba(212,168,83,0.02)"><td class="num">2</td><td><strong>"一人食"香锅：份量刚好，价格刚好</strong></td><td class="num">200亿</td><td><span class="tag tag-high">高</span></td><td><span class="tag tag-high">高</span></td></tr>
+        <tr><td class="num">3</td><td><strong>"有锅气"的标准化工作餐</strong></td><td class="num">300亿</td><td><span class="tag tag-mid">中</span></td><td><span class="tag tag-high">高</span></td></tr>
+        <tr><td class="num">4</td><td><strong>"不排队"的香锅体验</strong></td><td class="num">150亿</td><td><span class="tag tag-high">高</span></td><td><span class="tag tag-mid">中</span></td></tr>
+        <tr><td class="num">5</td><td><strong>"看得见"的食材新鲜度</strong></td><td class="num">100亿</td><td><span class="tag tag-mid">中</span></td><td><span class="tag tag-mid">中</span></td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-3">
+      <div class="card accent-left"><div class="card-label accent">单店经济模型</div><div class="card-desc" style="line-height:2"><strong>日订单：</strong>100单<br><strong>客单价：</strong>¥35<br><strong>月营收：</strong>¥105,000<br><strong>食材40%：</strong>¥42,000<br><strong>租金+人工+杂费：</strong>¥33,000<br><strong style="color:var(--green)">月净利：≈¥25,000</strong></div></div>
+      <div class="card primary-left"><div class="card-label primary">关键资源</div><div class="card-desc" style="line-height:1.8"><strong>15万资金：</strong>押一付三6万+设备3万+食材1万<br><strong>3人团队：</strong>创始人+厨师+朋友<br><strong>品牌设计：</strong>创始人自己=0元<br><strong>标准化SOP：</strong>酱料配方+操作流程</div></div>
+      <div class="card gold-left"><div class="card-label gold">3个月验证指标</div><div class="card-desc" style="line-height:1.8"><strong>日均订单：</strong>≥80单<br><strong>客单价：</strong>≥¥30<br><strong>毛利率：</strong>≥60%<br><strong>社群人数：</strong>≥500人<br><strong style="color:var(--crimson)">不达标→果断止损</strong></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: 建议方向 + 资源盘点 -->
+<section class="slide" id="slide-9">
+  <div class="slide-inner">
+    <div class="section-eyebrow">07 · 建议方向</div>
+    <h2 class="section-title">五步落地：锁定切口 → 样板 → 信任 → 验证 → 复制</h2>
+    <div class="card-grid cols-5" style="margin-bottom:0.6rem">
+      <div class="card accent-left"><div class="card-label accent">1. 锁定切口</div><div class="card-desc" style="font-size:var(--fs-caption)">6-8款一人份套餐<br>¥35统一价<br>15分钟出餐<br>"超时免单"承诺</div></div>
+      <div class="card primary-left"><div class="card-label primary">2. 打造样板</div><div class="card-desc" style="font-size:var(--fs-caption)">写字楼B1或临街档口<br>30平米，租金≤1.5万<br>开放式厨房<br>蹲点观察人流</div></div>
+      <div class="card gold-left"><div class="card-label gold">3. 信任闭环</div><div class="card-desc" style="font-size:var(--fs-caption)">潮牌视觉设计<br>"炒掉你的班味"<br>加好友送饮料<br>每日食材视频</div></div>
+      <div class="card green-left"><div class="card-label green">4. 验证模型</div><div class="card-desc" style="font-size:var(--fs-caption)">创始人当店长<br>日记录+周复盘<br>3个月跑不通<br>→果断止损</div></div>
+      <div class="card" style="border-left:3px solid var(--primary-bright)"><div class="card-label" style="color:var(--primary-bright)">5. 复制准备</div><div class="card-desc" style="font-size:var(--fs-caption)">《开店手册》<br>选址+装修+设备<br>酱料配方+操作SOP<br>培训+社群SOP</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>资源</th><th>状态</th><th>成本</th><th>到位时间</th></tr></thead>
+      <tbody>
+        <tr><td>启动资金15万</td><td style="color:var(--green);font-weight:600">✓ 已有</td><td>¥150,000</td><td>立即</td></tr>
+        <tr><td>3人团队</td><td style="color:var(--green);font-weight:600">✓ 已有</td><td>工资1.5万/月</td><td>立即</td></tr>
+        <tr><td>品牌视觉设计</td><td style="color:var(--green);font-weight:600">✓ 创始人能力</td><td>¥0</td><td>1周内</td></tr>
+        <tr><td>30平米档口</td><td style="color:var(--accent)">待选址</td><td>押一付三≈6万</td><td>2-4周</td></tr>
+        <tr><td>标准化酱料配方</td><td style="color:var(--accent)">待研发</td><td>≈1万</td><td>2周</td></tr>
+        <tr><td>食品安全资质</td><td style="color:var(--accent)">待办理</td><td>≈0.5万</td><td>2-4周</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 10: 结语 + 交叉验证 -->
+<section class="slide" id="slide-10">
+  <div class="slide-inner">
+    <div class="section-eyebrow">结语 & 交叉验证</div>
+    <h2 class="section-title">赛道能做 — 但前三个月别想拿工资</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.6rem">
+      <div class="conclusion-block" style="margin-top:0">
+        <h3>解语</h3>
+        <p>哥们，这个赛道能做，但别想着一步登天。你的15万和3人团队，正好够做一个"小而美"的样板。<br><br><strong style="color:var(--accent)">第一步</strong>不是找大厨，而是去写字楼楼下蹲点，找一个30平米的档口。<strong style="color:var(--primary-bright)">最大的风险</strong>不是竞争，而是你15万花完之前，模型还没跑通。前三个月，你和你朋友别想着拿工资，每一分钱都要花在刀刃上。</p>
+      </div>
+      <div>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>用户声称</th><th>验证</th><th>数据支撑</th></tr></thead>
+          <tbody>
+            <tr><td class="num">1</td><td>"品类耳熟能详但担心差异性不够"</td><td style="color:var(--green);font-weight:600">✅</td><td>红餐网2025：认知度92%，CR5<5%，品牌差异性普遍不足</td></tr>
+            <tr><td class="num">2</td><td>"午餐市场存在'想吃有锅气有味道的'但选择不足"</td><td style="color:var(--green);font-weight:600">✅</td><td>美团研究院2025：62%白领对午餐不满意，"口味单一、缺锅气"占41%</td></tr>
+            <tr><td class="num">3</td><td>"味道好、食材新鲜、翻台快——竞品做不到"</td><td style="color:var(--gold);font-weight:600">⚠️</td><td>翻台率：传统1.5次/天 vs 快餐3-4次/天（中国烹饪协会2024），味道/新鲜度主观难量化</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="cta-row" style="justify-content:center">
+      <span class="cta-tag" style="font-size:var(--fs-small)">回复「做商业方案」→ Node2</span>
+      <span class="cta-tag" style="font-size:var(--fs-small)">15分钟出餐高峰期如何保证不翻车？</span>
+      <span class="cta-tag" style="font-size:var(--fs-small)">标准化酱料是找代工厂还是自己熬？</span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+</body>
+</html>

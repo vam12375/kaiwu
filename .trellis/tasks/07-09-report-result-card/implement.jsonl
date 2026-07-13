@@ -1,0 +1,14 @@
+{"file": ".trellis/spec/frontend/index.md", "reason": "frontend pre-development checklist"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "chat feature ownership and style file placement"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "typed feature component and conversation rendering rules"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "SSE event reducer/controller boundaries"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "conversation cache and backend-owned task save rules"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "strict TypeScript and API event field handling"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend verification and forbidden patterns"}
+{"file": ".trellis/spec/backend/index.md", "reason": "backend pre-development checklist"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "task runtime and orchestrator boundaries"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "task-visible SSE output and failure patterns"}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "avoid sensitive/internal leakage in user-facing output"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "dual archive and EventStore task flow constraints"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "backend event to frontend display data flow"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "search before adding helpers and constants"}

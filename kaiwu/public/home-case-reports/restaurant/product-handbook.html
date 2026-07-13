@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<!-- saved from url=(0110)file:///Users/wangzijian/Desktop/%E9%94%85%E6%B0%94%E4%BA%A7%E5%93%81%E8%90%BD%E5%9C%B0%E6%89%8B%E5%86%8C.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>锅气 — 产品落地手册</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.3rem);--fs-subhead:clamp(0.84rem,1.05vw,0.95rem);
+  --fs-body:clamp(0.74rem,0.85vw,0.82rem);--fs-small:clamp(0.65rem,0.75vw,0.72rem);--fs-caption:0.62rem;
+  --slide-padding:clamp(1.2rem,2.8vw,3rem);--card-radius:10px;--card-radius-sm:6px;
+  --ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.6}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.3rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;letter-spacing:-0.01em;line-height:1.2}
+.section-subtitle{font-size:var(--fs-body);color:var(--text-secondary);margin-bottom:0.8rem;max-width:650px}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}
+.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.35rem 1.2rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.5rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.8rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:1rem}
+.cover-tags{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.3rem 1rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted);letter-spacing:0.1em}
+.card-grid{display:grid;gap:0.9rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card-grid.cols-1-2{grid-template-columns:1fr 2fr}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.1rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.08em;margin-bottom:0.3rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-title{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.25rem}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.6}
+.stat-row{display:flex;gap:2rem;justify-content:center;margin:0.8rem 0 1.2rem;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.3rem;letter-spacing:0.05em}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.3rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.5rem 0.7rem;text-align:left;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.45rem 0.7rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);vertical-align:top;line-height:1.5}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.data-table .num{font-family:"SF Mono","JetBrains Mono",monospace;text-align:right;white-space:nowrap}
+.data-table .paint-col{color:var(--crimson);font-weight:600}
+.data-table .gain-col{color:var(--green);font-weight:500}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.9rem 1.1rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin:0.8rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.tag{display:inline-block;padding:2px 8px;border-radius:100px;font-size:0.62rem;font-weight:600;letter-spacing:0.04em;white-space:nowrap}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}
+.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}
+.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.tag-sku{background:rgba(33,150,243,0.12);color:var(--primary-bright)}
+.revenue-bars{display:flex;flex-direction:column;gap:0.4rem;margin:0.8rem 0}
+.revenue-bar-row{display:flex;align-items:center;gap:0.4rem}
+.revenue-bar-label{width:110px;font-size:var(--fs-caption);color:var(--text-secondary);text-align:right;flex-shrink:0}
+.revenue-bar-track{flex:1;height:22px;background:var(--bg-card-alt);border-radius:11px;overflow:hidden;position:relative}
+.revenue-bar-fill{height:100%;border-radius:11px;display:flex;align-items:center;padding-left:0.6rem;font-size:var(--fs-caption);font-weight:700;white-space:nowrap}
+.revenue-bar-fill.c1{background:linear-gradient(90deg,var(--primary-dim),var(--primary-bright));color:#fff}
+.revenue-bar-fill.c2{background:linear-gradient(90deg,var(--accent-dim),var(--accent));color:#fff}
+.revenue-bar-fill.c3{background:var(--gold-dim);color:#fff}
+.revenue-bar-val{font-size:var(--fs-caption);color:var(--text-muted);width:70px;flex-shrink:0}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.3rem;margin-top:0.8rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.5rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.8}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.8rem;overflow-y:auto}.nav-dots{bottom:0.5rem}.keyboard-hint{display:none}.stat-row{gap:1rem}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas" width="1512" height="827"></canvas>
+<nav class="nav-dots" id="navDots"><button class="nav-dot active" aria-label="Slide 1"></button><button class="nav-dot" aria-label="Slide 2"></button><button class="nav-dot" aria-label="Slide 3"></button><button class="nav-dot" aria-label="Slide 4"></button><button class="nav-dot" aria-label="Slide 5"></button><button class="nav-dot" aria-label="Slide 6"></button><button class="nav-dot" aria-label="Slide 7"></button><button class="nav-dot" aria-label="Slide 8"></button></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 3 · 产品落地手册</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">锅气</span> · 产品落地手册</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">实体餐饮连锁 · 启动 ¥300,000 · 3个月PMF验证</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">4 SKU</span><span class="cover-tag">定价¥28-68</span><span class="cover-tag">净利率46.8%</span><span class="cover-tag">年净利¥648k</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 产品定位 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 产品定位</div>
+    <h2 class="section-title">15分钟出餐、人均35元的现炒麻辣香锅工作餐</h2>
+    <p class="section-subtitle">解决白领"想吃有锅气但要么慢、要么贵、要么没味道"的核心矛盾。</p>
+    <div class="stat-row">
+      <div class="stat-item"><div class="stat-number">15<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">分钟</span></div><div class="stat-label">出餐速度</div></div>
+      <div class="stat-item"><div class="stat-number">¥35<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">人均</span></div><div class="stat-label">客单价</div></div>
+      <div class="stat-item"><div class="stat-number">69.6<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">%</span></div><div class="stat-label">引流款毛利率</div></div>
+      <div class="stat-item"><div class="stat-number">46.8<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">%</span></div><div class="stat-label">净利率</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th style="width:100px">场景</th><th style="color:var(--crimson)">没有我们时</th><th style="color:var(--green)">有我们后</th></tr></thead>
+      <tbody>
+        <tr><td class="paint-col">工作日午餐</td><td>选"快但没味道"的麻辣烫/快餐，或"好吃但慢且贵"的传统香锅（人均50-70元，等餐20分钟+）。</td><td class="gain-col"><strong>"15分钟出餐，人均35元"</strong>的现炒香锅。不在"快"和"好吃"之间取舍。</td></tr>
+        <tr><td class="paint-col">想吃有锅气的</td><td>只能去人均80元以上的正餐店解馋，或自己带饭。</td><td class="gain-col"><strong>"现点现炒"标准化体验</strong>，锅气十足，价格仅为正餐店一半。</td></tr>
+        <tr><td class="paint-col">同事小聚</td><td>传统香锅店环境嘈杂，快餐店缺乏聚餐氛围。</td><td class="gain-col"><strong>"一人食小份锅"+"双人分享锅"</strong>，兼顾效率和社交。</td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-3" style="margin-top:0.6rem">
+      <div class="card accent-left"><div class="card-label accent">效率差异化</div><div class="card-desc">15分钟出餐，对标快餐速度，远超传统香锅的20-30分钟。</div></div>
+      <div class="card primary-left"><div class="card-label primary">价格差异化</div><div class="card-desc">人均¥35，卡位麻辣烫（¥25）和传统香锅（¥50）之间的空白地带。</div></div>
+      <div class="card gold-left"><div class="card-label gold">体验差异化</div><div class="card-desc">"现点现炒"明档操作，锅气十足，区别于预包装快餐的"工业感"。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: 目标人群 + SKU规划 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">02-03 · 目标人群 &amp; SKU规划</div>
+    <h2 class="section-title">三类白领 × 4个SKU，引流-利润-形象三层覆盖</h2>
+    <div class="card-grid cols-3" style="margin-bottom:0.6rem">
+      <div class="card accent-left"><div class="card-label accent">核心人群A</div><div class="card-title">25-30岁初级白领</div><div class="card-desc">月入8k-15k，午餐预算¥30-40。每周消费3-4次。决策关键：<strong>出餐速度&gt;价格&gt;口味</strong>。</div></div>
+      <div class="card primary-left"><div class="card-label primary">次要人群B</div><div class="card-title">30-35岁中层管理者</div><div class="card-desc">月入15k-20k，午餐预算¥35-45。每周消费2-3次。决策关键：<strong>口味&gt;环境&gt;价格</strong>。</div></div>
+      <div class="card gold-left"><div class="card-label gold">次要人群C</div><div class="card-title">22-25岁应届生/实习生</div><div class="card-desc">月入6k-10k，午餐预算¥25-35。每周消费2次。决策关键：<strong>价格&gt;口味&gt;出餐速度</strong>。</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>SKU</th><th>产品名</th><th>类型</th><th>规格</th><th>成本</th><th>定价</th><th>毛利率</th><th>占比</th></tr></thead>
+      <tbody>
+        <tr style="background:rgba(33,150,243,0.03)"><td><span class="tag tag-sku">01</span></td><td style="color:var(--primary-bright);font-weight:700">锅气·经典微辣锅</td><td><span class="tag tag-low">引流</span></td><td>一人食小份，6种基础荤素菜+米饭</td><td class="num">¥8.5</td><td class="num" style="color:var(--accent);font-weight:700">¥28</td><td class="num" style="color:var(--green)">69.6%</td><td>40%</td></tr>
+        <tr style="background:rgba(212,168,83,0.03)"><td><span class="tag tag-sku">02</span></td><td style="color:var(--gold);font-weight:700">锅气·招牌中辣锅</td><td><span class="tag tag-mid">利润</span></td><td>一人食小份，8种精选菜（含牛肉/虾滑）+米饭</td><td class="num">¥12</td><td class="num" style="color:var(--accent);font-weight:700">¥38</td><td class="num" style="color:var(--green)">68.4%</td><td>35%</td></tr>
+        <tr><td><span class="tag tag-sku">03</span></td><td style="color:var(--text-primary);font-weight:700">锅气·双人分享锅</td><td><span class="tag tag-mid">利润</span></td><td>大份，12种荤素菜+2份米饭</td><td class="num">¥20</td><td class="num" style="color:var(--accent);font-weight:700">¥68</td><td class="num" style="color:var(--green)">70.6%</td><td>15%</td></tr>
+        <tr><td><span class="tag tag-sku">04</span></td><td style="color:var(--text-primary);font-weight:700">锅气·超辣挑战锅</td><td><span class="tag tag-high">形象</span></td><td>一人食小份，8种菜+特制魔鬼辣椒+米饭</td><td class="num">¥13</td><td class="num" style="color:var(--accent);font-weight:700">¥42</td><td class="num" style="color:var(--green)">69.0%</td><td>10%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 3: 产品命名 + 定价 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">04-05 · 产品命名 &amp; 定价策略</div>
+    <h2 class="section-title">"品牌名·XX"体系 + 三维定价法</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.6rem">
+      <div class="card accent-left"><div class="card-label accent">经典微辣锅 · ¥28</div><div class="card-desc">"经典"=不出错，"微辣"覆盖最广人群。锚定麻辣烫(¥25)和传统香锅(¥50)之间，用"有锅气"吸引首次尝试，建立"性价比"认知。</div></div>
+      <div class="card primary-left"><div class="card-label primary">招牌中辣锅 · ¥38</div><div class="card-desc">"招牌"暗示品质保证和独特配方。提升食材品质（牛肉/虾滑），满足"想吃点好的"需求，是复购主力。</div></div>
+      <div class="card gold-left"><div class="card-label gold">双人分享锅 · ¥68</div><div class="card-desc">场景化命名，"分享"=社交+性价比（人均¥34）。满足同事小聚场景，提升客单价，增加社交传播。</div></div>
+      <div class="card green-left"><div class="card-label green">超辣挑战锅 · ¥42</div><div class="card-desc">"挑战"自带社交货币，吸引年轻人打卡发朋友圈/小红书。形象款不追求销量，追求话题度。</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>产品包</th><th>目标客户</th><th>定价</th><th>包含内容</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--green);font-weight:600">基础款</td><td>价格敏感型、首次尝试</td><td class="num" style="color:var(--accent);font-weight:700">¥28</td><td>经典微辣锅（6种菜）+ 米饭 + 纸巾</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">标准款</td><td>追求品质、复购用户</td><td class="num" style="color:var(--accent);font-weight:700">¥38</td><td>招牌中辣锅（8种菜含牛肉/虾滑）+ 米饭 + 饮料</td></tr>
+        <tr><td style="color:var(--gold);font-weight:600">旗舰款</td><td>同事/朋友小聚</td><td class="num" style="color:var(--accent);font-weight:700">¥68</td><td>双人分享锅（12种菜）+ 米饭×2 + 饮料×2 + 小菜</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 4: 成本核算 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">06 · 成本核算</div>
+    <h2 class="section-title">引流款单件成本¥8.5，规模效应可降至¥7.5</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.6rem">
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.6rem">SKU-01 经典微辣锅 成本拆解</div>
+        <div class="revenue-bars">
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🥩 食材成本</div><div class="revenue-bar-track"><div class="revenue-bar-fill c1" style="width:76.5%">¥6.5/份 · ¥19,500/月</div></div><div class="revenue-bar-val">76.5%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">📦 包装物料</div><div class="revenue-bar-track"><div class="revenue-bar-fill c2" style="width:11.8%">¥1.0/份 · ¥3,000/月</div></div><div class="revenue-bar-val">11.8%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">📢 获客成本</div><div class="revenue-bar-track"><div class="revenue-bar-fill c3" style="width:5.9%">¥0.5/份</div></div><div class="revenue-bar-val">5.9%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🔧 运营成本</div><div class="revenue-bar-track"><div class="revenue-bar-fill" style="width:5.9%;background:var(--border-card)">¥0.5/份</div></div><div class="revenue-bar-val">5.9%</div></div>
+        </div>
+        <div class="card-desc" style="text-align:center"><strong>单件成本 ¥8.5</strong> · 月销3000份总成本 ¥25,500</div>
+      </div>
+      <div class="card">
+        <div class="card-label gold" style="margin-bottom:0.6rem">边际成本变化趋势</div>
+        <div class="card-desc" style="line-height:1.7">
+          <strong style="color:var(--primary-bright)">月销3000→10000份：</strong><br>
+          食材成本因批量采购<strong>下降10-15%</strong>（约¥5.8/份）<br>
+          包装物料成本<strong>下降5%</strong>（约¥0.95/份）<br>
+          固定成本（房租/人工）被摊薄<br>
+          <strong style="color:var(--green)">预计单件总成本可降至¥7.5左右</strong><br><br>
+          规模效应显著：销量翻3倍，单件成本降12%。高翻台率+高毛利模型可复制性强。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: 利润空间 -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="section-eyebrow">07 · 利润空间</div>
+    <h2 class="section-title">单件净利¥18，净利率46.8%，年净利¥648,000</h2>
+    <p class="section-subtitle">加权均价¥38.5（基于首季销量占比：40%/35%/15%/10%），远超餐饮行业平均净利率15-20%。</p>
+    <div class="card-grid cols-3" style="margin-bottom:0.6rem">
+      <div class="card accent-left"><div class="card-label accent">单件模型</div><div class="card-desc" style="line-height:2"><strong>售价：</strong>¥38.5<br><strong>交付成本：</strong>¥12.5<br><strong style="color:var(--green)">单件毛利：¥26.0</strong><br><strong>营销管理费：</strong>¥8.0<br><strong style="color:var(--primary-bright)">单件净利：¥18.0</strong></div></div>
+      <div class="card primary-left"><div class="card-label primary">月度预估</div><div class="card-desc" style="line-height:2"><strong>月营收：</strong>¥115,500<br><strong>交付成本：</strong>¥37,500<br><strong style="color:var(--green)">月毛利：¥78,000</strong><br><strong>营销管理费：</strong>¥24,000<br><strong>月净利：¥54,000</strong></div></div>
+      <div class="card gold-left"><div class="card-label gold">年度预估</div><div class="card-desc" style="line-height:2"><strong>年营收：</strong>¥1,386,000<br><strong>交付成本：</strong>¥450,000<br><strong style="color:var(--green)">年毛利：¥936,000</strong><br><strong>营销管理费：</strong>¥288,000<br><strong>年净利：¥648,000</strong></div></div>
+    </div>
+    <div class="insight-card"><p>净利率46.8%，远超餐饮行业平均（15-20%）。得益于<strong style="color:var(--text-primary)">"高翻台率+高毛利"</strong>模型。一旦单店跑通，即可标准化复制。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 6: 最小启动方案 -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="section-eyebrow">08 · 最小启动方案</div>
+    <h2 class="section-title">¥300,000启动 + 4周计划，70万作扩张储备</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.6rem">
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.6rem">启动预算分配（100万总额）</div>
+        <div class="revenue-bars">
+          <div class="revenue-bar-row"><div class="revenue-bar-label">📦 首批备货/设备</div><div class="revenue-bar-track"><div class="revenue-bar-fill c1" style="width:50%">¥150,000</div></div><div class="revenue-bar-val">15%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🎨 品牌物料</div><div class="revenue-bar-track"><div class="revenue-bar-fill c2" style="width:10%">¥30,000</div></div><div class="revenue-bar-val">3%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">📱 上线+推广</div><div class="revenue-bar-track"><div class="revenue-bar-fill c3" style="width:33%">¥100,000</div></div><div class="revenue-bar-val">10%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">💰 应急储备</div><div class="revenue-bar-track"><div class="revenue-bar-fill" style="width:7%;background:var(--border-card)">¥20,000</div></div><div class="revenue-bar-val">2%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🏦 扩张储备</div><div class="revenue-bar-track"><div class="revenue-bar-fill" style="width:70%;background:rgba(76,175,80,0.3);color:var(--green)">¥700,000</div></div><div class="revenue-bar-val">70%</div></div>
+        </div>
+        <div class="card-desc" style="text-align:center"><strong>首期投入 ¥300,000</strong> · 70万作为后续扩张和运营储备金</div>
+      </div>
+      <div class="card">
+        <div class="card-label gold" style="margin-bottom:0.6rem">4周启动路径</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="card accent-left" style="padding:0.6rem 0.9rem"><span class="tag tag-high">W1</span><strong style="font-size:var(--fs-small);margin-left:0.4rem">选址签约+设备采购+菜单定稿</strong><div style="font-size:var(--fs-caption);color:var(--text-muted)">租赁合同、设备采购单、供应商合同</div></div>
+          <div class="card primary-left" style="padding:0.6rem 0.9rem"><span class="tag tag-mid">W2</span><strong style="font-size:var(--fs-small);margin-left:0.4rem">店面装修+员工招聘培训+包装设计</strong><div style="font-size:var(--fs-caption);color:var(--text-muted)">装修照、员工名单、包装设计稿</div></div>
+          <div class="card gold-left" style="padding:0.6rem 0.9rem"><span class="tag tag-low">W3</span><strong style="font-size:var(--fs-small);margin-left:0.4rem">装修收尾+设备安装+食材入库+平台入驻</strong><div style="font-size:var(--fs-caption);color:var(--text-muted)">设备验收单、食材入库单、平台上线</div></div>
+          <div class="card green-left" style="padding:0.6rem 0.9rem"><span class="tag tag-low" style="background:rgba(76,175,80,0.15);color:var(--green)">W4</span><strong style="font-size:var(--fs-small);margin-left:0.4rem">试营业+收集反馈+优化流程+正式开业</strong><div style="font-size:var(--fs-caption);color:var(--text-muted)">试营业报告、优化清单、开业海报</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: 获客方案 + 验证周期 + 结语 -->
+<section class="slide" id="slide-7">
+  <div class="slide-inner">
+    <div class="section-eyebrow">09-10 · 获客方案 &amp; 三个月PMF验证</div>
+    <h2 class="section-title">地推+平台+KOC → 第3月营收¥114k即达PMF</h2>
+    <div class="card-grid cols-3" style="margin-bottom:0.5rem">
+      <div class="card accent-left"><div class="card-label accent">写字楼地推</div><div class="card-desc" style="font-size:var(--fs-caption)">派发免费试吃券<br>预期：500人 · ¥5/人<br>第4周启动</div></div>
+      <div class="card primary-left"><div class="card-label primary">平台秒杀</div><div class="card-desc" style="font-size:var(--fs-caption)">1元秒杀经典微辣锅<br>预期：100人 · ¥28/人<br>第4周启动</div></div>
+      <div class="card gold-left"><div class="card-label gold">KOC种草</div><div class="card-desc" style="font-size:var(--fs-caption)">5位本地美食KOC<br>预期：2000曝光 · ¥200/人<br>第4周启动</div></div>
+    </div>
+    <table class="data-table" style="margin-bottom:0.5rem">
+      <thead><tr><th>验证指标</th><th>第1月</th><th>第2月</th><th>第3月</th><th>达标线</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--accent);font-weight:600">付费用户</td><td class="num">500</td><td class="num">1,500</td><td class="num">3,000</td><td style="color:var(--green)">月增≥50%</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">续费率</td><td class="num">20%</td><td class="num">30%</td><td class="num">40%</td><td style="color:var(--green)">≥40%</td></tr>
+        <tr><td style="color:var(--gold);font-weight:600">客单价</td><td class="num">¥35</td><td class="num">¥36</td><td class="num">¥38</td><td style="color:var(--green)">≥¥38</td></tr>
+        <tr><td style="color:var(--green);font-weight:600">月营收</td><td class="num">¥17.5k</td><td class="num">¥54k</td><td class="num">¥114k</td><td style="color:var(--green)">≥¥100k</td></tr>
+        <tr><td style="color:var(--accent);font-weight:600">转介绍</td><td class="num">5%</td><td class="num">10%</td><td class="num">15%</td><td style="color:var(--green)">≥15%</td></tr>
+      </tbody>
+    </table>
+    <div class="insight-card"><p>从0到100客户路径：<strong style="color:var(--text-primary)">免费试吃→好评积累→KOC种草→社交裂变（带新朋友8折）</strong>。第3月营收≥¥100k且转介绍≥15%→PMF验证成功，启动第二家店。</p></div>
+    <div class="conclusion-block">
+      <h3>结语</h3>
+      <p>从"想吃点有锅气的"这个朴素愿望出发，我们用<strong style="color:var(--accent)">¥28引流款</strong>、<strong style="color:var(--primary-bright)">15分钟出餐</strong>和"现点现炒"明档，回应了73.8%白领午餐"凑合"的无奈。这份手册是您<strong style="color:var(--gold)">明天就能在写字楼下开出一家"锅气"店的行动蓝图</strong>。</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+
+</body></html>

@@ -8,7 +8,7 @@ import { SkillLibraryPage } from './SkillLibraryPage';
 import { ProjectImagePreviewModal } from './ProjectImagePreviewModal';
 import { ProjectLazyImage } from './ProjectLazyImage';
 import { HomeExperience } from '../home/HomeExperience';
-import type { ProjectImage } from '../../types';
+import type { ProjectImage, SkillLibraryItem } from '../../types';
 import '../../styles/layout/main-stage.css';
 import '../../styles/home/home-stage.css';
 import '../../styles/project/project-gallery.css';
@@ -178,6 +178,20 @@ export function MainStage(props: MainStageProps) {
     : visibleRealProjectFiles;
   const visibleProjectImages = projectImages.filter((image: ProjectImage) => matchesProjectName(image.name));
   const visibleProjectImageKey = visibleProjectImages.map((image: ProjectImage) => image.name).join('|');
+  const openHomeSkillDetail = (skill: SkillLibraryItem) => {
+    setSkillModalData?.(skill);
+    setSkillModal?.('detail');
+  };
+  const startHomeSkillConversation = (skill: SkillLibraryItem) => {
+    setSelectedComposerSkill?.(skill);
+    resetConversation?.({ activePage: 'home', open: true, clearLoading: false });
+    followupNodeRef.current = 'node6';
+    setActivePage('home');
+    window.setTimeout(() => {
+      followupNodeRef.current = 'node6';
+      convTextareaRef.current?.focus();
+    }, 0);
+  };
   const projectFileKey = (file: ProjectFileLike) => `${file.folder}/${file.name}`;
   const visibleProjectFileKey = visibleRealProjectFiles.map((file: ProjectFileLike) => projectFileKey(file)).join('|');
   const selectedFolderDetailItemCount = isImageLibraryFolder ? selectedProjectImageNames.length : selectedProjectFileKeys.length;
@@ -401,6 +415,13 @@ export function MainStage(props: MainStageProps) {
                   setOpenPicker={setOpenPicker}
                   setRatioOpen={setRatioOpen}
                   setSelectedFolderIndex={setSelectedFolderIndex}
+                  selectedSkill={selectedComposerSkill}
+                  onSelectedSkillRemove={() => {
+                    setSelectedComposerSkill?.(null);
+                    if (followupNodeRef.current === 'node6') {
+                      followupNodeRef.current = null;
+                    }
+                  }}
                   setSuggestedQuestions={setSuggestedQuestions}
                   stopGeneration={stopGeneration}
                   suggestedQuestions={suggestedQuestions}
@@ -785,7 +806,10 @@ export function MainStage(props: MainStageProps) {
                 <HomeExperience
                   activeDirection={activeDirection}
                   quickSkills={quickSkills}
+                  skillItems={skillItems}
                   selectedSkill={selectedComposerSkill}
+                  onSkillDetailOpen={openHomeSkillDetail}
+                  onStartupSkillSelect={startHomeSkillConversation}
                   onSelectedSkillRemove={() => setSelectedComposerSkill?.(null)}
                   homeTextareaRef={homeTextareaRef}
                   inputText={inputText}

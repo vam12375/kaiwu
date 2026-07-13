@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>凝时札记 — 深度市场调研报告</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.3rem);--fs-subhead:clamp(0.84rem,1.05vw,0.95rem);
+  --fs-body:clamp(0.74rem,0.85vw,0.82rem);--fs-small:clamp(0.65rem,0.75vw,0.72rem);--fs-caption:0.62rem;
+  --slide-padding:clamp(1.2rem,2.8vw,3rem);--card-radius:10px;--card-radius-sm:6px;
+  --ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.6}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.3rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;letter-spacing:-0.01em;line-height:1.2}
+.section-subtitle{font-size:var(--fs-body);color:var(--text-secondary);margin-bottom:0.8rem;max-width:650px}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}
+.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.35rem 1.2rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.5rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.8rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:1rem}
+.cover-tags{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.3rem 1rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted)}
+.card-grid{display:grid;gap:0.9rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card-grid.cols-5{grid-template-columns:repeat(5,1fr)}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.1rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.08em;margin-bottom:0.3rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-title{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.25rem}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.6}
+.stat-row{display:flex;gap:2rem;justify-content:center;margin:0.8rem 0 1.2rem;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.3rem}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.3rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.5rem 0.7rem;text-align:left;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.45rem 0.7rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);line-height:1.5}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.data-table .num{font-family:"SF Mono","JetBrains Mono",monospace;text-align:right;white-space:nowrap}
+.data-table .paint-col{color:var(--crimson);font-weight:600}
+.data-table .gain-col{color:var(--green);font-weight:500}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.9rem 1.1rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin:0.8rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.tag{display:inline-block;padding:2px 8px;border-radius:100px;font-size:0.62rem;font-weight:600;letter-spacing:0.04em;white-space:nowrap}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}
+.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}
+.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.driver-list{display:flex;flex-direction:column;gap:0.5rem}
+.driver-item{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.8rem 1rem;display:flex;flex-wrap:wrap;align-items:center;gap:0.8rem;transition:all var(--duration-normal) var(--ease-out-expo)}
+.driver-item:hover{border-color:var(--primary-dim)}
+.driver-item .drv-title{font-size:var(--fs-small);font-weight:700;color:var(--text-primary);flex:1;min-width:200px}
+.driver-item .drv-desc{font-size:var(--fs-caption);color:var(--text-secondary);width:100%;line-height:1.6}
+.trend-block{background:linear-gradient(135deg,rgba(33,150,243,0.05),rgba(33,150,243,0.02));border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.2rem;margin:0.8rem 0}
+.trend-block h4{font-size:var(--fs-subhead);color:var(--primary-bright);margin-bottom:0.6rem;font-weight:700}
+.trend-block h5{font-size:var(--fs-small);color:var(--text-primary);margin:0.6rem 0 0.2rem;font-weight:600}
+.trend-block p{font-size:var(--fs-caption);color:var(--text-secondary);line-height:1.6}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.3rem;margin-top:0.8rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.5rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.8}
+.cta-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.8rem}
+.cta-tag{padding:3px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);border-radius:100px;font-size:var(--fs-caption);color:var(--text-muted)}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4,.card-grid.cols-5{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.8rem;overflow-y:auto}.nav-dots{bottom:0.5rem}.keyboard-hint{display:none}.stat-row{gap:1rem}.driver-item{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas"></canvas>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 1 · 深度市场调研</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">凝时札记</span> · 宠物银饰赛道</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">聚焦"情感故事定制"空白 · 10万启动 · 3个月验证</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">市场规模 15-18亿</span><span class="cover-tag">年增速 20-25%</span><span class="cover-tag">启动 ¥100,000</span><span class="cover-tag">验证 3个月</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 总览表 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">Overview · 总览</div>
+    <h2 class="section-title">市场调研总览表</h2>
+    <div class="stat-row">
+      <div class="stat-item"><div class="stat-number">15-18<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">亿</span></div><div class="stat-label">2026年市场规模(估)</div></div>
+      <div class="stat-item"><div class="stat-number">20-25<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">%</span></div><div class="stat-label">年同比增速</div></div>
+      <div class="stat-item"><div class="stat-number">¥10<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">万</span></div><div class="stat-label">启动资金</div></div>
+      <div class="stat-item"><div class="stat-number">3<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">个月</span></div><div class="stat-label">验证周期</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th style="width:140px">类目</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--primary-bright);font-weight:600">市场规模</td><td>宠物银饰2026年约 <strong>15-18亿元</strong>，渗透率不足10%，品牌化程度极低，处于成长期早期。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">竞争格局</td><td>高度分散，头部为综合宠物品牌（小佩、未卡），<strong>无专门宠物银饰品牌</strong>，47%为白牌。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">目标人群</td><td>新一线城市、25-35岁、高消费力养宠女性。追求"情感链接"与"独特纪念"，客单价300-800元。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">商业机会</td><td>宠物纪念银饰的<strong>"情感故事定制"</strong>赛道存在明显空白，现有方案无法满足"独一无二的情感表达"。</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">建议方向</td><td>以"情感故事定制"为核心，小红书/抖音内容营销快速验证，启动<strong>10万</strong>，<strong>3个月</strong>积累首批种子用户。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 2: 市场规模 + 趋势 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 市场规模与趋势</div>
+    <h2 class="section-title">15-18亿赛道，渗透率<10%，成长期早期</h2>
+    <table class="data-table" style="margin-bottom:0.6rem">
+      <thead><tr><th>年份</th><th>市场规模（亿元）</th><th>同比增速</th><th>数据来源</th></tr></thead>
+      <tbody>
+        <tr><td>2022</td><td class="num">8</td><td class="num">—</td><td>行业测算，银饰渗透率约6.7%</td></tr>
+        <tr><td>2024</td><td class="num">12</td><td class="num">+20%</td><td>行业测算，社交媒体"宠物纪念"热度上升</td></tr>
+        <tr><td>2025</td><td class="num">15</td><td class="num">+25%</td><td>《2025年中国宠物行业白皮书》</td></tr>
+        <tr><td>2026（估）</td><td class="num">18</td><td class="num">+20%</td><td>百度/小红书关键词趋势</td></tr>
+        <tr><td>2028（预测）</td><td class="num">28-32</td><td class="num">+27-28%</td><td>品牌化玩家进入，渗透率→15%</td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-3" style="margin-bottom:0.5rem">
+      <div class="card accent-left"><div class="card-label accent">通用宠物饰品</div><div class="card-title">≈120亿</div><div class="card-desc">标准化，¥20-200，竞争激烈。</div></div>
+      <div class="card primary-left"><div class="card-label primary">宠物纪念品</div><div class="card-title">≈30亿</div><div class="card-desc">情感情感极强，¥300-2000。场景偏殡葬，可切入"生前纪念"。</div></div>
+      <div class="card gold-left"><div class="card-label gold">宠物银饰 ⭐</div><div class="card-title">≈15-18亿</div><div class="card-desc"><strong>核心机会。</strong>装饰+纪念，¥200-800，品牌化空白。</div></div>
+    </div>
+    <div class="trend-block">
+      <h4>三大趋势</h4>
+      <h5>1. "情感纪念"成为核心驱动力</h5><p>Z世代养宠主力，围绕"陪伴/纪念/告别"的消费爆发。品牌需从<strong>"卖产品"→"卖情感解决方案"</strong>。</p>
+      <h5>2. 定制化与个性化成为标配</h5><p>供应链需具备<strong>"小批量、快速定制"</strong>能力——3D打印/CNC让10件起订成为可能。</p>
+      <h5>3. 线上种草+线下体验闭环</h5><p>早期聚焦线上内容，积累口碑后考虑线下快闪合作。</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: 核心驱动因素 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">02 · 核心驱动因素</div>
+    <h2 class="section-title">五大驱动力推动"情感纪念"银饰赛道</h2>
+    <div class="driver-list">
+      <div class="driver-item accent-left"><div class="drv-title">1. 宠物拟人化消费升级</div><span class="tag tag-high">高·长期</span><div class="drv-desc">养宠人群将宠物视为"家人"，愿意为情感需求付费。银饰作为"装饰+纪念"结合体，完美契合"给毛孩子最好的"的心理，在年轻高收入独居人群中不可逆。</div></div>
+      <div class="driver-item accent-left"><div class="drv-title">2. 社交媒体内容种草效应</div><span class="tag tag-high">高·中期</span><div class="drv-desc">小红书/抖音是宠物内容高地。"宠物佩戴银饰"的爆款笔记能瞬间引发关注和模仿。内容种草是低成本获客核心手段，尤其适合强情感属性的品牌。</div></div>
+      <div class="driver-item gold-left"><div class="drv-title">3. "纪念经济"兴起 + 供应链成熟</div><span class="tag tag-mid">中·长期</span><div class="drv-desc">"告别与纪念"消费快速增长的。银饰作为"生前纪念"载体，比殡葬场景更易接受。3D打印/CNC让10件起订成可能。</div></div>
+      <div class="driver-item gold-left"><div class="drv-title">4. 现有竞品的情感空白</div><span class="tag tag-high">高·短期</span><div class="drv-desc">现有宠物银饰多为"通用款"（骨头/爪印），缺乏"故事性"。消费者购买后无法向他人讲述"为什么选这个"。窗口期预计1-2年。</div></div>
+      <div class="driver-item gold-left"><div class="drv-title">5. 定制门槛降低</div><span class="tag tag-mid">中·中期</span><div class="drv-desc">小批量个性化定制成本大幅下降（过去100件起订→现在10件）。为"情感故事定制"提供了供应链基础。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 竞争格局 + 差异化 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">03 · 竞争格局 & 差异化机会</div>
+    <h2 class="section-title">无专门品牌 + 47%白牌 = 蓝海</h2>
+    <table class="data-table" style="margin-bottom:0.5rem">
+      <thead><tr><th>类型</th><th>品牌</th><th>价格带</th><th>优势</th><th>短板</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-high">头部</span></td><td><strong>小佩/未卡</strong></td><td>¥50-500</td><td>品牌知名度高，渠道广</td><td class="paint-col">非银饰专业，缺情感属性</td></tr>
+        <tr><td><span class="tag tag-mid">新锐</span></td><td><strong>嬉皮狗</strong></td><td>¥30-150</td><td>款式多，性价比高</td><td class="paint-col">品质感一般</td></tr>
+        <tr><td><span class="tag tag-mid">手工</span></td><td><strong>宠印/爪爪印记</strong></td><td>¥200-1500</td><td>纯手工可定制</td><td class="paint-col">产能低，营销弱</td></tr>
+        <tr><td><span class="tag tag-low">白牌</span></td><td><strong>1688/拼多多</strong></td><td>¥20-100</td><td>价格极低</td><td class="paint-col">材质无保障，无品牌</td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-3">
+      <div class="card accent-left"><div class="card-label accent">机会一 ⭐</div><div class="card-title">"情感故事定制"</div><div class="card-desc"><strong>3-5亿 · 难度中。</strong>用户提供故事→设计师转化为设计。现有定制只停在"名字/爪印"。客单价¥500-800。<strong>与团队"营销+情感共鸣"完美匹配。</strong></div></div>
+      <div class="card primary-left"><div class="card-label primary">机会二</div><div class="card-title">"人宠同款"系列</div><div class="card-desc"><strong>2-4亿 · 难度低。</strong>主人手链+宠物项圈同款。内容传播力强，用户主动晒"亲子装"，提升客单价。</div></div>
+      <div class="card gold-left"><div class="card-label gold">机会三</div><div class="card-title">宠物生日场景营销</div><div class="card-desc"><strong>1-2亿 · 难度低。</strong>限定款+礼盒。高频强情感场景，可提前布局成为"宠物生日礼物"首选。</div></div>
+    </div>
+    <div class="insight-card"><p>80%精力投入<strong style="color:var(--text-primary)">机会一</strong>——完美利用团队优势，市场空白期明确。首批投入2-3万，3个爆款故事即可回正现金流。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 5: 目标人群画像 -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="section-eyebrow">04 · 目标人群画像</div>
+    <h2 class="section-title">聚焦"情感纪念型"：25-35岁高消费力养宠女性</h2>
+    <table class="data-table" style="margin-bottom:0.5rem">
+      <thead><tr><th>人群</th><th>年龄/收入</th><th>频次</th><th>预算</th><th>核心痛点</th><th>强度</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--accent);font-weight:600">情感纪念型</td><td>25-35岁 · 月入1.5万+</td><td>1-2次/年</td><td>¥500-800</td><td>宠物是家人，想要独一无二的纪念</td><td><span class="tag tag-high">高</span></td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">社交展示型</td><td>20-30岁 · 月入1万+</td><td>3-4次/年</td><td>¥200-500</td><td>想给宠物好看饰品拍照发朋友圈</td><td><span class="tag tag-high">高</span></td></tr>
+        <tr><td style="color:var(--gold);font-weight:600">仪式感生活型</td><td>30-40岁 · 月入2万+</td><td>2-3次/年</td><td>¥300-600</td><td>宠物生日/纪念日需要长久保存的礼物</td><td><span class="tag tag-mid">中</span></td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-2">
+      <div class="card accent-left"><div class="card-label accent">核心：情感纪念型</div><div class="card-desc"><strong>小雅，28岁，杭州，月入1.8万。</strong>养金毛5年，独居精神支柱。想给大毛一件能代表感情的饰品。<br><strong>消费心理：</strong>独一无二、情感寄托、值得珍藏。<br><strong>决策路径：</strong>情感事件触发→小红书搜索"宠物纪念银饰"→对比3-5品牌→选能理解她故事的。</div></div>
+      <div class="card primary-left"><div class="card-label primary">核心：社交展示型</div><div class="card-desc"><strong>阿琳，24岁，成都，月入1.2万。</strong>养柯基，喜欢带宠打卡发小红书。<br><strong>消费心理：</strong>出片、独特、被夸。<br><strong>决策路径：</strong>刷爆款笔记→搜索品牌→看款式是否独特→被博主推荐打动直接下单。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: 商业机会 + 建议方向 + 结语 + 交叉验证 -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="section-eyebrow">05-07 · 机会 · 建议 · 结语</div>
+    <h2 class="section-title">"故事即产品"——用情感内容驱动增长</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.5rem">
+      <div>
+        <table class="data-table" style="margin-bottom:0.4rem">
+          <thead><tr><th>#</th><th>需求</th><th>容量</th><th>紧迫</th></tr></thead>
+          <tbody>
+            <tr style="background:rgba(212,168,83,0.04)"><td class="num" style="color:var(--gold)">1</td><td><strong>情感故事转化银饰设计</strong></td><td>3-5亿</td><td><span class="tag tag-high">高</span></td></tr>
+            <tr><td class="num">2</td><td><strong>"人宠同款"社交展示</strong></td><td>2-4亿</td><td><span class="tag tag-mid">中</span></td></tr>
+            <tr><td class="num">3</td><td><strong>宠物生日/纪念日礼物</strong></td><td>1-2亿</td><td><span class="tag tag-mid">中</span></td></tr>
+          </tbody>
+        </table>
+        <div class="card accent-left"><div class="card-label accent">五步落地</div><div class="card-desc" style="font-size:var(--fs-caption)"><strong>1. 锁定切口：</strong>"情感故事定制"单点突破。产品不是银饰，是"故事"。<br><strong>2. 打造样板：</strong>用"故事内容"替代"产品图"。<br><strong>3. 信任闭环：</strong>开箱返图+买家故事专区。<br><strong>4. 供应链先行：</strong>2-3家小批量工厂。<br><strong>5. 私域蓄水：</strong>企业微信+社群降低获客成本。</div></div>
+      </div>
+      <div>
+        <div class="trend-block" style="margin-bottom:0.4rem;padding:0.9rem">
+          <h4 style="font-size:var(--fs-small)">一句话商业机会总结</h4>
+          <p style="font-size:var(--fs-caption);line-height:1.5">在<strong style="color:var(--primary-bright)">宠物纪念银饰赛道</strong>，<strong style="color:var(--gold)">25-35岁养宠女性</strong>的<strong style="color:var(--accent)">"将宠物故事转化为独一无二银饰"</strong>需求未被满足，优先做<strong style="color:var(--accent)">"情感故事定制银饰"</strong>，启动<strong style="color:var(--green)">¥10万</strong>，验证<strong style="color:var(--green)">3个月</strong>。</p>
+        </div>
+        <table class="data-table" style="margin-bottom:0.3rem">
+          <thead><tr><th>资源</th><th>状态</th><th>成本</th></tr></thead>
+          <tbody>
+            <tr><td>设计师（情感转化）</td><td style="color:var(--green)">✓</td><td>¥0</td></tr>
+            <tr><td>营销内容制作</td><td style="color:var(--green)">✓</td><td>¥0</td></tr>
+            <tr><td>银饰供应链</td><td style="color:var(--gold)">⚠</td><td>¥3,000-5,000</td></tr>
+            <tr><td>首批打样物料</td><td style="color:var(--crimson)">✗</td><td>¥5,000-8,000</td></tr>
+            <tr><td>运营资金3个月</td><td style="color:var(--green)">✓</td><td>¥100,000</td></tr>
+          </tbody>
+        </table>
+        <div class="conclusion-block" style="padding:0.8rem;margin-top:0.3rem">
+          <h3 style="font-size:var(--fs-subhead)">结语</h3>
+          <p style="font-size:var(--fs-caption)">赛道正处于成长期早期，品牌化空白明确。<strong style="color:var(--primary-bright)">聚焦"情感故事定制"单点，用3个月验证"故事即产品"。</strong>最大风险不是设计营销不同步，而是市场教育——首批预算50%+投入内容和种子用户运营。<strong style="color:var(--accent)">下一步：回复「做商业方案」→ Node2。</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+</body>
+</html>

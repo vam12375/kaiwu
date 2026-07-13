@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Verify npm build and conversation rendering constraints after frontend changes."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Verify backend compile and node prompt/runtime constraints after backend changes."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Check frontend/backend table rendering consistency across live chat and exported reports."}

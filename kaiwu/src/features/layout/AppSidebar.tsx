@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { Box, ChevronDown, ChevronLeft, Search, Settings2 } from 'lucide-react';
+import { ChevronDown, ChevronLeft, Search, Settings2 } from 'lucide-react';
 
 import { sidebarItems } from '../../data';
 import type { ConvHistory, CreativeMode, SidebarPage } from '../../types';
@@ -100,10 +100,7 @@ export function AppSidebar({
     <aside className="sidebar">
       <div className="sidebar-top">
         <div className="sidebar-brand">
-          <div className="sidebar-brand-icon">
-            <Box size={16} />
-          </div>
-          <span className="sidebar-brand-name">开物</span>
+          <img className="sidebar-brand-logo" src="/kaiwu-sidebar-logo.png" alt="开物" />
         </div>
         <div className="sidebar-tools">
           <button onClick={() => setSidebarCollapsed(true)} type="button" aria-label="折叠侧边栏" title="折叠侧边栏">

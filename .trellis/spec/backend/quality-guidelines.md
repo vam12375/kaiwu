@@ -38,6 +38,30 @@ When changing a Node:
 - Check `server/nodes/registry.py` still exposes the metadata the frontend/runtime needs.
 - Re-read `docs/specs/Spec-001-Node拆分与依赖链.md` and `docs/specs/Spec-003-Intent识别策略.md`.
 
+### Preserve Runtime Dates For Time-Sensitive Nodes
+
+Node prompts must not rely on stale hardcoded dates for market, policy, price, financing, user-scale, or platform-rule data. Use `current_date_cn()` and `data_integrity_prompt()` from `server/config.py` when assembling LLM prompts, and add node-specific guards in the orchestration layer when a node has special date rules.
+
+For `node1`, the runtime guard must:
+
+- Derive the current year from `current_date_cn()`.
+- Treat the current year as `YYYY年（截至最新公开数据）` when full-year public data may be incomplete.
+- Require old data to say `公开数据截至YYYY年` or `来源发布于YYYY年`.
+- Keep future 1-2 year values in a separate prediction table with `[预测]` or `[行业测算]`.
+
+Wrong:
+
+```python
+dated_input = "[现在时间是2026年6月25日]\n\n" + user_input
+```
+
+Correct:
+
+```python
+current_date = current_date_cn()
+dated_input = f"[现在时间是{current_date}]\n\n{user_input}"
+```
+
 ### Preserve AI File Dual Archive
 
 AI-generated files must continue to appear in the appropriate project folder and in `AI 对话产出`.

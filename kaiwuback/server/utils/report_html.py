@@ -222,38 +222,77 @@ ul ul li, ul ol li, ol ul li, ol ol li{margin:5px 0;font-size:14px;line-height:1
 hr{border:0;height:1px;background:linear-gradient(90deg,var(--border),transparent);margin:38px 0}
 table{
   width:100%;
+  max-width:100%;
+  table-layout:fixed;
   border-collapse:separate;
   border-spacing:0;
   margin:22px 0;
   font-size:14px;
   border-radius:var(--radius);
   overflow:hidden;
-  border:1px solid var(--border);
-  box-shadow:0 1px 3px rgba(15,23,42,.04);
+  border:0;
+  box-shadow:none;
 }
+table + table{margin-top:14px}
+table.table-cols-2,
+table.table-cols-3,
+table.table-cols-4{width:100%}
+table.table-kv th,
+table.table-kv td{padding-top:14px;padding-bottom:14px}
 thead th{
-  background:var(--primary);
-  color:#fff;
+  background:#f8fafc;
+  color:#0f172a;
   padding:14px 16px;
   text-align:left;
-  font-weight:600;
-  font-size:12px;
-  letter-spacing:.5px;
-  text-transform:uppercase;
-  white-space:nowrap;
+  font-weight:800;
+  font-size:14px;
+  letter-spacing:0;
+  text-transform:none;
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  line-height:1.35;
 }
 tbody td{
-  padding:12px 16px;
-  border-bottom:1px solid var(--border-light);
+  padding:14px 16px;
+  border-bottom:1px solid rgba(15,23,42,.07);
   background:var(--card-bg);
   color:var(--text);
   vertical-align:top;
   word-break:break-word;
+  overflow-wrap:anywhere;
+  line-height:1.68;
 }
-tbody tr:nth-child(even) td{background:#f8fafc}
-tbody tr:hover td{background:#fef3c7;transition:background .15s ease}
+tbody tr:nth-child(even) td{background:var(--card-bg)}
+tbody tr:hover td{background:var(--card-bg)}
 tbody tr:last-child td{border-bottom:none}
-tbody td:first-child{font-weight:600;color:var(--primary)}
+tbody td:first-child{font-weight:650;color:var(--text-light)}
+th.cell-right,
+td.cell-right{
+  text-align:right;
+  padding-right:18px;
+}
+th.cell-center,
+td.cell-center{
+  text-align:center;
+  padding-left:16px;
+  padding-right:16px;
+}
+th.cell-label,
+td.cell-label{
+  text-align:center;
+  font-weight:700;
+  color:var(--text-light);
+  background:#f8fafc;
+}
+th.cell-rich,
+td.cell-rich{
+  line-height:1.72;
+}
+th.cell-compact,
+td.cell-compact{
+  white-space:normal;
+}
 .story-accordion{
   display:grid;
   gap:18px;
@@ -289,7 +328,7 @@ tbody td:first-child{font-weight:600;color:var(--primary)}
 }
 .story-item + .story-item{margin-top:10px}
 .story-item[open]{box-shadow:0 12px 32px rgba(15,23,42,.08)}
-.story-item summary{
+.story-item > summary{
   cursor:pointer;
   list-style:none;
   padding:16px 18px;
@@ -298,8 +337,8 @@ tbody td:first-child{font-weight:600;color:var(--primary)}
   gap:14px;
   align-items:center;
 }
-.story-item summary::-webkit-details-marker{display:none}
-.story-item summary::after{
+.story-item > summary::-webkit-details-marker{display:none}
+.story-item > summary::after{
   content:"";
   width:8px;
   height:8px;
@@ -309,7 +348,7 @@ tbody td:first-child{font-weight:600;color:var(--primary)}
   transition:transform .18s ease, border-color .18s ease;
   justify-self:center;
 }
-.story-item[open] summary::after{
+.story-item[open] > summary::after{
   transform:rotate(-135deg);
   border-color:var(--primary);
 }
@@ -366,6 +405,48 @@ tbody td:first-child{font-weight:600;color:var(--primary)}
   background:#fff;
   padding:14px 16px;
 }
+.story-collapsible-field{
+  padding:0;
+  overflow:hidden;
+}
+.story-collapsible-field summary{
+  cursor:pointer;
+  list-style:none;
+  display:grid;
+  grid-template-columns:auto auto minmax(72px,max-content);
+  align-items:center;
+  justify-content:start;
+  gap:8px;
+  padding:14px 16px;
+  min-height:46px;
+}
+.story-collapsible-field summary::-webkit-details-marker{display:none}
+.story-collapsible-field summary::after{
+  content:"展开";
+  justify-self:end;
+  min-width:52px;
+  padding:4px 9px;
+  border:1px solid rgba(var(--accent-rgb),.18);
+  border-radius:999px;
+  background:var(--accent-light);
+  color:var(--accent);
+  font-size:12px;
+  font-weight:800;
+  line-height:1.2;
+  text-align:center;
+}
+.story-collapsible-field[open] summary::after{content:"收起"}
+.story-collapsible-field .story-field-body{
+  padding:0 16px 16px;
+  border-top:1px solid var(--border-light);
+}
+.story-collapsible-field .story-field-label{margin-bottom:0;color:var(--text-light)}
+.story-field-count{
+  color:var(--text-muted);
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
 .story-meta-field{
   background:#f8fafc;
 }
@@ -409,6 +490,23 @@ code{
   color:var(--accent);
   font-family:"SF Mono",Monaco,monospace;
 }
+.dev-ghost,
+.dev-ghost-line,
+.md-dev-ghost,
+.md-dev-ghost-line{
+  position:absolute!important;
+  left:-10000px!important;
+  top:auto!important;
+  width:1px!important;
+  height:1px!important;
+  overflow:hidden!important;
+  color:transparent!important;
+  background:transparent!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  user-select:none!important;
+  white-space:nowrap!important;
+}
 .footer{
   margin-top:48px;
   padding-top:22px;
@@ -427,11 +525,11 @@ code{
   .content-card{padding:20px;border-radius:14px}
   h1{font-size:24px}
   h2{font-size:22px}
-  table{font-size:12px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;font-size:12px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
   thead th,tbody td{padding:9px 10px}
   .story-group{padding:12px}
-  .story-item summary{grid-template-columns:auto minmax(0,1fr) 28px;gap:10px;padding:14px}
-  .story-item summary::after{grid-column:3;grid-row:1}
+  .story-item > summary{grid-template-columns:auto minmax(0,1fr) 28px;gap:10px;padding:14px}
+  .story-item > summary::after{grid-column:3;grid-row:1}
   .story-platforms{grid-column:1 / -1;justify-content:flex-start}
   .story-detail{padding:14px}
 }
@@ -480,7 +578,7 @@ def render_report_html(body_html: str, title: str, subtitle: str = "") -> str:
     <div class="data-card accent">
       <div class="card-label">生成来源</div>
       <div class="card-value">AI 工作流</div>
-      <div class="card-note">Node 输出自动排版归档</div>
+      <div class="card-note">工作流输出自动排版归档</div>
     </div>
     <div class="data-card light">
       <div class="card-label">交付格式</div>

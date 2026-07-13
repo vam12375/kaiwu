@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend pre-development checklist and required quality gates for markdown table UI changes."}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Identifies renderMarkdown ownership and style file boundaries."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Requires AI markdown rendering through renderMarkdown and existing CSS patterns."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Defines build verification and protected conversation behavior."}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend pre-development checklist for node prompt/runtime changes."}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Defines node prompt/runtime ownership and generated artifact boundaries."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Defines node synchronization expectations and backend compile check."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Table weighting logic exists in both frontend and backend; avoid divergent duplicated behavior."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Change spans frontend live rendering and backend exported report rendering."}

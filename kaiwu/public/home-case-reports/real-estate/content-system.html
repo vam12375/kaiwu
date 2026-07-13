@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<!-- saved from url=(0119)file:///Users/wangzijian/Desktop/%E5%90%88%E7%A7%9F%E4%BE%A0%E5%86%85%E5%AE%B9%E8%90%A5%E9%94%80%E4%BD%93%E7%B3%BB.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合租侠 — 内容营销体系</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.2rem);--fs-subhead:clamp(0.82rem,1vw,0.9rem);
+  --fs-body:clamp(0.72rem,0.82vw,0.78rem);--fs-small:clamp(0.63rem,0.72vw,0.68rem);--fs-caption:0.6rem;
+  --slide-padding:clamp(1.1rem,2.5vw,2.8rem);--card-radius:10px;--card-radius-sm:6px;
+  --ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.5}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.2rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;line-height:1.2}
+.section-subtitle{font-size:var(--fs-body);color:var(--text-secondary);margin-bottom:0.6rem}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}
+.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.3rem 1rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.2rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.6rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:0.8rem}
+.cover-tags{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.25rem 0.8rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted)}
+.card-grid{display:grid;gap:0.55rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card-grid.cols-5{grid-template-columns:repeat(5,1fr)}
+.card-grid.cols-1-2{grid-template-columns:1fr 2fr}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.7rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.06em;margin-bottom:0.15rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-title{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.15rem}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.5}
+.stat-row{display:flex;gap:1.5rem;justify-content:center;margin:0.5rem 0 0.8rem;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:clamp(1.6rem,3vw,2.4rem);font-weight:800;line-height:1;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.15rem}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.2rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.35rem 0.5rem;text-align:left;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.3rem 0.5rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);vertical-align:top;line-height:1.4}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.tag{display:inline-block;padding:2px 6px;border-radius:100px;font-size:0.58rem;font-weight:600;letter-spacing:0.04em;white-space:nowrap}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}
+.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}
+.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.tag-brand{background:rgba(33,150,243,0.12);color:var(--primary-bright)}
+.tag-founder{background:rgba(255,107,53,0.12);color:var(--accent)}
+.tag-product{background:rgba(212,168,83,0.12);color:var(--gold)}
+.tag-client{background:rgba(76,175,80,0.12);color:var(--green)}
+.story-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.6rem;transition:all var(--duration-normal) var(--ease-out-expo)}
+.story-card:hover{border-color:var(--primary-dim)}
+.story-id{font-size:var(--fs-caption);font-weight:700;margin-bottom:0.1rem}
+.story-quote{font-size:var(--fs-caption);color:var(--gold);font-style:italic;line-height:1.35;margin-bottom:0.15rem}
+.media-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.7rem;text-align:center;transition:all var(--duration-normal) var(--ease-out-expo)}
+.media-card:hover{border-color:var(--primary-dim);transform:translateY(-2px)}
+.media-icon{font-size:1.2rem;margin-bottom:0.15rem}
+.media-name{font-size:var(--fs-small);font-weight:700;color:var(--text-primary)}
+.media-desc{font-size:var(--fs-caption);color:var(--text-muted);line-height:1.4}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.6rem 0.9rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin:0.5rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.3rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.7}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4,.card-grid.cols-5{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.6rem;overflow-y:auto}.nav-dots{bottom:0.5rem}.keyboard-hint{display:none}.stat-row{gap:0.8rem}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas" width="1512" height="827"></canvas>
+<nav class="nav-dots" id="navDots"><button class="nav-dot active" aria-label="Slide 1"></button><button class="nav-dot" aria-label="Slide 2"></button><button class="nav-dot" aria-label="Slide 3"></button><button class="nav-dot" aria-label="Slide 4"></button><button class="nav-dot" aria-label="Slide 5"></button><button class="nav-dot" aria-label="Slide 6"></button><button class="nav-dot" aria-label="Slide 7"></button><button class="nav-dot" aria-label="Slide 8"></button><button class="nav-dot" aria-label="Slide 9"></button><button class="nav-dot" aria-label="Slide 10"></button><button class="nav-dot" aria-label="Slide 11"></button></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 5 · 内容营销体系</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">合租侠</span> · 内容营销体系</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">32条故事 × 8周发布节奏 × 3大媒介策略</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">品牌故事×8</span><span class="cover-tag">创始人故事×8</span><span class="cover-tag">产品故事×8</span><span class="cover-tag">客户故事×8</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 内容库总览 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 内容库总览</div>
+    <h2 class="section-title">32条故事，四类内容覆盖全漏斗</h2>
+    <div class="card-grid cols-4" style="margin-bottom:0.6rem">
+      <div class="card accent-left"><div class="card-label accent">品牌故事 ×8</div><div class="card-desc">品牌初心 / 理念传递 / 文化传承 / 用户共鸣 / 挑战与胜利 / 品牌创新 / 社会责任 / 情感共鸣</div></div>
+      <div class="card primary-left"><div class="card-label primary">创始人故事 ×8</div><div class="card-desc">初心召唤 / 逆境奋起 / 天真无邪 / 内心困境 / 家族传承 / 精神信念 / 创新突破 / 团队共成长</div></div>
+      <div class="card gold-left"><div class="card-label gold">产品故事 ×8</div><div class="card-desc">研发历程 / 产品命名 / 场景体验 / 用户改变 / 产品诞生 / 五感体验 / 细节打动 / 创新应用</div></div>
+      <div class="card green-left"><div class="card-label green">客户故事 ×8</div><div class="card-desc">痛点解决 / 前后对比 / 用户证言 / 场景重现 / 推荐理由 / 生活方式 / 复购故事 / UGC激励</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>故事系列</th><th>适用5A阶段</th><th>核心角度</th><th>数量</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-brand">品牌故事</span></td><td>Aware · Appeal</td><td>品牌初心、理念文化、用户共鸣、创新突破</td><td>8条</td></tr>
+        <tr><td><span class="tag tag-founder">创始人故事</span></td><td>Aware · Appeal · Ask</td><td>初心召唤、逆境成长、信念坚持、团队建设</td><td>8条</td></tr>
+        <tr><td><span class="tag tag-product">产品故事</span></td><td>Ask · Act</td><td>研发历程、场景体验、细节打动、创新应用</td><td>8条</td></tr>
+        <tr><td><span class="tag tag-client">客户故事</span></td><td>Act · Advocate</td><td>痛点解决、前后对比、推荐理由、UGC</td><td>8条</td></tr>
+      </tbody>
+    </table>
+    <div class="insight-card"><p>核心是<strong style="color:var(--text-primary)">"真实"</strong> — 真实的故事、真实的创始人、真实的客户。每条内容均含60s短视频脚本 + 800字图文文案 + 200字私域文案。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 2: 品牌故事 B01-B04 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">品牌故事 B01-B04</div>
+    <h2 class="section-title">品牌初心 · 理念 · 文化 · 共鸣</h2>
+    <div class="card-grid cols-2">
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">B01 · 品牌初心</div><div class="story-quote">"不是所有空间都叫合租侠，我们只做老板的'空间合伙人'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>杭州钱江新城夜景 → 设计院院长需求 → 跑了30多套房都不符合 → 创始人顿悟"杭州缺的不是办公室，是复合型空间" → 合租侠LOGO。</div></div>
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">B02 · 理念传递</div><div class="story-quote">"帮老板省下的每一分钟，都是用来赚钱的。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>老板焦虑刷手机 → 合租侠团队"效率第一"标语 → 老板在新办公室喝茶 → "平均3天帮老板找到满意空间，比传统中介快5倍"。</div></div>
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">B03 · 文化传承</div><div class="story-quote">"杭州的老板，需要杭州自己的空间服务。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>西湖/钱江新城/未来科技城航拍 → "58同城是北京的，贝壳是深圳的" → 合租侠团队在老巷子开会 → "生在杭州，最懂杭州老板"。</div></div>
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">B04 · 用户共鸣</div><div class="story-quote">"你找的不是办公室，是一个能帮你赚钱的'空间合伙人'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>老板在毛坯房叹气 → 团队带老板看房"不只是空间，更是机会" → 在新办公室接待客户签单成功 → 合租侠LOGO。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: 品牌故事 B05-B08 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">品牌故事 B05-B08</div>
+    <h2 class="section-title">挑战胜利 · 创新 · 责任 · 情感</h2>
+    <div class="card-grid cols-2">
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">B05 · 挑战与胜利</div><div class="story-quote">"最难的时候，我们差点解散。但老板们说：'你们不能倒。'"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>2024年市场最冷时差点解散 → 老板们发微信"你们不能倒" → 团队重新振作 → "合租侠，永远为老板服务"。</div></div>
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">B06 · 品牌创新</div><div class="story-quote">"传统中介赚房东的钱，合租侠只对老板负责。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>传统中介门店打电话 → 合租侠分析数据 → 帮老板看合同 → "不收房东一分钱，只对老板负责"。</div></div>
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">B07 · 社会责任</div><div class="story-quote">"帮杭州的创业者，找到第一个'家'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>杭州梦想小镇年轻创业者 → 合租侠帮创业者看房 → "哪怕只有20平米" → "一个空间可能改变一个公司的命运"。</div></div>
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">B08 · 情感共鸣</div><div class="story-quote">"老板的孤独，我们懂。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>老板一个人坐空荡荡办公室 → 合租侠团队和老板喝茶 → 在新办公室和团队开会 → "不只是帮你找空间，更是空间合伙人"。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 创始人故事 F01-F04 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">创始人故事 F01-F04</div>
+    <h2 class="section-title">初心 · 逆境 · 天真 · 困境</h2>
+    <div class="card-grid cols-2">
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">F01 · 初心召唤</div><div class="story-quote">"帮老板找到理想空间，就是我的使命。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>创始人面对镜头 → "10年商业地产经验，看透了行业的黑暗" → 帮老板找到空间握手感谢 → "帮老板找到理想空间，就是我的使命"。</div></div>
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">F02 · 逆境奋起</div><div class="story-quote">"最难的时候，我连房租都付不起。但我没放弃。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>创始人疲惫坐空办公室 → "团队从10人到3人" → 收到老板微信"你不能倒" → 重新振作面对镜头。</div></div>
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">F03 · 天真无邪</div><div class="story-quote">"我只想做一件简单的事：帮老板找到好空间。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>创始人笑对镜头 → 帮老板看房 → 拒绝房东"合作费" → "简单的事，坚持做，就不简单"。</div></div>
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">F04 · 内心困境</div><div class="story-quote">"我花了三年，才学会'拒绝'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>创始人严肃 → 创业第一年什么单都接 → "老板不满意，房东也不满意" → 撕掉合同 → "只有拒绝，才能对老板负责"。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: 创始人故事 F05-F08 -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="section-eyebrow">创始人故事 F05-F08</div>
+    <h2 class="section-title">传承 · 信念 · 突破 · 团队</h2>
+    <div class="card-grid cols-2">
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">F05 · 家族传承</div><div class="story-quote">"我爷爷是木匠，他教会我：手艺人的核心，是'对得起客户'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>创始人看老照片 → 爷爷做家具不偷工减料 → "对得起老板，就是我们的手艺" → 合租侠LOGO。</div></div>
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">F06 · 精神信念</div><div class="story-quote">"有人说我傻，放着房东的钱不赚。我说：我只赚老板的信任。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>创始人坚定对镜头 → 拒绝房东"合作费" → 老板发来感谢微信 → "信任，比钱更值钱"。</div></div>
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">F07 · 创新突破</div><div class="story-quote">"当所有人都做中介时，我选择做'空间合伙人'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>创始人站窗前 → "2023年所有人都说做中介" → 摇头 → "我们帮老板谈条款、避坑、省钱。只有创新才能突破"。</div></div>
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">F08 · 团队共成长</div><div class="story-quote">"我的团队，都是被'坑'过的老板。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>合租侠团队开会 → 成员分享被坑经历 → 帮老板成功找到空间一起庆祝 → "被坑过的人，帮老板不再被坑"。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: 产品故事 P01-P04 -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="section-eyebrow">产品故事 P01-P04</div>
+    <h2 class="section-title">研发 · 命名 · 场景 · 改变</h2>
+    <div class="card-grid cols-2">
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">P01 · 研发历程</div><div class="story-quote">"我们花了6个月，才设计出'精准匹配'这个功能。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>团队开会白板写满需求 → "老板要什么？能办公、能接待、能展示、能省钱" → 系统界面展示 → 老板通过系统找到满意空间 → "6个月，值了"。</div></div>
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">P02 · 产品命名</div><div class="story-quote">"为什么叫'合租侠'？因为我们是侠客，专治'找房难'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>LOGO出现 → 创始人面对镜头 → "专治找房难、谈判弱、信息乱三大痛点" → "老板的空间合伙人"。</div></div>
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">P03 · 场景体验</div><div class="story-quote">"老板的一天，从合租侠开始。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>老板早上走进舒适办公室 → 接待客户喝茶 → 做产品展示 → 满意下班 → "合租侠，让老板的每一天都更高效"。</div></div>
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">P04 · 用户改变</div><div class="story-quote">"张总用了合租侠，三个月后，业绩涨了30%。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>张总面对镜头 → 新办公室接待客户 → "签单率从20%涨到50%" → "合租侠，不只是找空间，更是找机会"。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: 产品故事 P05-P08 -->
+<section class="slide" id="slide-7">
+  <div class="slide-inner">
+    <div class="section-eyebrow">产品故事 P05-P08</div>
+    <h2 class="section-title">诞生 · 五感 · 细节 · 创新</h2>
+    <div class="card-grid cols-2">
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">P05 · 产品诞生</div><div class="story-quote">"老板说：我要一个能办公、能接待、能展示的空间。合租侠说：好。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>老板毛坯房叹气 → 合租侠团队分析需求 → "6个月设计出精准匹配" → 老板在新办公室满意地笑 → "合租侠，说到做到"。</div></div>
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">P06 · 五感体验</div><div class="story-quote">"好的空间，会说话。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>老板走进办公室环顾 → 阳光洒进、沙发舒适 → "光线好心情好，客户愿意多坐" → 自由走动感受空间 → "帮你找到会说话的空间"。</div></div>
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">P07 · 细节打动</div><div class="story-quote">"我们连插座的位置，都帮老板考虑好了。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>团队检查插座细节 → "开会插座要够，充电插座要近" → 老板轻松充电 → "细节决定成败"。</div></div>
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">P08 · 创新应用</div><div class="story-quote">"老板把办公室，变成了'展厅'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>老板办公室做产品展示 → 客户参观 → 签单 → "签单率翻倍。合租侠，帮老板找到能赚钱的空间"。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: 客户故事 C01-C04 -->
+<section class="slide" id="slide-8">
+  <div class="slide-inner">
+    <div class="section-eyebrow">客户故事 C01-C04</div>
+    <h2 class="section-title">痛点 · 对比 · 证言 · 场景</h2>
+    <div class="card-grid cols-2">
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">C01 · 痛点解决</div><div class="story-quote">"李总找了3个月，没找到合适的空间。合租侠3天搞定。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>李总疲惫面对镜头 → 焦虑刷手机 → "58同城信息乱，中介只推贵的" → 合租侠3天搞定 → 李总在新办公室满意地笑。适用：小红书。</div></div>
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">C02 · 前后对比</div><div class="story-quote">"以前办公室在地下室，现在在钱江新城。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>左画面：地下室昏暗 → 右画面：钱江新城阳光明媚 → 王总接待客户"你们公司真不错" → "合租侠改变了我的公司形象"。</div></div>
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">C03 · 用户证言</div><div class="story-quote">"合租侠，是我创业以来最值的投资。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>陈总真诚面对镜头 → 在新办公室工作"以前浪费太多时间，现在3天搞定" → "空间好，团队效率也高了" → "值得"。适用：小红书。</div></div>
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">C04 · 场景重现</div><div class="story-quote">"客户来了，直接在公司签单。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>赵总在新办公室接待客户 → "以前只能去咖啡厅" → 客户满意签单握手 → "签单率从20%到50%。合租侠，帮我赚到了钱"。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: 客户故事 C05-C08 -->
+<section class="slide" id="slide-9">
+  <div class="slide-inner">
+    <div class="section-eyebrow">客户故事 C05-C08</div>
+    <h2 class="section-title">推荐 · 生活 · 复购 · UGC</h2>
+    <div class="card-grid cols-2">
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">C05 · 推荐理由</div><div class="story-quote">"我推荐合租侠，因为他们不收房东的钱。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>刘总面对镜头 → "不收房东的钱，意味着只对老板负责" → 在办公室工作 → "帮我谈条款、避坑、省钱" → "值得推荐"。</div></div>
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">C06 · 生活方式</div><div class="story-quote">"现在，我每天第一个到办公室。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>周总早上心情好进办公室 → 泡茶看书"太舒服了" → 团队聊天 → "合租侠，改变了我的生活方式"。</div></div>
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">C07 · 复购故事</div><div class="story-quote">"公司扩张，我第一个想到的还是合租侠。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>吴总面对镜头 → "公司扩张需要更大空间" → 合租侠帮找新空间 → "他们懂我，知道我要什么" → "值得信赖"。</div></div>
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">C08 · UGC激励</div><div class="story-quote">"拍个视频，说说你和合租侠的故事，赢一年免租。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)"><strong>60s短视频：</strong>LOGO+活动海报 → 客户分享故事 → "只要够真实够感人" → "等你来分享"。适用：小红书。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10: 发布节奏 + 媒介 + 结语 -->
+<section class="slide" id="slide-10">
+  <div class="slide-inner">
+    <div class="section-eyebrow">02-03 · 发布节奏 &amp; 媒介策略</div>
+    <h2 class="section-title">8周从认知到复购 + 3大媒介日均发布</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.5rem">
+      <div>
+        <table class="data-table" style="margin-bottom:0.4rem">
+          <thead><tr><th>阶段</th><th>周次</th><th>核心目标</th><th>内容组合</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag tag-brand">了解</span></td><td>W1</td><td>认识品牌</td><td>品牌故事×3 + 创始人故事×2</td></tr>
+            <tr><td><span class="tag tag-founder">兴趣</span></td><td>W2</td><td>产生兴趣</td><td>品牌故事×2 + 产品故事×3</td></tr>
+            <tr><td><span class="tag tag-product">信任</span></td><td>W3</td><td>建立信任</td><td>创始人故事×3 + 客户故事×2</td></tr>
+            <tr><td><span class="tag tag-client">行动</span></td><td>W4</td><td>购买转化</td><td>产品故事×2 + 福利×2 + 客户故事×1</td></tr>
+            <tr><td><span class="tag tag-client">复购</span></td><td>W5-8</td><td>复购+传播</td><td>客户故事×4 + 产品×2 + UGC×3 + 综合×5</td></tr>
+          </tbody>
+        </table>
+        <div class="insight-card" style="margin:0.3rem 0"><p>建议每天在小红书发布一条内容，从品牌故事B01开始，让杭州老板知道：合租侠，来了。</p></div>
+      </div>
+      <div>
+        <div class="card-grid cols-3" style="margin-bottom:0.4rem">
+          <div class="media-card"><div class="media-icon">📱</div><div class="media-name">小红书</div><div class="media-desc">图文/短视频<br><strong>每天1条</strong>, 500-1000字<br>每周8条</div></div>
+          <div class="media-card"><div class="media-icon">💬</div><div class="media-name">微信朋友圈/群</div><div class="media-desc">短文案<br><strong>每天1条</strong>, ≤200字<br>每周5条</div></div>
+          <div class="media-card"><div class="media-icon">🎤</div><div class="media-name">行业圈子(线下)</div><div class="media-desc">口播/宣传册<br><strong>每周</strong><br>每周4条</div></div>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>平台</th><th>品牌</th><th>创始人</th><th>产品</th><th>客户</th><th>周计</th></tr></thead>
+          <tbody>
+            <tr><td>小红书</td><td>2条</td><td>2条</td><td>2条</td><td>2条</td><td>8条</td></tr>
+            <tr><td>微信朋友圈/群</td><td>1条</td><td>1条</td><td>1条</td><td>2条</td><td>5条</td></tr>
+            <tr><td>行业圈子(线下)</td><td>1条</td><td>1条</td><td>1条</td><td>1条</td><td>4条</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="conclusion-block">
+      <h3>结语</h3>
+      <p>合租侠的内容营销体系，核心是<strong style="color:var(--primary-bright)">"真实"</strong>。真实的故事、真实的创始人、真实的客户。因为只有真实，才能打动老板。建议从明天开始，每天在小红书发布一条内容，先从品牌故事系列开始，让杭州的老板们知道：<strong style="color:var(--accent)">合租侠，来了。</strong></p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+
+</body></html>

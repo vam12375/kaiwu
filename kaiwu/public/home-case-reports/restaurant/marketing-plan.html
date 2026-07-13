@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<!-- saved from url=(0110)file:///Users/wangzijian/Desktop/%E9%94%85%E6%B0%94%E5%86%85%E5%AE%B9%E8%90%A5%E9%94%80%E6%96%B9%E6%A1%88.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>锅气 — 内容营销方案</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.3rem);--fs-subhead:clamp(0.84rem,1.05vw,0.95rem);
+  --fs-body:clamp(0.74rem,0.85vw,0.82rem);--fs-small:clamp(0.65rem,0.75vw,0.72rem);--fs-caption:0.62rem;
+  --slide-padding:clamp(1.2rem,2.8vw,3rem);--card-radius:10px;--card-radius-sm:6px;
+  --ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.6}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.3rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;letter-spacing:-0.01em;line-height:1.2}
+.section-subtitle{font-size:var(--fs-body);color:var(--text-secondary);margin-bottom:0.8rem;max-width:650px}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}
+.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.35rem 1.2rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.5rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.8rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:1rem}
+.cover-tags{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.3rem 1rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted);letter-spacing:0.1em}
+.card-grid{display:grid;gap:0.7rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card-grid.cols-5{grid-template-columns:repeat(5,1fr)}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.9rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.06em;margin-bottom:0.2rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-title{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.2rem}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.55}
+.stat-row{display:flex;gap:1.5rem;justify-content:center;margin:0.6rem 0 1rem;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:800;line-height:1;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.2rem;letter-spacing:0.05em}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.2rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.4rem 0.6rem;text-align:left;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.35rem 0.6rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);vertical-align:top;line-height:1.45}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.tag{display:inline-block;padding:2px 7px;border-radius:100px;font-size:0.6rem;font-weight:600;letter-spacing:0.04em;white-space:nowrap}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}
+.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}
+.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.7rem 1rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin:0.6rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.story-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.6rem;transition:all var(--duration-normal) var(--ease-out-expo)}
+.story-card:hover{border-color:var(--primary-dim)}
+.story-id{font-size:var(--fs-caption);font-weight:700;margin-bottom:0.1rem}
+.story-quote{font-size:var(--fs-caption);color:var(--gold);font-style:italic;line-height:1.35;margin-bottom:0.15rem}
+.media-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.7rem;text-align:center;transition:all var(--duration-normal) var(--ease-out-expo)}
+.media-card:hover{border-color:var(--primary-dim);transform:translateY(-2px)}
+.media-icon{font-size:1.1rem;margin-bottom:0.1rem}
+.media-name{font-size:var(--fs-small);font-weight:700;color:var(--text-primary)}
+.media-desc{font-size:var(--fs-caption);color:var(--text-muted);line-height:1.4}
+.funnel-row{display:flex;gap:0.4rem;margin:0.4rem 0}
+.funnel-step{flex:1;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.6rem;text-align:center}
+.funnel-step .funnel-letter{font-size:1.1rem;font-weight:800;color:var(--accent)}
+.funnel-step .funnel-name{font-size:var(--fs-caption);color:var(--text-secondary)}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.1rem;margin-top:0.6rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.4rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.7}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4,.card-grid.cols-5{grid-template-columns:repeat(2,1fr)}.funnel-row{flex-wrap:wrap}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.6rem;overflow-y:auto}.nav-dots{bottom:0.4rem}.keyboard-hint{display:none}.stat-row{gap:0.8rem}.funnel-row{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas" width="1512" height="827"></canvas>
+<nav class="nav-dots" id="navDots"><button class="nav-dot active" aria-label="Slide 1"></button><button class="nav-dot" aria-label="Slide 2"></button><button class="nav-dot" aria-label="Slide 3"></button><button class="nav-dot" aria-label="Slide 4"></button><button class="nav-dot" aria-label="Slide 5"></button><button class="nav-dot" aria-label="Slide 6"></button><button class="nav-dot" aria-label="Slide 7"></button></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 4 · 内容营销方案</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">锅气</span> · 内容营销方案</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">5A漏斗 × 5类故事 × 4媒介矩阵 × 3个月节奏</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">15条内容</span><span class="cover-tag">抖音+小红书+视频号+公众号</span><span class="cover-tag">月产30-60条</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 目标客群 + 产品 + 种子 + 渠道 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01-04 · 目标客群 / 产品 / 种子客户 / 渠道</div>
+    <h2 class="section-title">25-35岁白领 · P0小红书+美团 · 地推+KOC获客</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.5rem">
+      <div class="card accent-left"><div class="card-label accent">目标客群 &amp; 产品</div><div class="card-desc"><strong style="color:var(--accent)">核心人群A（60%）：</strong>25-30岁初级白领，月入8k-15k，午餐预算¥30-40。<br><strong style="color:var(--primary-bright)">核心人群B（30%）：</strong>30-35岁中层白领，月入15k-20k。<br><strong>核心卖点：</strong>"15分钟，吃上现炒的锅气"。人均¥35，明厨亮灶，拒绝预制菜。</div></div>
+      <div class="card primary-left"><div class="card-label primary">种子客户 &amp; 渠道优先级</div><div class="card-desc"><strong>种子客户：</strong>目标写字楼里对午餐不满的"探索者"，25-30岁，社交活跃。<br><strong>获客：</strong>地推免费试吃券+美团1元秒杀+5-10位KOC种草。<br><strong style="color:var(--accent)">P0：</strong>小红书（种草）+美团/饿了么（转化）<br><strong style="color:var(--primary-bright)">P1：</strong>抖音（曝光）+大众点评（决策）<br><strong style="color:var(--text-muted)">P2：</strong>微信（私域沉淀）</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: 5A×故事矩阵 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">05 · 内容策略（5A×故事矩阵）</div>
+    <h2 class="section-title">15条故事内容，覆盖5A全漏斗</h2>
+    <div class="funnel-row" style="margin-bottom:0.4rem">
+      <div class="funnel-step" style="border-top:3px solid var(--accent)"><div class="funnel-letter">A</div><div class="funnel-name">Aware · 认知</div><div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.15rem">痛点故事 × 3</div></div>
+      <div class="funnel-step" style="border-top:3px solid var(--primary-bright)"><div class="funnel-letter">A</div><div class="funnel-name">Appeal · 兴趣</div><div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.15rem">品牌故事 × 3</div></div>
+      <div class="funnel-step" style="border-top:3px solid var(--gold)"><div class="funnel-letter">A</div><div class="funnel-name">Ask · 询问</div><div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.15rem">产品故事 × 3</div></div>
+      <div class="funnel-step" style="border-top:3px solid var(--green)"><div class="funnel-letter">A</div><div class="funnel-name">Act · 行动</div><div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.15rem">用户证言 × 3</div></div>
+      <div class="funnel-step" style="border-top:3px solid var(--primary-bright)"><div class="funnel-letter">A</div><div class="funnel-name">Advocate · 推荐</div><div style="font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.15rem">愿景故事 × 3</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>5A阶段</th><th>故事类型</th><th>内容目的</th><th>故事角度</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-high">Aware</span></td><td style="color:var(--accent);font-weight:600">痛点故事</td><td>引起注意，产生"这不就是我吗"的共鸣</td><td>场景痛点 / 竞品缺陷 / 未被满足的需求</td></tr>
+        <tr><td><span class="tag tag-mid">Appeal</span></td><td style="color:var(--primary-bright);font-weight:600">品牌故事</td><td>产生兴趣，认同"拒绝预制菜"价值观</td><td>品牌初心 / 挑战与胜利 / 用户共鸣</td></tr>
+        <tr><td><span class="tag tag-low">Ask</span></td><td style="color:var(--gold);font-weight:600">产品故事</td><td>用细节展示"15分钟出餐"如何做到</td><td>研发历程 / 五感体验 / 细节打动</td></tr>
+        <tr><td style="color:var(--green);font-weight:600">Act</td><td style="color:var(--green);font-weight:600">用户证言</td><td>用真实评价打消最后疑虑</td><td>痛点解决 / 前后对比 / 真实推荐</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">Advocate</td><td style="color:var(--primary-bright);font-weight:600">愿景故事</td><td>激发归属感和分享欲</td><td>品牌使命 / 长期主义 / 用户共创</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 3: 痛点故事 + 品牌故事 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">05 · Aware 痛点 + Appeal 品牌</div>
+    <h2 class="section-title">痛点共鸣 → 品牌认同</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.4rem">
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">A01 · 场景痛点</div><div class="story-quote">"每天中午打开外卖APP，翻来覆去就是那几家，你吃腻了吗？"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">白领对APP叹气→切换黄焖鸡/沙县→"又是料理包"→热气腾腾的香锅出现。抖音/小红书。</div></div>
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">A02 · 竞品缺陷</div><div class="story-quote">"传统香锅好吃，但等餐20分钟，人均50+，你等得起吗？"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">白领进传统香锅店→手表10-15-20分钟→从期待到焦急→锅气店15分钟出餐。抖音/小红书。</div></div>
+      <div class="story-card accent-left"><div class="story-id" style="color:var(--accent)">A03 · 未被满足</div><div class="story-quote">"想吃点有锅气的，但附近除了麻辣烫就是快餐，怎么办？"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">白领写字楼下茫然→麻辣烫/快餐扫过→走进锅气店→厨师颠勺烟火升腾。小红书/大众点评。</div></div>
+    </div>
+    <div class="card-grid cols-2">
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">B01 · 品牌初心</div><div class="story-quote">"我们拒绝预制菜，因为每一份锅气，都值得被认真对待。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">创始人吃冰冷咖喱饭→后厨切菜炒料→"我决定做一个有温度的午餐品牌"。小红书/公众号。</div></div>
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">B02 · 挑战与胜利</div><div class="story-quote">"被投资人拒绝了4次，但我还是用积蓄，开出了第一家店。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">投资人摇头→李明研发菜谱→刷墙→开业排队→满头大汗笑容灿烂。抖音/小红书。</div></div>
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">B03 · 用户共鸣</div><div class="story-quote">"锅气，不只是香锅，更是都市人午餐的'最后一公里'守护者。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">不同职业白领中午看向窗外→走进锅气店→满足表情→"守护每一份午餐的烟火气"。公众号/小红书。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 产品故事 + 用户证言 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">05 · Ask 产品 + Act 证言</div>
+    <h2 class="section-title">产品细节打消疑虑 → 真实评价促成转化</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.4rem">
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">C01 · 研发历程</div><div class="story-quote">"为了把出餐时间从20分钟压缩到15分钟，我们拆解了12个标准动作。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">计时器20:00→厨师SOP切菜/配菜/炒料→每个动作标注时间→计时器停在15:00。抖音/小红书。</div></div>
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">C02 · 五感体验</div><div class="story-quote">"听，那是锅气的声音；闻，那是辣椒的香气；尝，那是现炒的味道。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">黑屏只闻"滋啦"声→热油/辣椒/花椒翻滚→厨师颠勺火焰升腾→"唤醒你的五感"。小红书/抖音。</div></div>
+      <div class="story-card gold-left"><div class="story-id" style="color:var(--gold)">C03 · 细节打动</div><div class="story-quote">"我们的餐盒，是专门定制的，为了锁住那一口锅气。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">普通餐盒食物软塌→锅气定制透气孔餐盒→加厚铝箔内胆→"连包装都在为味道服务"。小红书/大众点评。</div></div>
+    </div>
+    <div class="card-grid cols-2">
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">D01 · 痛点解决</div><div class="story-quote">"终于找到一家能让我在午休时间，吃上一顿有锅气的午餐了！"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">白领对镜头展示锅气外卖→打开餐盒热气升腾→大口吃"太好吃了！"。小红书/大众点评。</div></div>
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">D02 · 前后对比</div><div class="story-quote">"以前午餐凑合，现在午餐是享受。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">左画面：吃沙拉痛苦。右画面：吃锅气香锅满足→各种凑合午餐→"午餐，就该对自己好一点"。小红书/抖音。</div></div>
+      <div class="story-card green-left"><div class="story-id" style="color:var(--green)">D03 · 真实推荐</div><div class="story-quote">"如果你也吃腻了外卖，一定要试试'锅气'，你会回来感谢我的。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">美食博主对镜头展示菜单→吃一口竖起大拇指→"相信我，你不会失望的"。小红书/抖音。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: 愿景故事 -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="section-eyebrow">05 · Advocate 愿景故事</div>
+    <h2 class="section-title">激发归属感，让用户成为品牌传播者</h2>
+    <div class="card-grid cols-3">
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">E01 · 品牌使命</div><div class="story-quote">"让每一个忙碌的都市人，都能吃上一顿有锅气的午餐。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">航拍写字楼群→不同门店白领进出→脸上满足笑容→"守护每一份午餐的烟火气"。公众号/小红书。</div></div>
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">E02 · 长期主义</div><div class="story-quote">"我们不做网红店，我们要做一家能开10年的'午餐食堂'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">网红店排队→几个月后冷清→锅气店老顾客熟络招呼→"不追求爆红，只追求长红"。公众号/小红书。</div></div>
+      <div class="story-card primary-left"><div class="story-id" style="color:var(--primary-bright)">E03 · 用户共创</div><div class="story-quote">"我们想和你一起，定义'午餐'的更多可能。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">李明和老顾客讨论新菜单→各抒己见→超辣挑战锅展示→"和你一起，创造更多美味"。小红书/微信社群。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: 传播矩阵 + 节奏 + 结语 -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="section-eyebrow">06-07 · 传播矩阵 &amp; 节奏 &amp; 结语</div>
+    <h2 class="section-title">4媒介 × 3个月 = 验证→放大→稳定</h2>
+    <div class="card-grid cols-4" style="margin-bottom:0.4rem">
+      <div class="media-card"><div class="media-icon">🎵</div><div class="media-name">抖音</div><div class="media-desc">短视频+直播<br>每周5-7条<br>1-2场直播/周</div></div>
+      <div class="media-card"><div class="media-icon">📱</div><div class="media-name">小红书</div><div class="media-desc">图文+短视频<br>每周5-7篇<br>KOC合作5-10位</div></div>
+      <div class="media-card"><div class="media-icon">🎬</div><div class="media-name">视频号</div><div class="media-desc">短视频+直播<br>每周2-3条<br>私域沉淀</div></div>
+      <div class="media-card"><div class="media-icon">📝</div><div class="media-name">公众号</div><div class="media-desc">图文+文章<br>每月2-3篇<br>深度品牌故事</div></div>
+    </div>
+    <div class="card-grid cols-2" style="margin-bottom:0.4rem">
+      <div>
+        <table class="data-table" style="margin-bottom:0.3rem">
+          <thead><tr><th>阶段</th><th>时间</th><th>目标</th><th>产出</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag tag-high">验证</span></td><td>第1个月</td><td>找内容-平台-用户匹配</td><td>≈30条</td></tr>
+            <tr><td><span class="tag tag-mid">放大</span></td><td>第2-3个月</td><td>规模化产出+获客系统</td><td>≈60条/月</td></tr>
+          </tbody>
+        </table>
+        <div class="insight-card" style="margin:0"><p>W1:测试痛点+品牌故事→W2:数据分析→W3:复制放大+首播→W4:复盘定策略</p></div>
+      </div>
+      <div>
+        <div class="card green-left" style="margin-bottom:0.4rem"><div class="card-label green">线下传播</div><div class="card-desc" style="font-size:var(--fs-caption)"><strong>活动：</strong>每月1场（开业试吃/超辣挑战赛）<br><strong>地推：</strong>每周2次写字楼派发传单优惠券<br><strong>异业合作：</strong>健身房+咖啡店联名套餐</div></div>
+        <div class="conclusion-block" style="margin-top:0;padding:0.8rem">
+          <h3 style="font-size:var(--fs-subhead)">结语</h3>
+          <p style="font-size:var(--fs-caption)">从"午餐凑合"这个73.8%白领的痛点出发，用<strong style="color:var(--primary-bright)">15条故事</strong>在小红书和抖音建立情感连接，通过<strong style="color:var(--accent)">3个月验证-放大-稳定</strong>将"锅气"打造成白领午餐的确定性选择。内容营销的终点不是曝光，而是那句<strong style="color:var(--gold)">"这味道，让我想起了我妈做的菜"</strong>。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+
+</body></html>

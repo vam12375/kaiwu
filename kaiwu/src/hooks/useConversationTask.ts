@@ -3,7 +3,7 @@ import type { Dispatch, RefObject, SetStateAction } from 'react';
 
 import { apiJson } from '../api/client';
 import type { AgentTaskEvent, CreateTaskPayload, ImageReferenceInput } from '../api/tasks';
-import type { ConvHistory, ImageModelId, ImageRatio, ImageResolution, ShowToast, SidebarPage } from '../types';
+import type { ConvHistory, ImageModelId, ImageRatio, ImageResolution, ShowToast, SidebarPage, SkillLibraryItem } from '../types';
 import {
   type AgentEventState,
   type AgentMessage,
@@ -68,6 +68,7 @@ type UseConversationTaskOptions = {
   imageResolution: ImageResolution;
   imageCount: number;
   modelId: string;
+  selectedSkill: SkillLibraryItem | null;
   setInputText: Dispatch<SetStateAction<string>>;
   setSuggestedQuestions: (items: string[]) => void;
   setMessages: Dispatch<SetStateAction<AgentMessage[]>>;
@@ -171,6 +172,8 @@ export function useConversationTask(options: UseConversationTaskOptions) {
 
     if (isImageTask) {
       options.followupNodeRef.current = null;
+    } else if (options.selectedSkill) {
+      options.followupNodeRef.current = 'node6';
     } else {
       const isReportCommand = REPORT_COMMAND_KEYWORDS.some((keyword) => text.includes(keyword));
       if (isReportCommand) {
@@ -204,6 +207,7 @@ export function useConversationTask(options: UseConversationTaskOptions) {
       aiContent: '',
       images: [],
       svgLogos: [],
+      reportCards: [],
       messages: latestMessages,
       conversationId: options.convIdRef.current,
       conversationTitle: nextConversationTitle,
@@ -249,6 +253,14 @@ export function useConversationTask(options: UseConversationTaskOptions) {
         followup_node: options.followupNodeRef.current,
         model: options.modelId,
         conversation_id: options.convIdRef.current,
+        skill_context: options.selectedSkill ? {
+          id: options.selectedSkill.id,
+          name: options.selectedSkill.name,
+          description: options.selectedSkill.description,
+          category: options.selectedSkill.category,
+          doc: options.selectedSkill.doc,
+          full_content: options.selectedSkill.full_content,
+        } : null,
       };
 
       if (isImageTask) {
@@ -278,7 +290,7 @@ export function useConversationTask(options: UseConversationTaskOptions) {
       options.setNodeStatus(null);
     } finally {
       options.setIsLoading(false);
-      options.followupNodeRef.current = null;
+      options.followupNodeRef.current = options.selectedSkill && !isImageTask ? 'node6' : null;
 
       const cachedConversationId = options.sseConvIdRef.current;
       if (cachedConversationId) {

@@ -20,6 +20,57 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
 }
 
+.conversation-skill-context {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 10px 0;
+  padding: 9px 10px;
+  border-radius: 12px;
+  color: #1f2937;
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.92), rgba(240, 253, 250, 0.72));
+  border: 1px solid rgba(59, 130, 246, 0.16);
+}
+
+.conversation-skill-context span {
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.conversation-skill-context strong {
+  color: #111827;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.conversation-skill-context em {
+  min-width: 0;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-skill-context button {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.conversation-skill-context button:hover {
+  color: #ef4444;
+  background: #ffffff;
+}
+
 .doubao-composer-inner textarea {
   width: 100%;
   min-height: 52px;
@@ -271,4 +322,3 @@
   pointer-events: none;
   cursor: not-allowed;
 }
-

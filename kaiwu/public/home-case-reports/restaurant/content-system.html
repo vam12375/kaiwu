@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<!-- saved from url=(0110)file:///Users/wangzijian/Desktop/%E9%94%85%E6%B0%94%E5%86%85%E5%AE%B9%E8%90%A5%E9%94%80%E4%BD%93%E7%B3%BB.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>锅气 — 内容营销体系</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.2rem);--fs-subhead:clamp(0.82rem,1vw,0.9rem);
+  --fs-body:clamp(0.72rem,0.82vw,0.78rem);--fs-small:clamp(0.63rem,0.72vw,0.68rem);--fs-caption:0.58rem;
+  --slide-padding:clamp(1.1rem,2.5vw,2.5rem);--card-radius:10px;--ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.5}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.2rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;line-height:1.2}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}
+.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.3rem 1rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.2rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.6rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:0.8rem}
+.cover-tags{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.25rem 0.8rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted)}
+.card-grid{display:grid;gap:0.45rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.55rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.06em;margin-bottom:0.1rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.5}
+.stat-row{display:flex;gap:1.2rem;justify-content:center;margin:0.4rem 0 0.6rem;flex-wrap:wrap}
+.stat-item{text-align:center}.stat-n{font-size:clamp(1.4rem,2.8vw,2rem);font-weight:800;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}.stat-l{font-size:var(--fs-caption);color:var(--text-muted)}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.15rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.3rem 0.45rem;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.25rem 0.45rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);line-height:1.4;font-size:var(--fs-caption)}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.tag{display:inline-block;padding:1px 5px;border-radius:100px;font-size:0.55rem;font-weight:600;letter-spacing:0.03em}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.tag-brand{background:rgba(33,150,243,0.12);color:var(--primary-bright)}.tag-founder{background:rgba(255,107,53,0.12);color:var(--accent)}.tag-product{background:rgba(212,168,83,0.12);color:var(--gold)}.tag-client{background:rgba(76,175,80,0.12);color:var(--green)}
+.story-q{color:var(--gold);font-style:italic;font-size:var(--fs-caption);line-height:1.3;margin-bottom:0.1rem}
+.media-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.5rem;text-align:center;transition:all var(--duration-normal) var(--ease-out-expo)}
+.media-card:hover{border-color:var(--primary-dim);transform:translateY(-2px)}
+.media-icon{font-size:1rem}.media-name{font-size:var(--fs-small);font-weight:700;color:var(--text-primary)}.media-desc{font-size:var(--fs-caption);color:var(--text-muted);line-height:1.3}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.5rem 0.8rem;border-radius:0 6px 6px 0;margin:0.4rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:0.8rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.3rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.6}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.5rem;overflow-y:auto}.nav-dots{bottom:0.4rem}.keyboard-hint{display:none}.stat-row{gap:0.8rem}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas" width="1512" height="827"></canvas>
+<nav class="nav-dots" id="navDots"><button class="nav-dot active" aria-label="Slide 1"></button><button class="nav-dot" aria-label="Slide 2"></button><button class="nav-dot" aria-label="Slide 3"></button><button class="nav-dot" aria-label="Slide 4"></button><button class="nav-dot" aria-label="Slide 5"></button><button class="nav-dot" aria-label="Slide 6"></button></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 5 · 内容营销体系</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">锅气</span> · 内容营销体系</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">32条故事 × 8周发布节奏 × 5大媒介策略</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">品牌×8</span><span class="cover-tag">创始人×8</span><span class="cover-tag">产品×8</span><span class="cover-tag">客户×8</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 内容库总览 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 内容库总览</div>
+    <h2 class="section-title">32条故事，四类内容覆盖全漏斗</h2>
+    <div class="stat-row" style="margin-bottom:0.4rem">
+      <div class="stat-item"><div class="stat-n">8</div><div class="stat-l">品牌故事</div></div><div class="stat-item"><div class="stat-n">8</div><div class="stat-l">创始人故事</div></div><div class="stat-item"><div class="stat-n">8</div><div class="stat-l">产品故事</div></div><div class="stat-item"><div class="stat-n">8</div><div class="stat-l">客户故事</div></div>
+    </div>
+    <div class="card-grid cols-4" style="margin-bottom:0.4rem">
+      <div class="card accent-left"><div class="card-label accent">品牌故事 ×8</div><div class="card-desc" style="font-size:var(--fs-caption)">初心 / 理念 / 文化 / 共鸣 / 挑战 / 创新 / 责任 / 情感</div></div>
+      <div class="card primary-left"><div class="card-label primary">创始人故事 ×8</div><div class="card-desc" style="font-size:var(--fs-caption)">初心召唤 / 逆境奋起 / 天真无邪 / 内心困境 / 家族传承 / 精神信念 / 创新突破 / 团队成长</div></div>
+      <div class="card gold-left"><div class="card-label gold">产品故事 ×8</div><div class="card-desc" style="font-size:var(--fs-caption)">研发 / 命名 / 场景 / 改变 / 诞生 / 五感 / 细节 / 创新</div></div>
+      <div class="card green-left"><div class="card-label green">客户故事 ×8</div><div class="card-desc" style="font-size:var(--fs-caption)">痛点解决 / 对比 / 证言 / 场景 / 推荐 / 生活 / 复购 / UGC</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>5A阶段</th><th>核心目标</th><th>内容组合</th><th>数量</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-high">Aware</span></td><td>认识品牌</td><td>品牌故事(B01-B04)+创始人(F01-F02)</td><td>6条</td></tr>
+        <tr><td><span class="tag tag-mid">Appeal</span></td><td>产生兴趣</td><td>品牌(B05-B08)+产品(P01-P04)</td><td>8条</td></tr>
+        <tr><td><span class="tag tag-low">Ask</span></td><td>建立信任</td><td>创始人(F03-F08)+客户(C01-C04)</td><td>10条</td></tr>
+        <tr><td><span class="tag tag-sku">Act</span></td><td>购买转化</td><td>产品(P05-P08)+福利+客户(C05-C06)</td><td>6条</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">Advocate</td><td>复购传播</td><td>客户(C07-C08)+UGC</td><td>2条+活动</td></tr>
+      </tbody>
+    </table>
+    <div class="insight-card"><p>核心是<strong style="color:var(--text-primary)">"不凑合"的生活态度</strong>。每条内容含60s短视频脚本+800字图文文案+200字私域文案。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 2: 品牌故事全8条 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">品牌故事 B01-B08</div>
+    <h2 class="section-title">从"为什么叫锅气"到"妈妈的味道"</h2>
+    <div class="card-grid cols-2">
+      <div class="card accent-left"><div class="card-label accent">B01 · 品牌初心</div><div class="story-q">"锅气不是玄学，是15分钟现炒的确定性。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">铁锅猛火颠勺→创始人出镜"我是一个吃了3年预制菜的程序员"→快剪切菜下锅→白领大口吃饭。抖音/小红书。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B02 · 理念传递</div><div class="story-q">"预制菜是工业品，锅气是手工艺品。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">对比：预制菜包 vs 铁锅鲜肉→后厨无预制菜包→顾客"第一口就知道是现炒的"。抖音/小红书/公众号。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B03 · 文化传承</div><div class="story-q">"锅气，是中国厨房的灵魂。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">柴火灶→各地有锅气的名菜→"每一道都藏着中国人的烟火气"→锅气厨房同样铁锅猛火→"把它带到了写字楼"。小红书/公众号。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B04 · 用户共鸣</div><div class="story-q">"午餐凑合，人生也凑合。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">白领低头→外卖盒/饭团→锅气店白领围坐香锅上桌→"你可以选更好的"→顾客"吃顿好的下午心情都不一样"。抖音/小红书。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B05 · 挑战与胜利</div><div class="story-q">"别人说我疯了，我说我只是想好好吃饭。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">创始人写代码→毛坯房→装修/试菜/失败→"3个月试200次配方"→"最难时账上3万"→开业排队→微笑。抖音/视频号。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B06 · 品牌创新</div><div class="story-q">"我们把'锅气'做成了标准化。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">计时器15:00→"三件事：食材预处理+酱料标准化+流程SOP"→计时器14:32→"比承诺还快28秒"。抖音/小红书。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B07 · 社会责任</div><div class="story-q">"对食材负责，就是对你的健康负责。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">新鲜蔬菜/鲜红肉类→"凌晨5点批发市场采购"→与冷冻食材对比→"我们不用冷冻肉"。小红书/公众号。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B08 · 情感共鸣</div><div class="story-q">"锅气，就是妈妈在厨房里炒菜的味道。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">妈妈炒菜老照片→"多久没吃妈妈做的饭了？"→顾客"这味道让我想起妈妈做的辣子鸡"→"我们做的不是菜，是记忆"。小红书/抖音。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: 创始人故事全8条 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">创始人故事 F01-F08</div>
+    <h2 class="section-title">从辞职程序员到"锅气"老板</h2>
+    <div class="card-grid cols-2">
+      <div class="card primary-left"><div class="card-label primary">F01 · 初心</div><div class="story-q">"因为我不想再吃预制菜了。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">创始人坐电脑前→"每天外卖APP纠结20分钟"→预制菜包→"人生不能这样凑合"→"所以我辞职了"。抖音/视频号。</div></div>
+      <div class="card primary-left"><div class="card-label primary">F02 · 逆境</div><div class="story-q">"账上只剩3万块，我差点回去写代码。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">毛坯房疲惫→试菜失败/装修超支/员工离职→"200次配方180次失败"→"最难时账上3万"→"但想到白领又要吃预制菜就觉得不能停"。抖音/视频号。</div></div>
+      <div class="card primary-left"><div class="card-label primary">F03 · 天真</div><div class="story-q">"别人用预制菜，我偏要现炒。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">"很多人说我笨"→别人预制菜加热 vs 锅气现炒→"别人冷冻肉我偏冷鲜肉"→"别人工业酱料我偏自己调"→"做餐饮不能太聪明"。小红书/抖音。</div></div>
+      <div class="card primary-left"><div class="card-label primary">F04 · 困境</div><div class="story-q">"我差点忘了，我为什么开始。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">创始人看报表凝重→"当热爱变成生意"→开会/算账/投诉→"开始关心利润翻台率"→"很久没进后厨"→"所以重新拿起锅铲"。视频号/公众号。</div></div>
+      <div class="card primary-left"><div class="card-label primary">F05 · 传承</div><div class="story-q">"我爷爷说，做菜就是做人。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">爷爷炒菜老照片→教切菜→"食材要新鲜火候要到位心要诚"→"锅气就是爷爷教我的"。小红书/公众号。</div></div>
+      <div class="card primary-left"><div class="card-label primary">F06 · 信念</div><div class="story-q">"有人说，现炒是死路一条。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">质疑声"成本高/效率低/做不大"→"他们说预制菜是未来"→"但我不信"→"锅气就是我的信念"。抖音/视频号。</div></div>
+      <div class="card primary-left"><div class="card-label primary">F07 · 突破</div><div class="story-q">"我用代码的逻辑，做了一盘香锅。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">代码/流程图→"把做菜拆解：输入食材→处理流程→输出菜品"→"优化每个环节"→"15分钟+稳定+可控"。抖音/小红书。</div></div>
+      <div class="card primary-left"><div class="card-label primary">F08 · 团队</div><div class="story-q">"他们不是员工，是合伙人。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">后厨厨师忙碌→一起试菜/讨论→"给股份让参与决策"→厨师长出镜"老板信任我们就要把菜做好"。视频号/公众号。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 产品故事 + 客户故事精选 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">产品故事 P01-P08</div>
+    <h2 class="section-title">从200次试错到一锅两吃的灵魂吃法</h2>
+    <div class="card-grid cols-2">
+      <div class="card gold-left"><div class="card-label gold">P01 · 研发</div><div class="story-q">"为了这口锅，我试了200次。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">沸腾香锅→各种失败菜品→"前100次都是垃圾"→"第200次确定配方"→"28元成本8.5元"。抖音/小红书。</div></div>
+      <div class="card gold-left"><div class="card-label gold">P02 · 命名</div><div class="story-q">"经典，就是经得起反复吃。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">"经典=经得起反复吃，微辣=所有人都能接受"→"经典微辣锅就是锅气的基本款"。小红书。</div></div>
+      <div class="card gold-left"><div class="card-label gold">P03 · 场景</div><div class="story-q">"一个人，一锅香锅，一部剧。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">白领独自在锅气店→边吃边看剧满足→特写食材→"一个人午餐也可以很精彩"。小红书/抖音。</div></div>
+      <div class="card gold-left"><div class="card-label gold">P04 · 改变</div><div class="story-q">"以前我每天点外卖，现在我每天来锅气。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">顾客"以前每天点外卖"→外卖APP→"发现锅气后天天来"→"因为这里有锅气"。抖音/小红书。</div></div>
+      <div class="card gold-left"><div class="card-label gold">P05 · 诞生</div><div class="story-q">"多10块钱，多一倍快乐。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">招牌香辣锅→虾/鱿鱼/牛肉→"比经典多5种食材"→"定价38元"→"今天想对自己好点就点这个"。抖音/小红书。</div></div>
+      <div class="card gold-left"><div class="card-label gold">P06 · 五感</div><div class="story-q">"看、听、闻、尝、触，五感全开。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">香锅上桌→红油翻滚/滋滋作响/香气扑鼻/麻辣鲜香/脆嫩弹牙→"来锅气五感全开"。小红书。</div></div>
+      <div class="card gold-left"><div class="card-label gold">P07 · 细节</div><div class="story-q">"因为我们在米饭上，也花了心思。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">米饭晶莹→选米/洗米/煮饭→"五常大米贵30%"→"煮饭时间精确到秒"→"好饭配好菜"。小红书。</div></div>
+      <div class="card gold-left"><div class="card-label gold">P08 · 创新</div><div class="story-q">"一锅两吃，解锁新世界。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">汤汁浇米饭→"先吃菜再拌饭"→特写汤汁拌饭→"这才是灵魂吃法"→"来锅气一定要试试"。小红书/抖音。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: 客户故事 + 发布节奏 + 媒介 -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="section-eyebrow">客户故事 C01-C08 &amp; 发布节奏</div>
+    <h2 class="section-title">从"试试看"到"铁粉" + 8周节奏 + 5媒介</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.3rem">
+      <div class="card green-left"><div class="card-label green">C01 · 痛点解决</div><div class="story-q">"以前午餐是任务，现在是享受。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">"因为锅气让我觉得午餐值得期待"。抖音/小红书。</div></div>
+      <div class="card green-left"><div class="card-label green">C02 · 前后对比</div><div class="story-q">"以前吃的是包装，现在吃的是锅气。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">左：外卖盒。右：锅气铁锅→"区别？一个是填饱肚子一个是享受生活"。抖音/小红书。</div></div>
+      <div class="card green-left"><div class="card-label green">C03 · 用户证言</div><div class="story-q">"我吃过100家香锅店，锅气排前三。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">"为什么？因为锅气"→"现炒的就是不一样"。小红书。</div></div>
+      <div class="card green-left"><div class="card-label green">C04 · 场景重现</div><div class="story-q">"加班到9点，只有锅气还开着。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">夜晚写字楼→香锅上桌笑容→"加班夜锅气是唯一的慰藉"。抖音/小红书。</div></div>
+      <div class="card green-left"><div class="card-label green">C05 · 推荐</div><div class="story-q">"因为我不想再和同事一起吃预制菜了。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">一起锅气有说有笑→"一起吃锅气才是真同事"。抖音/小红书。</div></div>
+      <div class="card green-left"><div class="card-label green">C06 · 生活</div><div class="story-q">"每周至少吃3次，已经成了习惯。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">"如果一周不吃就会想念"→"锅气是我生活的一部分"。小红书。</div></div>
+      <div class="card green-left"><div class="card-label green">C07 · 复购</div><div class="story-q">"第一次是试试，第二次是确认，第三次是习惯。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">"从试试到铁粉只用了3次"。抖音/小红书。</div></div>
+      <div class="card green-left"><div class="card-label green">C08 · UGC</div><div class="story-q">"拍一张照片，记录你的锅气时刻。#锅气时刻"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">"每周3位最精彩送出免单券"。小红书/抖音。</div></div>
+    </div>
+    <div class="card-grid cols-2">
+      <div>
+        <table class="data-table" style="margin-bottom:0.2rem">
+          <thead><tr><th>周</th><th>5A</th><th>内容组合</th></tr></thead>
+          <tbody>
+            <tr><td>W1</td><td><span class="tag tag-high">了解</span></td><td>B01-B03+F01-F02</td></tr>
+            <tr><td>W2</td><td><span class="tag tag-mid">兴趣</span></td><td>B04-B08</td></tr>
+            <tr><td>W3-4</td><td><span class="tag tag-low">信任</span></td><td>F03-F08+C01-C04</td></tr>
+            <tr><td>W5-6</td><td><span class="tag tag-sku">行动</span></td><td>P全+福利+C05-C06</td></tr>
+            <tr><td>W7-8</td><td style="color:var(--primary-bright)">复购</td><td>C07-C08+UGC</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="card-grid cols-3" style="margin-bottom:0.3rem">
+          <div class="media-card"><div class="media-icon">🎵</div><div class="media-name">抖音</div><div class="media-desc">每周5条</div></div>
+          <div class="media-card"><div class="media-icon">📱</div><div class="media-name">小红书</div><div class="media-desc">每周6条</div></div>
+          <div class="media-card"><div class="media-icon">🎬</div><div class="media-name">视频号</div><div class="media-desc">每周4条</div></div>
+        </div>
+        <div class="conclusion-block" style="margin-top:0;padding:0.6rem">
+          <h3 style="font-size:var(--fs-subhead)">结语</h3>
+          <p style="font-size:var(--fs-caption)">锅气，不只是一份香锅，更是一种"不凑合"的生活态度。从200次试错到32条内容库，我们相信好的内容能传递锅气的温度。<strong style="color:var(--primary-bright)">本周就从F01开始，在抖音发布第一条视频。</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+
+</body></html>

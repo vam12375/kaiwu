@@ -15,6 +15,7 @@ ALLOWED_IMAGE_MODELS = {
 MAX_IMAGE_COUNT = 4
 MAX_REFERENCE_IMAGES = 4
 MAX_REFERENCE_IMAGE_DATA_URL_LENGTH = 12 * 1024 * 1024
+MAX_SKILL_CONTEXT_TEXT_LENGTH = 8000
 
 
 def _normalize_image_count(value: Any) -> int:
@@ -55,6 +56,30 @@ def _normalize_reference_images(value: Any) -> list[dict[str, Any]]:
     return images
 
 
+def _clean_skill_context_text(value: Any, limit: int = MAX_SKILL_CONTEXT_TEXT_LENGTH) -> str:
+    if not isinstance(value, str):
+        return ""
+    return value.strip()[:limit]
+
+
+def _normalize_skill_context(value: Any) -> dict[str, str] | None:
+    if not isinstance(value, dict):
+        return None
+
+    name = _clean_skill_context_text(value.get("name"), 120)
+    if not name:
+        return None
+
+    return {
+        "id": _clean_skill_context_text(value.get("id"), 120),
+        "name": name,
+        "description": _clean_skill_context_text(value.get("description"), 500),
+        "category": _clean_skill_context_text(value.get("category"), 80),
+        "doc": _clean_skill_context_text(value.get("doc")),
+        "full_content": _clean_skill_context_text(value.get("full_content")),
+    }
+
+
 def build_task_payload(data: dict[str, Any]) -> dict[str, Any]:
     """Normalize API input into the runtime task payload."""
     message = (data.get("message") or "").strip()
@@ -76,7 +101,7 @@ def build_task_payload(data: dict[str, Any]) -> dict[str, Any]:
         "followup_node": data.get("followup_node"),
         "model": data.get("model"),
         "conversation_id": data.get("conversation_id"),
+        "skill_context": _normalize_skill_context(data.get("skill_context")),
         "stream": bool(data.get("stream", True)),
     }
     return payload
-

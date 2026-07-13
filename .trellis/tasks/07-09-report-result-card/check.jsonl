@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "run frontend production build for task/SSE UI change"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "run backend compileall and preserve AI file dual archive"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "confirm reducer handles event shape without duplicating SSE parsing"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "confirm task-visible behavior still emits through EventStore"}

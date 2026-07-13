@@ -32,6 +32,7 @@ type ChatInputProps = {
   isLoading: boolean;
   modelIndex: number;
   setModelIndex: (v: number) => void;
+  onReferenceHistoryClick?: () => void;
   showToast: ShowToast;
 };
 
@@ -54,6 +55,7 @@ export function ChatInput({
   isLoading,
   modelIndex,
   setModelIndex,
+  onReferenceHistoryClick,
   showToast,
 }: ChatInputProps) {
   const [modelOpen, setModelOpen] = useState(false);
@@ -224,7 +226,7 @@ export function ChatInput({
                 )}
               </div>
 
-              <button className="toolbar-select">
+              <button className="toolbar-select" onClick={onReferenceHistoryClick} type="button">
                 <span>📂</span>
                 <span>参考历史文件</span>
                 <ChevronDown size={13} />

@@ -10,6 +10,17 @@ from server.config import PROJECT_LIB, public_url
 from server.utils.common import generate_html_file, save_project_file
 
 
+REPORT_SOURCE_LABELS = {
+    "summary": "报告",
+    "node1": "市场调研报告",
+    "node2": "商业方案报告",
+    "node1.5": "品牌策略报告",
+    "node3": "产品设计报告",
+    "node4": "营销方案报告",
+    "node5": "自媒体文案报告",
+}
+
+
 def _project_file_url(file_path: str) -> str:
     """Convert a saved project file path into the public project-files URL."""
     path = Path(file_path).resolve()
@@ -18,6 +29,44 @@ def _project_file_url(file_path: str) -> str:
     folder = quote(relative.parent.as_posix(), safe="")
     filename = quote(relative.name, safe="")
     return public_url(f"/project-files/{folder}/{filename}")
+
+
+def _unique_folders(folders: list[str]) -> list[str]:
+    result = []
+    for folder in folders:
+        if folder and folder not in result:
+            result.append(folder)
+    return result
+
+
+def _report_saved_event(
+    *,
+    title: str,
+    file_path: str,
+    file_url: str,
+    folders: list[str],
+    source_node: str,
+    folder: str,
+) -> dict:
+    file_name = Path(file_path).name if file_path else f"{title}.html"
+    source_label = REPORT_SOURCE_LABELS.get(source_node, "报告")
+    return {
+        "type": "file_saved",
+        "message": f"{source_label}已生成",
+        "artifact_type": "report",
+        "report_title": title,
+        "file_name": file_name,
+        "file_type": "HTML",
+        "source_node": source_node,
+        "source_label": source_label,
+        "folders": _unique_folders(folders),
+        "folder": folder,
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "auto_preview": True,
+        "desktop_path": file_path,
+        "url": file_url,
+        "file_url": file_url,
+    }
 
 
 def handle_summary(message: str, history: list, model: str = None):
@@ -74,10 +123,8 @@ def handle_summary(message: str, history: list, model: str = None):
         import subprocess
         subprocess.run(["open", "-a", "Google Chrome", file_path], check=False)
         file_url = _project_file_url(file_path)
-        content_text = f"✅ **{report_title}** 已生成\n\n存放位置：\n- 编程文件库\n- AI 对话产出\n\n已在 Chrome 中打开。"
-        yield f"data: {json.dumps({'type': 'content', 'content': content_text})}\n\n"
-        file_msg = f"{report_title}已保存至「编程文件库」+「AI 对话产出」"
-        yield f"data: {json.dumps({'type': 'file_saved', 'message': file_msg, 'folder': '编程文件库', 'auto_preview': True, 'desktop_path': file_path, 'url': file_url})}\n\n"
+        folders = result.get("archive_folders") or ["编程文件库", "AI 对话产出"]
+        yield f"data: {json.dumps(_report_saved_event(title=report_title, file_path=file_path, file_url=file_url, folders=folders, source_node='summary', folder='编程文件库'))}\n\n"
 
     yield f"data: {json.dumps({'type': 'progress', 'node': 'summary', 'message': '完成', 'percent': 100})}\n\n"
     yield f"data: {json.dumps({'type': 'done'})}\n\n"
@@ -152,7 +199,8 @@ def handle_export(message: str, history: list, intent: dict):
     }
     title = title_map.get(source_node, intent.get('topic', 'AI导出'))[:30]
 
-    yield f"data: {json.dumps({'type': 'progress', 'node': 'export', 'message': f'已识别上下文：{source_node}，正在生成HTML文件...', 'percent': 50})}\n\n"
+    source_label = REPORT_SOURCE_LABELS.get(source_node, "报告")
+    yield f"data: {json.dumps({'type': 'progress', 'node': 'export', 'message': f'已识别上下文：{source_label}，正在生成HTML文件...', 'percent': 50})}\n\n"
 
     folder_map = {"node1": "创业资料", "node2": "创业资料", "node1.5": "产品设计", "node3": "产品设计", "node5": "营销素材", "node4": "营销素材"}
     target_folder = folder_map.get(source_node, "AI 对话产出")
@@ -163,8 +211,8 @@ def handle_export(message: str, history: list, intent: dict):
         save_project_file(html_content, title, target_folder, "html")
         save_project_file(html_content, title, "AI 对话产出", "html")
         file_url = _project_file_url(path1)
-        yield f"data: {json.dumps({'type': 'file_saved', 'message': f'已调取{source_node}数据生成HTML，存入「编程文件库」+「{target_folder}」', 'folder': target_folder, 'auto_preview': True, 'desktop_path': path1, 'url': file_url, 'file_url': file_url})}\n\n"
-        yield f"data: {json.dumps({'type': 'content', 'content': f'✅ 文件已生成\\n\\n调取节点：{source_node}\\n文件类型：HTML\\n存放位置：编程文件库 + {target_folder}'})}\n\n"
+        folders = _unique_folders(["编程文件库", target_folder, "AI 对话产出"])
+        yield f"data: {json.dumps(_report_saved_event(title=title, file_path=path1, file_url=file_url, folders=folders, source_node=source_node, folder=target_folder))}\n\n"
     except Exception as e:
         yield f"data: {json.dumps({'type': 'content', 'content': f'文件生成失败：{str(e)[:200]}'})}\n\n"
 

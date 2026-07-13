@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合租侠 — 商业模式计划书（含品牌体系）</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2.2rem,3.8vw,3.6rem);--fs-display:clamp(1.5rem,2.3vw,2.2rem);
+  --fs-heading:clamp(1.1rem,1.6vw,1.4rem);--fs-subhead:clamp(0.88rem,1.1vw,1rem);
+  --fs-body:clamp(0.78rem,0.9vw,0.88rem);--fs-small:clamp(0.68rem,0.78vw,0.76rem);--fs-caption:0.66rem;
+  --slide-padding:clamp(1.3rem,3vw,3.5rem);--card-radius:10px;--card-radius-sm:6px;
+  --ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.6}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.4rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.5rem;letter-spacing:-0.01em;line-height:1.2}
+.section-subtitle{font-size:var(--fs-body);color:var(--text-secondary);margin-bottom:1.2rem;max-width:650px}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}
+.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.35rem 1.2rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.5rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.8rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:1rem}
+.cover-tags{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.3rem 1rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted);letter-spacing:0.1em}
+.card-grid{display:grid;gap:0.9rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card-grid.cols-5{grid-template-columns:repeat(5,1fr)}
+.card-grid.cols-1-2{grid-template-columns:1fr 2fr}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.1rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}
+.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}
+.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.08em;margin-bottom:0.3rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-title{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.25rem}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.6}
+.stat-row{display:flex;gap:2rem;justify-content:center;margin:0.8rem 0 1.2rem;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.3rem;letter-spacing:0.05em}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.3rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.5rem 0.7rem;text-align:left;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.45rem 0.7rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);vertical-align:top;line-height:1.5}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.data-table .num{font-family:"SF Mono","JetBrains Mono",monospace;text-align:right;white-space:nowrap}
+.data-table .paint-col{color:var(--crimson);font-weight:600}
+.data-table .gain-col{color:var(--green);font-weight:500}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.9rem 1.1rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin:0.8rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.tag{display:inline-block;padding:2px 9px;border-radius:100px;font-size:0.63rem;font-weight:600;letter-spacing:0.04em;white-space:nowrap}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}
+.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}
+.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.revenue-bars{display:flex;flex-direction:column;gap:0.4rem;margin:0.8rem 0}
+.revenue-bar-row{display:flex;align-items:center;gap:0.4rem}
+.revenue-bar-label{width:110px;font-size:var(--fs-caption);color:var(--text-secondary);text-align:right;flex-shrink:0}
+.revenue-bar-track{flex:1;height:22px;background:var(--bg-card-alt);border-radius:11px;overflow:hidden;position:relative}
+.revenue-bar-fill{height:100%;border-radius:11px;display:flex;align-items:center;padding-left:0.6rem;font-size:var(--fs-caption);font-weight:700;white-space:nowrap}
+.revenue-bar-fill.c1{background:linear-gradient(90deg,var(--primary-dim),var(--primary-bright));color:#fff}
+.revenue-bar-fill.c2{background:linear-gradient(90deg,var(--accent-dim),var(--accent));color:#fff}
+.revenue-bar-fill.c3{background:var(--gold-dim);color:#fff}
+.revenue-bar-val{font-size:var(--fs-caption);color:var(--text-muted);width:70px;flex-shrink:0}
+.pricing-cards{display:flex;gap:0.8rem;margin:0.8rem 0}
+.pricing-card{flex:1;background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.4rem 1rem;text-align:center;position:relative;transition:all var(--duration-normal) var(--ease-out-expo)}
+.pricing-card.featured{border-color:var(--primary);box-shadow:0 0 28px rgba(33,150,243,0.1);transform:scale(1.03)}
+.pricing-card:hover{transform:translateY(-4px)}
+.pricing-card.featured:hover{transform:scale(1.03) translateY(-4px)}
+.pricing-tier{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem}
+.pricing-tier.featured{color:var(--primary-bright)}
+.pricing-price{font-size:var(--fs-display);font-weight:800;color:var(--text-primary);margin-bottom:0.2rem}
+.pricing-price span{font-size:var(--fs-small);color:var(--text-muted);font-weight:400}
+.pricing-target{font-size:var(--fs-caption);color:var(--text-muted);margin-bottom:0.8rem}
+.pricing-features{text-align:left;font-size:var(--fs-caption);color:var(--text-secondary);line-height:1.8;padding-left:0}
+.pricing-features li{list-style:none;padding-left:1.1rem;position:relative}
+.pricing-features li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
+.be-chart{display:flex;align-items:flex-end;gap:0.25rem;height:130px;padding:0 0.4rem}
+.be-col{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.be-bar{width:100%;max-width:38px;border-radius:4px 4px 0 0}
+.be-bar.loss{background:var(--crimson);opacity:0.7}
+.be-bar.profit{background:var(--green)}
+.be-month{font-size:0.5rem;color:var(--text-muted);margin-top:3px}
+.be-amount{font-size:0.5rem;margin-top:1px}
+.be-amount.neg{color:var(--crimson)}.be-amount.pos{color:var(--green)}
+.channel-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1rem;text-align:center;transition:all var(--duration-normal) var(--ease-out-expo)}
+.channel-card:hover{border-color:var(--primary-dim);transform:translateY(-2px)}
+.channel-icon{font-size:1.4rem;margin-bottom:0.4rem}
+.channel-name{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.2rem}
+.channel-meta{font-size:var(--fs-caption);color:var(--text-muted);line-height:1.5}
+.channel-meta strong{color:var(--text-secondary);font-weight:600}
+.brand-name-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1rem;text-align:center;position:relative;transition:all var(--duration-normal) var(--ease-out-expo)}
+.brand-name-card.top-pick{border-color:var(--primary);box-shadow:0 0 24px rgba(33,150,243,0.1)}
+.brand-name-card:hover{border-color:var(--primary-dim);transform:translateY(-2px)}
+.brand-name{font-size:var(--fs-heading);font-weight:800;color:var(--text-primary);margin-bottom:0.2rem}
+.brand-name.top-pick-name{background:linear-gradient(135deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand-meaning{font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:0.3rem}
+.brand-stars{color:var(--gold);font-size:var(--fs-caption)}
+.badge-recommended{display:inline-block;background:var(--accent);color:#fff;font-size:0.55rem;font-weight:700;padding:0.12rem 0.5rem;border-radius:10px;position:absolute;top:-7px;right:-3px;letter-spacing:0.05em}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.3rem;margin-top:0.8rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.5rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.8}
+.cta-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.8rem}
+.cta-tag{padding:3px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);border-radius:100px;font-size:var(--fs-caption);color:var(--text-muted)}
+.driver-list{display:flex;flex-direction:column;gap:0.5rem}
+.driver-item{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.8rem 1rem;transition:all var(--duration-normal) var(--ease-out-expo)}
+.driver-item:hover{border-color:var(--primary-dim)}
+.driver-item .drv-top{display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.driver-item .drv-title{font-size:var(--fs-small);font-weight:700;color:var(--text-primary);flex:1;min-width:180px}
+.driver-item .drv-desc{font-size:var(--fs-caption);color:var(--text-secondary);line-height:1.6;margin-top:0.3rem}
+.quote-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:1rem 1.2rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin-top:1rem}
+.quote-block p{font-size:var(--fs-subhead);color:var(--primary-bright);font-weight:500;font-style:italic}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4,.card-grid.cols-5{grid-template-columns:repeat(2,1fr)}.card-grid.cols-1-2{grid-template-columns:1fr}.pricing-cards{flex-direction:column}.pricing-card.featured{transform:none}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.8rem;overflow-y:auto}.nav-dots{bottom:0.5rem}.keyboard-hint{display:none}.stat-row{gap:1rem}.driver-item .drv-top{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas"></canvas>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 2 · 商业模式计划书（含品牌体系）</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">合租侠</span></h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">杭州商业地产"办公+商业"赛道 · 单人启动 · 预算 ¥50,000</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">商业模式</span><span class="cover-tag">品牌体系</span><span class="cover-tag">盈亏平衡</span><span class="cover-tag">定价策略</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 核心价值主张 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 核心价值主张</div>
+    <h2 class="section-title">帮企业找到既能办公又能做生意的"好铺子"</h2>
+    <p class="section-subtitle">省去自己满城找、到处问的麻烦——"人工+AI"精准匹配 + 谈判顾问 + 入驻后运营支持。</p>
+    <table class="data-table">
+      <thead><tr><th>场景</th><th style="color:var(--crimson)">没有我们时</th><th style="color:var(--green)">有我们后</th></tr></thead>
+      <tbody>
+        <tr><td class="paint-col">找房匹配</td><td>企业主自己上58同城、安居客搜，信息真假难辨，约10个房源8个是假的或已租。平均<strong>耗时2-3周</strong>。</td><td class="gain-col">提供<strong>"人工+AI"精准匹配</strong>，先了解需求再筛选3-5个真实房源，<strong>1周内</strong>完成带看。</td></tr>
+        <tr><td class="paint-col">谈判签约</td><td>企业主自己跟物业招商部谈，对租金、免租期、押金等条款不熟悉，<strong>容易吃亏</strong>。</td><td class="gain-col">提供<strong>"谈判顾问"服务</strong>，帮企业主分析条款、制定谈判策略，平均帮客户<strong>节省10%-15%</strong>租金成本。</td></tr>
+        <tr><td class="paint-col">入驻后运营</td><td>入驻后发现物业"商业"属性受限，或"办公"属性太差，<strong>找物业方推诿扯皮</strong>。</td><td class="gain-col">提供<strong>"入驻后运营支持"</strong>，帮企业对接物业方，协调解决复合需求，确保顺利开展业务。</td></tr>
+      </tbody>
+    </table>
+    <div class="quote-block"><p>"花一个行政的月薪，获得一个全年在线的找房管家。"</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 2: 目标用户 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">02 · 目标用户与痛点</div>
+    <h2 class="section-title">聚焦杭州设计/科技行业，三类用户画像</h2>
+    <div class="card-grid cols-3" style="margin-bottom:0.8rem">
+      <div class="card accent-left">
+        <div class="card-label accent">种子用户</div>
+        <div class="card-title">35-45岁设计院/专业服务公司合伙人</div>
+        <div class="card-desc">年收入50-200万。需要将闲置空间以联营/外包形式租给上下游，降低净物业成本。付费区间：<strong>¥5,000-12,000/年</strong>。杭州约1,000家。</div>
+      </div>
+      <div class="card primary-left">
+        <div class="card-label primary">核心用户</div>
+        <div class="card-title">30-45岁中小科技/创意公司创始人</div>
+        <div class="card-desc">年收入30-100万。需要既能办公又能做展示/接待/轻商业的空间。付费区间：<strong>¥2,400-6,000/年</strong>。杭州约4,000家。</div>
+      </div>
+      <div class="card gold-left">
+        <div class="card-label gold">价值用户</div>
+        <div class="card-title">40-50岁商业地产业主/二房东</div>
+        <div class="card-desc">年收入100万+。物业空置率高，找不到能同时满足"办公+商业"需求的优质租户。杭州约200家。</div>
+      </div>
+    </div>
+    <div class="card-grid cols-2">
+      <div class="card">
+        <div class="card-label accent" style="margin-bottom:0.6rem">TOP 5 用户痛点</div>
+        <div class="card-desc" style="line-height:2">
+          <strong style="color:var(--accent)">1.</strong> 信息不透明，真假难辨（严重程度：高）<br>
+          <strong style="color:var(--accent)">2.</strong> 匹配效率低，找不到复合型物业（高）<br>
+          <strong style="color:var(--gold)">3.</strong> 谈判能力弱，容易吃亏（中）<br>
+          <strong style="color:var(--gold)">4.</strong> 入驻后服务缺失，问题无人解决（中）<br>
+          <strong style="color:var(--gold)">5.</strong> 对联营/外包模式不熟悉，担心风险（中）
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.6rem">付费意愿与市场规模</div>
+        <div class="card-desc" style="line-height:1.8">
+          <strong>核心付费区间</strong>：¥2,400-12,000/年<br>
+          <strong>定价对标</strong>：传统中介1个月租金（1-2万）的1/5到1/2<br>
+          <strong>杭州市场规模</strong>：目标企业总量约5,000家<br>
+          <strong>可触达目标</strong>：有明确复合空间需求约1,500家<br>
+          <strong>获客成本</strong>：预计低于¥200/单
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: 痛点详解 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">03 · 痛点详解</div>
+    <h2 class="section-title">五大痛点 × 我们的解法</h2>
+    <div class="driver-list">
+      <div class="driver-item accent-left">
+        <div class="drv-top"><div class="drv-title">痛点 1 · 信息不透明，真假难辨</div><span class="tag tag-high">严重程度：高</span></div>
+        <div class="drv-desc"><strong>现状：</strong>58同城虚假房源泛滥，约10个房源8个是假的或已租，平均浪费2-3周。<br><strong style="color:var(--green)">解法：</strong>建立"人工+AI"房源审核机制，所有房源实地拍摄、核实信息，确保100%真实。</div>
+      </div>
+      <div class="driver-item accent-left">
+        <div class="drv-top"><div class="drv-title">痛点 2 · 匹配效率低，找不到复合型物业</div><span class="tag tag-high">严重程度：高</span></div>
+        <div class="drv-desc"><strong>现状：</strong>市场上大部分物业要么纯办公要么纯商业，企业主需要自己跑很多地方。<br><strong style="color:var(--green)">解法：</strong>建立"复合型物业"数据库，对每个房源进行"办公属性"+"商业属性"双重标签，精准匹配。</div>
+      </div>
+      <div class="driver-item gold-left">
+        <div class="drv-top"><div class="drv-title">痛点 3 · 谈判能力弱，容易吃亏</div><span class="tag tag-mid">严重程度：中</span></div>
+        <div class="drv-desc"><strong>现状：</strong>企业主对租赁条款不熟悉，平均每年多付10%-15%的租金成本。<br><strong style="color:var(--green)">解法：</strong>提供"谈判顾问"服务，帮企业主分析合同条款、制定谈判策略、争取最优条件。</div>
+      </div>
+      <div class="driver-item gold-left">
+        <div class="drv-top"><div class="drv-title">痛点 4 · 入驻后服务缺失</div><span class="tag tag-mid">严重程度：中</span></div>
+        <div class="drv-desc"><strong>现状：</strong>入驻后发现问题，物业方推诿扯皮，企业主与物业方地位不对等。<br><strong style="color:var(--green)">解法：</strong>提供"入驻后运营支持"，作为企业主与物业方之间的"桥梁"，协调解决各类问题。</div>
+      </div>
+      <div class="driver-item gold-left">
+        <div class="drv-top"><div class="drv-title">痛点 5 · 对联营/外包模式不熟悉</div><span class="tag tag-mid">严重程度：中</span></div>
+        <div class="drv-desc"><strong>现状：</strong>设计院想将空间联营给上下游，但缺乏操作指南和成功案例，担心法律和财务风险。<br><strong style="color:var(--green)">解法：</strong>提供"联营/外包"模式咨询，帮企业主设计方案、起草合同、规避风险。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 盈利模式 + 定价 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">04 · 盈利模式与定价</div>
+    <h2 class="section-title">三条收入线，稳定期月入 ¥20,000</h2>
+    <div class="card-grid cols-1-2" style="margin-bottom:0.8rem">
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.6rem">收入构成（稳定期月均）</div>
+        <div class="revenue-bars">
+          <div class="revenue-bar-row"><div class="revenue-bar-label">会员订阅服务费</div><div class="revenue-bar-track"><div class="revenue-bar-fill c1" style="width:70%">70% · ¥14,000/月</div></div><div class="revenue-bar-val">毛利率 90%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">一次性成交佣金</div><div class="revenue-bar-track"><div class="revenue-bar-fill c2" style="width:20%">20% · ¥4,000/月</div></div><div class="revenue-bar-val">毛利率 95%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">增值服务费</div><div class="revenue-bar-track"><div class="revenue-bar-fill c3" style="width:10%">10% · ¥2,000/月</div></div><div class="revenue-bar-val">毛利率 95%</div></div>
+        </div>
+        <div class="card-desc" style="text-align:center"><strong>月收入 ¥20,000</strong> · 综合毛利率约 91%</div>
+      </div>
+      <div class="card">
+        <div class="card-label gold" style="margin-bottom:0.6rem">三维定价逻辑</div>
+        <div class="card-desc" style="line-height:1.7">
+          <strong style="color:var(--primary-bright)">成本导向：</strong>单客月均服务成本约¥223（AI调用50+云服务30+人力分摊143）。基础版需覆盖成本，通过标准版/旗舰版补贴。<br><br>
+          <strong style="color:var(--accent)">竞品锚定：</strong>纯AI工具¥3,000-8,000/年（无线下）← <strong>我们</strong> → 传统中介¥10,000-20,000/单（止于签约）。<br><br>
+          <strong style="color:var(--gold)">用户承受力：</strong>目标用户年收入50-200万。年费¥2,400仅占"雇一个人"成本（8-10万/年）的2.4%-3%。
+        </div>
+      </div>
+    </div>
+    <div class="pricing-cards">
+      <div class="pricing-card">
+        <div class="pricing-tier">基础版 / 启步包</div>
+        <div class="pricing-price">¥2,400<span>/年</span></div>
+        <div class="pricing-target">预算有限 · 需求明确的种子用户</div>
+        <ul class="pricing-features"><li>人工+AI精准房源匹配（3-5个）</li><li>房源真实性审核</li><li>带看安排与陪同</li></ul>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-tier featured">⭐ 标准版 / 增长包（推荐）</div>
+        <div class="pricing-price">¥6,000<span>/年</span></div>
+        <div class="pricing-target">需求复杂 · 需谈判支持的核心用户</div>
+        <ul class="pricing-features"><li>基础版所有功能</li><li>谈判顾问服务</li><li>入驻后运营支持</li><li>联营/外包模式咨询（1次）</li></ul>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-tier">旗舰版 / 旗舰包</div>
+        <div class="pricing-price">¥12,000<span>/年</span></div>
+        <div class="pricing-target">有联营需求 · 需深度支持的价值用户</div>
+        <ul class="pricing-features"><li>标准版所有功能</li><li>专属客户经理（一对一）</li><li>联营方案设计与合同起草</li><li>年度物业运营评估报告</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: 渠道策略 -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="section-eyebrow">05 · 渠道策略</div>
+    <h2 class="section-title">四大渠道，零成本启动，精准触达</h2>
+    <div class="card-grid cols-4" style="margin-bottom:0.8rem">
+      <div class="channel-card"><div class="channel-icon">💬</div><div class="channel-name">行业圈子</div><div class="channel-meta"><strong>线下</strong> · 获客¥0/人<br>贡献占比 40%<br>第1周启动<br><span style="color:var(--green)">利用10年人脉</span></div></div>
+      <div class="channel-card"><div class="channel-icon">🏢</div><div class="channel-name">物业招商部</div><div class="channel-meta"><strong>线下</strong> · 获客¥0/人<br>贡献占比 30%<br>第1周启动<br><span style="color:var(--green)">房源+客户双获取</span></div></div>
+      <div class="channel-card"><div class="channel-icon">💬</div><div class="channel-name">微信/行业群</div><div class="channel-meta"><strong>线上</strong> · 获客¥0/人<br>贡献占比 20%<br>第2周启动<br><span style="color:var(--green)">内容建立专业形象</span></div></div>
+      <div class="channel-card"><div class="channel-icon">📱</div><div class="channel-name">小红书</div><div class="channel-meta"><strong>线上</strong> · 获客¥100/人<br>贡献占比 10%<br>第4周启动<br><span style="color:var(--green)">杭州创业找房指南</span></div></div>
+    </div>
+    <div class="insight-card"><p>渠道核心逻辑：利用创始人10年行业人脉实现"零成本"冷启动，行业圈子 + 物业招商部贡献70%客户。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 6: 核心资源 + 成本 -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="section-eyebrow">06 · 核心资源与成本结构</div>
+    <h2 class="section-title">五大资源 + 月度成本 ¥2,000</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.8rem">
+      <div>
+        <table class="data-table">
+          <thead><tr><th>资源</th><th>状态</th><th>获取方式</th><th>成本</th></tr></thead>
+          <tbody>
+            <tr><td>创始人（销售/运营/客服）</td><td style="color:var(--green);font-weight:600">✓ 自有</td><td>全职投入</td><td>¥0/月</td></tr>
+            <tr><td>AI房源匹配模型</td><td style="color:var(--accent)">待获取</td><td>采购大模型API</td><td>¥1,000/年</td></tr>
+            <tr><td>复合型物业数据库</td><td style="color:var(--accent)">待建立</td><td>实地跑盘+联系招商部</td><td>¥0</td></tr>
+            <tr><td>启动资金</td><td style="color:var(--gold)">待确认</td><td>创始人自有资金</td><td>¥50,000</td></tr>
+            <tr><td>行业人脉</td><td style="color:var(--green);font-weight:600">✓ 已有</td><td>10年积累</td><td>¥0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.6rem">月度成本结构（前6个月平均）</div>
+        <div class="revenue-bars">
+          <div class="revenue-bar-row"><div class="revenue-bar-label">📢 营销费用</div><div class="revenue-bar-track"><div class="revenue-bar-fill c2" style="width:40%">¥800</div></div><div class="revenue-bar-val">40%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🤖 AI模型调用</div><div class="revenue-bar-track"><div class="revenue-bar-fill c1" style="width:25%">¥500</div></div><div class="revenue-bar-val">25%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🏢 办公/租金</div><div class="revenue-bar-track"><div class="revenue-bar-fill c3" style="width:25%">¥500</div></div><div class="revenue-bar-val">25%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">☁️ 云服务</div><div class="revenue-bar-track"><div class="revenue-bar-fill" style="width:10%;background:var(--border-card)">¥200</div></div><div class="revenue-bar-val">10%</div></div>
+        </div>
+        <div class="card-desc" style="text-align:center"><strong>月均总成本 ¥2,000</strong> · 创始人不给自己发薪</div>
+      </div>
+    </div>
+    <div class="insight-card"><p>5万元启动资金 ÷ ¥2,000/月 = 可支撑<strong style="color:var(--text-primary)">25个月</strong>，资金安全边际充足。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 7: 盈亏平衡 -->
+<section class="slide" id="slide-7">
+  <div class="slide-inner">
+    <div class="section-eyebrow">07 · 盈亏平衡分析</div>
+    <h2 class="section-title">第4个月达到盈亏平衡</h2>
+    <div class="card-grid cols-2">
+      <div class="card" style="position:relative">
+        <div class="card-label gold" style="margin-bottom:0.6rem">累计盈亏推演</div>
+        <div class="be-chart">
+          <div class="be-col"><div class="be-bar loss" style="height:18%"></div><div class="be-month">M1</div><div class="be-amount neg">-2,000</div></div>
+          <div class="be-col"><div class="be-bar loss" style="height:22%"></div><div class="be-month">M2</div><div class="be-amount neg">-1,600</div></div>
+          <div class="be-col"><div class="be-bar profit" style="height:30%"></div><div class="be-month">M3</div><div class="be-amount pos">+1,200</div></div>
+          <div class="be-col"><div class="be-bar profit" style="height:55%"></div><div class="be-month">M4 ⚡</div><div class="be-amount pos">+8,800</div></div>
+          <div class="be-col"><div class="be-bar profit" style="height:80%"></div><div class="be-month">M5</div><div class="be-amount pos">+21,200</div></div>
+          <div class="be-col"><div class="be-bar profit" style="height:100%"></div><div class="be-month">M6</div><div class="be-amount pos">+38,400</div></div>
+        </div>
+        <div class="card-desc" style="text-align:center;margin-top:0.5rem"><strong style="color:var(--green)">第4个月盈亏平衡</strong>，需积累7家基础版客户</div>
+      </div>
+      <div>
+        <table class="data-table">
+          <thead><tr><th>月份</th><th>预估收入</th><th>预估成本</th><th>累计盈亏</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td>M1</td><td class="num">¥0</td><td class="num">-2,000</td><td class="num" style="color:var(--crimson)">-2,000</td><td>产品内测、跑盘建库</td></tr>
+            <tr><td>M2</td><td class="num">¥2,400</td><td class="num">-2,000</td><td class="num" style="color:var(--crimson)">-1,600</td><td>转化1个基础版客户</td></tr>
+            <tr><td>M3</td><td class="num">¥4,800</td><td class="num">-2,000</td><td class="num" style="color:var(--green)">+1,200</td><td>累计3个基础版客户</td></tr>
+            <tr style="background:rgba(76,175,80,0.04)"><td style="font-weight:700">M4 ⚡</td><td class="num">¥9,600</td><td class="num">-2,000</td><td class="num" style="color:var(--green)">+8,800</td><td>累计7个，平衡点</td></tr>
+            <tr><td>M6</td><td class="num">¥19,200</td><td class="num">-2,000</td><td class="num" style="color:var(--green)">+38,400</td><td>累计17家，标准版转化</td></tr>
+            <tr><td>M12</td><td class="num">¥48,000</td><td class="num">-2,000</td><td class="num" style="color:var(--green)">+366,000</td><td>稳定增长，约40家客户</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: 品牌命名 -->
+<section class="slide" id="slide-8">
+  <div class="slide-inner">
+    <div class="section-eyebrow">08 · 品牌命名</div>
+    <h2 class="section-title">TOP3 品牌名推荐 — 最终选择「合租侠」</h2>
+    <div class="card-grid cols-3" style="margin-bottom:0.8rem">
+      <div class="brand-name-card top-pick">
+        <span class="badge-recommended">推荐</span>
+        <div class="brand-name top-pick-name">合租侠</div>
+        <div class="brand-meaning">"合租"点明复合空间属性，"侠"代表专业可靠</div>
+        <div class="brand-stars">⭐⭐⭐⭐⭐</div>
+        <div class="card-desc" style="margin-top:0.4rem">「合租侠，帮你找到既能办公又能做生意的"好铺子"。」</div>
+      </div>
+      <div class="brand-name-card">
+        <div class="brand-name">铺子通</div>
+        <div class="brand-meaning">"铺子"接地气，"通"代表信息通达、服务专业</div>
+        <div class="brand-stars">⭐⭐⭐⭐</div>
+        <div class="card-desc" style="margin-top:0.4rem">「找铺子，就找铺子通，省时省力又省心。」</div>
+      </div>
+      <div class="brand-name-card">
+        <div class="brand-name">办公+</div>
+        <div class="brand-meaning">直接点明"办公+商业"复合场景，简洁有力</div>
+        <div class="brand-stars">⭐⭐⭐⭐</div>
+        <div class="card-desc" style="margin-top:0.4rem">「办公+，让空间不止于办公。」</div>
+      </div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>品牌名</th><th>命名逻辑</th><th>含义解读</th><th>推荐指数</th></tr></thead>
+      <tbody>
+        <tr style="background:rgba(33,150,243,0.04)"><td style="color:var(--primary-bright);font-weight:700">1</td><td style="color:var(--primary-bright);font-weight:700">合租侠 ⭐</td><td>关联效果</td><td>"合租"=复合空间，"侠"=专业、可靠、乐于助人</td><td>⭐⭐⭐⭐⭐</td></tr>
+        <tr><td>2</td><td>铺子通</td><td>关联效果</td><td>"铺子"=商业地产俗称，"通"=信息通达</td><td>⭐⭐⭐⭐</td></tr>
+        <tr><td>3</td><td>办公+</td><td>目标+场景</td><td>直接点明"办公+商业"复合场景</td><td>⭐⭐⭐⭐</td></tr>
+        <tr><td>4</td><td>空间侠</td><td>关联效果</td><td>"空间"涵盖办公+商业，"侠"代表专业服务</td><td>⭐⭐⭐⭐</td></tr>
+        <tr><td>5</td><td>联营家</td><td>关联效果</td><td>"联营"点明核心模式，"家"代表专业可靠</td><td>⭐⭐⭐⭐</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 9: 品牌理念 + 差异化 -->
+<section class="slide" id="slide-9">
+  <div class="slide-inner">
+    <div class="section-eyebrow">09 · 品牌理念与差异化</div>
+    <h2 class="section-title">杭州首家"办公+商业"复合型物业匹配服务商</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.8rem">
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.6rem">品牌理念体系</div>
+        <div class="card-desc" style="line-height:1.7">
+          <strong style="color:var(--primary-bright)">定位：</strong>杭州首家"办公+商业"复合型物业匹配与运营服务商。<br>
+          <strong style="color:var(--accent)">核心价值：</strong>帮企业找到"好铺子"，省下"冤枉钱"。<br>
+          <strong style="color:var(--gold)">价值观：</strong>真实（100%真房源）· 专业（谈判顾问+运营支持）· 靠谱（说到做到）。<br>
+          <strong style="color:var(--green)">使命：</strong>让每一家企业都能找到最适合自己的复合空间。<br>
+          <strong style="color:var(--primary-bright)">愿景：</strong>3年服务100家企业 → 5年复制到长三角500家。
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label gold" style="margin-bottom:0.6rem">五维差异化</div>
+        <div class="card-desc" style="line-height:1.6">
+          <strong style="color:var(--accent)">产品：</strong>聚焦"办公+商业"复合型物业，全周期服务（匹配+谈判+入驻后）。<br>
+          <strong style="color:var(--primary-bright)">服务：</strong>"人工+AI"精准匹配，有温度的服务而非冷冰冰的交易。<br>
+          <strong style="color:var(--gold)">价格：</strong>年费制¥2,400-12,000，低于传统中介单次佣金。<br>
+          <strong style="color:var(--green)">渠道：</strong>行业圈子+物业招商部，利用10年人脉零成本获客。<br>
+          <strong style="color:var(--accent)">体验：</strong>一对一专属客户经理，从找房到入驻全程陪伴。
+        </div>
+      </div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>维度</th><th>我们的做法</th><th>竞品做法</th><th>差异点</th><th>可复制？</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--accent);font-weight:600">产品</td><td>聚焦复合型物业，全周期服务</td><td>58同城：只展示信息；传统中介：止于签约</td><td>一站式解决方案</td><td style="color:var(--crimson)">否</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">服务</td><td>"人工+AI"精准匹配 + 增值服务</td><td>纯AI工具：无线下；传统中介：纯人工</td><td>效率+温度结合</td><td style="color:var(--gold)">是</td></tr>
+        <tr><td style="color:var(--gold);font-weight:600">价格</td><td>年费¥2,400-12,000</td><td>传统中介：¥10,000-20,000/单</td><td>高性价比全周期</td><td style="color:var(--gold)">是</td></tr>
+        <tr><td style="color:var(--green);font-weight:600">渠道</td><td>行业圈子+物业招商部</td><td>58同城：线上流量；中介：门店广告</td><td>零成本精准触达</td><td style="color:var(--crimson)">否</td></tr>
+        <tr><td style="color:var(--accent);font-weight:600">体验</td><td>一对一专属客户经理</td><td>58同城：自助式；中介：流程化</td><td>有温度的服务</td><td style="color:var(--gold)">是</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 10: 品牌故事 -->
+<section class="slide" id="slide-10">
+  <div class="slide-inner">
+    <div class="section-eyebrow">10 · 品牌故事</div>
+    <h2 class="section-title">从骑着电动车跑遍杭州，到"合租侠"的诞生</h2>
+    <div class="card-grid cols-2">
+      <div class="card accent-left">
+        <div class="card-label accent">开头 · 冲突与困境</div>
+        <div class="card-desc">2016年，我在杭州一家设计院做行政主管。当时想把一层闲置空间以联营形式租给一家景观设计公司——这本是双赢：我们降成本，对方找到好位置。但现实是一地鸡毛：花了整整<strong>两个月</strong>，跑了不下<strong>20个物业</strong>，要么纯办公不允许商业展示，要么纯商业不适合办公。好不容易找到一个，物业方对"联营"模式一无所知，谈判陷入僵局。最终项目不了了之，院里每年多付<strong>30万租金</strong>。这件事让我意识到：市场上缺的不是空间，而是能同时满足"办公"和"商业"双重需求的复合型空间，以及帮企业搞定这一切的专业服务。</div>
+      </div>
+      <div class="card primary-left">
+        <div class="card-label primary">过程 · 探索与努力</div>
+        <div class="card-desc">从那以后，我利用周末骑着电动车，跑遍杭州滨江、未来科技城、拱墅区等核心商圈。加了<strong>100多个物业招商部经理</strong>的微信，了解每个物业的"办公属性"和"商业属性"。自己设计了Excel表格，记录面积、租金、层高、是否允许餐饮/展示、独立空调、网络等。到2018年，已积累<strong>300多个真实房源数据</strong>。开始在朋友圈和行业群分享，帮朋友找房。找我帮忙的人越来越多——大家的需求惊人一致：都想找一个"既能办公又能做生意"的地方，但都找不到。这让我意识到，这是一个巨大的市场空白。</div>
+      </div>
+      <div class="card gold-left">
+        <div class="card-label gold">高潮 · 转折与突破</div>
+        <div class="card-desc">2023年，帮一位室内设计朋友找房：需要200平米，一楼展厅+接待，二楼办公+设计。我翻遍数据库，在未来科技城找到符合条件的物业，但租金高、押三付一。我利用积累的谈判经验，帮他分析条款、制定策略，最终成功<strong>将租金降低15%</strong>，争取到<strong>2个月免租期</strong>。朋友说："老张，你这不是中介，你是我的'找房侠'啊！"这句话让我醍醐灌顶——我做的不仅仅是"找房"，而是"帮企业解决问题"。那一刻，我决定把这件事做成事业。</div>
+      </div>
+      <div class="card green-left">
+        <div class="card-label green">结尾 · 品牌主张</div>
+        <div class="card-desc">所以，我创立了<strong>"合租侠"</strong>。我们不做最大的平台，只做最懂你的"找房侠"。我们承诺：房源信息100%真实，服务专业靠谱，从找房到入驻全程陪伴。我们想做的，不仅仅是帮你找到一个空间，更是帮你找到一个能让事业"合租"共赢的伙伴。<br><strong style="color:var(--green)">合租侠，让空间不止于办公。</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 11: 品牌视觉 + 总结 -->
+<section class="slide" id="slide-11">
+  <div class="slide-inner">
+    <div class="section-eyebrow">11 · 品牌视觉 & 方案总结</div>
+    <h2 class="section-title">亲和科技风 — 温暖、专业、可信赖</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.8rem">
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.6rem">品牌视觉建议</div>
+        <div class="card-desc" style="line-height:1.7">
+          <strong style="color:var(--accent)">整体风格：</strong>亲和科技风 — 温暖橙色+简洁白灰，专业可靠有温度。<br>
+          <strong style="color:var(--accent)">主色调：</strong>活力橙 #FF6B35 — 热情、温暖，传递"靠谱、能解决问题"。<br>
+          <strong style="color:var(--primary-bright)">辅助色：</strong>科技白 #FFF + 高级灰 #F5F5F5 — 简洁专业。<br>
+          <strong style="color:var(--gold)">字体：</strong>中文思源黑体 + 英文Montserrat — 简洁现代。<br>
+          <strong style="color:var(--green)">Logo：</strong>"办公桌"+"货架"抽象组合成"房子"形状，品牌名橙色字体置于下方。
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label gold" style="margin-bottom:0.6rem">关键决策汇总</div>
+        <table class="data-table">
+          <thead><tr><th>决策项</th><th>最终选择</th><th>决策要点</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--accent);font-weight:600">品牌名</td><td style="color:var(--primary-bright);font-weight:600">合租侠</td><td>融合复合空间+专业服务，接地气有记忆点</td></tr>
+            <tr><td style="color:var(--accent);font-weight:600">首发产品</td><td>基础版 ¥2,400/年</td><td>定价低门槛低，适合种子用户快速验证</td></tr>
+            <tr><td style="color:var(--accent);font-weight:600">首发渠道</td><td>行业圈子</td><td>10年人脉零成本获客，效率最高</td></tr>
+            <tr><td style="color:var(--accent);font-weight:600">盈亏平衡</td><td>第4个月</td><td>届时需积累7家基础版客户</td></tr>
+            <tr><td style="color:var(--accent);font-weight:600">启动资金</td><td>¥50,000</td><td>可支撑至第25个月，资金充裕</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="conclusion-block">
+      <h3>结语</h3>
+      <p>"合租侠"的故事，始于2016年那个骑着电动车跑遍杭州的夏天。它源于一个简单的信念：每一家企业，都值得拥有一个既能办公又能做生意的"好铺子"。这份方案不是一份冰冷的商业计划书，而是一份关于"如何让空间更有价值"的行动指南。从"合租侠"的品牌名，到"基础版"的产品包，再到"第4个月"的盈亏平衡点，每一个决策都指向同一个目标：<strong style="color:var(--primary-bright)">用最小的成本，验证最大的可能性。</strong></p>
+      <div class="cta-row">
+        <span class="cta-tag">立即启动行业圈子渠道</span>
+        <span class="cta-tag">同步建立复合型物业数据库</span>
+        <span class="cta-tag">第2周启动小红书内容测试</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+</body>
+</html>

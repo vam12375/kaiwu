@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>简序 — 产品落地手册</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.3rem);--fs-subhead:clamp(0.84rem,1.05vw,0.95rem);
+  --fs-body:clamp(0.74rem,0.85vw,0.82rem);--fs-small:clamp(0.65rem,0.75vw,0.72rem);--fs-caption:0.62rem;
+  --slide-padding:clamp(1.2rem,2.8vw,3rem);--card-radius:10px;--ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.6}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.3rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;line-height:1.2}
+.section-subtitle{font-size:var(--fs-body);color:var(--text-secondary);margin-bottom:0.8rem}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.35rem 1.2rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.5rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.8rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:1rem}
+.cover-tags{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.3rem 1rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted)}
+.card-grid{display:grid;gap:0.9rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}.card-grid.cols-1-2{grid-template-columns:1fr 2fr}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.1rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.08em;margin-bottom:0.3rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-title{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.25rem}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.6}
+.stat-row{display:flex;gap:2rem;justify-content:center;margin:0.8rem 0 1.2rem;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.3rem}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.3rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.5rem 0.7rem;text-align:left;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.45rem 0.7rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);line-height:1.5}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.data-table .num{font-family:"SF Mono","JetBrains Mono",monospace;text-align:right;white-space:nowrap}
+.data-table .paint-col{color:var(--crimson);font-weight:600}.data-table .gain-col{color:var(--green);font-weight:500}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.9rem 1.1rem;border-radius:0 6px 6px 0;margin:0.8rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.tag{display:inline-block;padding:2px 8px;border-radius:100px;font-size:0.62rem;font-weight:600;letter-spacing:0.04em;white-space:nowrap}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.tag-sku{background:rgba(33,150,243,0.12);color:var(--primary-bright)}
+.revenue-bars{display:flex;flex-direction:column;gap:0.4rem;margin:0.8rem 0}
+.revenue-bar-row{display:flex;align-items:center;gap:0.4rem}
+.revenue-bar-label{width:110px;font-size:var(--fs-caption);color:var(--text-secondary);text-align:right;flex-shrink:0}
+.revenue-bar-track{flex:1;height:22px;background:var(--bg-card-alt);border-radius:11px;overflow:hidden;position:relative}
+.revenue-bar-fill{height:100%;border-radius:11px;display:flex;align-items:center;padding-left:0.6rem;font-size:var(--fs-caption);font-weight:700;white-space:nowrap}
+.revenue-bar-fill.c1{background:linear-gradient(90deg,var(--primary-dim),var(--primary-bright));color:#fff}
+.revenue-bar-fill.c2{background:linear-gradient(90deg,var(--accent-dim),var(--accent));color:#fff}
+.revenue-bar-fill.c3{background:var(--gold-dim);color:#fff}
+.revenue-bar-val{font-size:var(--fs-caption);color:var(--text-muted);width:70px;flex-shrink:0}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.3rem;margin-top:0.8rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.5rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.8}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.8rem;overflow-y:auto}.nav-dots{bottom:0.5rem}.keyboard-hint{display:none}.stat-row{gap:1rem}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas"></canvas>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 3 · 产品落地手册</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">简序</span> · 产品落地手册</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">实体产品 · 1人团队 · 启动 ¥50,000 · 3个月PMF验证</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">4 SKU</span><span class="cover-tag">¥99-249</span><span class="cover-tag">净利率46.3%</span><span class="cover-tag">年净利¥414k</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 产品定位 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 产品定位</div>
+    <h2 class="section-title">"极简亚文化"T恤 — 220g精梳棉·领口加固·结构线设计</h2>
+    <div class="stat-row">
+      <div class="stat-item"><div class="stat-number">220g</div><div class="stat-label">面料克重</div></div>
+      <div class="stat-item"><div class="stat-number">¥99<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">起</span></div><div class="stat-label">引流款定价</div></div>
+      <div class="stat-item"><div class="stat-number">69.8%</div><div class="stat-label">引流款毛利率</div></div>
+      <div class="stat-item"><div class="stat-number">46.3%</div><div class="stat-label">净利率</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>场景</th><th style="color:var(--crimson)">没有我们时</th><th style="color:var(--green)">有我们后</th></tr></thead>
+      <tbody>
+        <tr><td class="paint-col">买有设计感的T恤</td><td>优衣库太普通；淘宝原创店"品质差、货不对板"。</td><td class="gain-col"><strong>"极简亚文化"T恤：</strong>优衣库同级别面料，¥149-249。有辨识度但不过分。</td></tr>
+        <tr><td class="paint-col">穿出"高级感"</td><td>ZARA洗两次变形；设计师品牌¥500+超预算。</td><td class="gain-col"><strong>220g高克重+领口加固：</strong>洗10次不变形。暗纹+结构线设计仅¥199。</td></tr>
+        <tr><td class="paint-col">快速搭配出门</td><td>"没意思"的基础款或"不知道怎么搭"的设计款。</td><td class="gain-col"><strong>3种搭配方案</strong>（通勤/休闲/社交）在详情页直接照搬。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 2: 目标人群 + SKU -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">02-03 · 目标人群 & SKU规划</div>
+    <h2 class="section-title">三类职场年轻人 × 4 SKU，引流-利润-形象</h2>
+    <div class="card-grid cols-3" style="margin-bottom:0.5rem">
+      <div class="card accent-left"><div class="card-label accent">核心A：职场新人</div><div class="card-desc" style="font-size:var(--fs-caption)">25-28岁，北上广深，互联网/广告/设计。预算¥150-250。决策：有品位+面料质感+<200元。</div></div>
+      <div class="card primary-left"><div class="card-label primary">次要B：大学生/应届生</div><div class="card-desc" style="font-size:var(--fs-caption)">22-25岁，新一线。预算¥100-200。对"撞衫"敏感。决策：小众+性价比。</div></div>
+      <div class="card gold-left"><div class="card-label gold">次要C：自由职业者</div><div class="card-desc" style="font-size:var(--fs-caption)">28-32岁，摄影师/插画师。预算¥200-350。决策：面料做工+设计高级+品牌故事。</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>SKU</th><th>产品名</th><th>类型</th><th>规格</th><th>成本</th><th>定价</th><th>毛利率</th><th>占比</th></tr></thead>
+      <tbody>
+        <tr style="background:rgba(33,150,243,0.03)"><td><span class="tag tag-sku">01</span></td><td style="color:var(--primary-bright);font-weight:700">简序·结构线T恤</td><td><span class="tag tag-low">引流</span></td><td>220g精梳棉+领口加固+黑白</td><td class="num">¥45</td><td class="num" style="color:var(--accent);font-weight:700">¥149</td><td class="num" style="color:var(--green)">69.8%</td><td>30%</td></tr>
+        <tr style="background:rgba(212,168,83,0.03)"><td><span class="tag tag-sku">02</span></td><td style="color:var(--gold);font-weight:700">简序·暗纹基础T恤</td><td><span class="tag tag-mid">利润</span></td><td>240g长绒棉+肩缝加固+黑白灰</td><td class="num">¥60</td><td class="num" style="color:var(--accent);font-weight:700">¥199</td><td class="num" style="color:var(--green)">69.8%</td><td>20%</td></tr>
+        <tr><td><span class="tag tag-sku">03</span></td><td style="color:var(--text-primary);font-weight:700">简序·不对称剪裁T恤</td><td><span class="tag tag-high">形象</span></td><td>220g精梳棉+下摆不对称+黑白</td><td class="num">¥55</td><td class="num" style="color:var(--accent);font-weight:700">¥249</td><td class="num" style="color:var(--green)">77.9%</td><td>10%</td></tr>
+        <tr><td><span class="tag tag-sku">04</span></td><td style="color:var(--text-primary);font-weight:700">简序·基础款T恤（纯色）</td><td><span class="tag tag-low">引流</span></td><td>200g精梳棉+黑白灰</td><td class="num">¥35</td><td class="num" style="color:var(--accent);font-weight:700">¥99</td><td class="num" style="color:var(--green)">64.6%</td><td>40%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 3: 命名 + 定价 + 成本 + 利润 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">04-07 · 命名 / 定价 / 成本 / 利润</div>
+    <h2 class="section-title">"简序·XX"体系 · ¥99-249 · 单件净利¥69</h2>
+    <div class="card-grid cols-2">
+      <div class="card">
+        <div class="card-label accent" style="margin-bottom:0.4rem">产品命名 & 定价逻辑</div>
+        <div class="card-desc" style="font-size:var(--fs-caption);line-height:1.6">
+          <strong style="color:var(--accent)">结构线T恤 ¥149：</strong>"结构线"暗示设计感，"T恤"降低理解成本。入门首选。<br>
+          <strong style="color:var(--primary-bright)">暗纹基础T恤 ¥199：</strong>"暗纹"=低调高级感，"基础"=百搭。利润核心。<br>
+          <strong style="color:var(--gold)">不对称剪裁T恤 ¥249：</strong>传递"与众不同"，形象款锚定品牌价值。<br>
+          <strong style="color:var(--green)">基础款纯色T恤 ¥99：</strong>极致性价比，拉新引流→利润款转化。
+        </div>
+        <table class="data-table" style="margin-top:0.4rem">
+          <thead><tr><th>产品包</th><th>定价</th><th>包含内容</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--green);font-weight:600">入门包</td><td class="num" style="color:var(--accent);font-weight:700">¥99</td><td>基础款T恤 + 品牌故事卡 + 环保包装</td></tr>
+            <tr><td style="color:var(--primary-bright);font-weight:600">标准包</td><td class="num" style="color:var(--accent);font-weight:700">¥199</td><td>暗纹T恤 + 搭配指南卡 + 品牌防尘袋</td></tr>
+            <tr><td style="color:var(--gold);font-weight:600">旗舰包</td><td class="num" style="color:var(--accent);font-weight:700">¥249</td><td>不对称剪裁T恤 + 搭配指南 + 防尘袋 + 限量胸针</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.4rem">成本 & 利润（加权均价¥149）</div>
+        <div class="revenue-bars" style="margin-bottom:0.3rem">
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🧵 面料成本</div><div class="revenue-bar-track"><div class="revenue-bar-fill c1" style="width:55.6%">¥25/件</div></div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">✂️ 加工费</div><div class="revenue-bar-track"><div class="revenue-bar-fill c2" style="width:33.3%">¥15/件</div></div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🏷 辅料+包装</div><div class="revenue-bar-track"><div class="revenue-bar-fill c3" style="width:11.1%">¥8/件</div></div></div>
+        </div>
+        <table class="data-table" style="margin-bottom:0.2rem">
+          <thead><tr><th>项目</th><th>单件</th><th>月(100件)</th><th>年(500件/月)</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--green);font-weight:600">毛利</td><td class="num" style="color:var(--green)">¥104</td><td class="num">¥10,400</td><td class="num">¥624,000</td></tr>
+            <tr><td style="color:var(--accent);font-weight:600">净利</td><td class="num" style="color:var(--accent)">¥69</td><td class="num">¥6,900</td><td class="num">¥414,000</td></tr>
+          </tbody>
+        </table>
+        <div class="insight-card" style="margin:0.2rem 0"><p style="font-size:var(--fs-caption)">净利率<strong>46.3%</strong>。首月100件即盈利¥6,900。月产500件边际成本降至¥72。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 启动 + 获客 + 验证 + 结语 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">08-10 · 启动 / 获客 / 验证 / 结语</div>
+    <h2 class="section-title">¥50,000启动 · KOC+朋友圈获客 · M3营收¥85k达PMF</h2>
+    <div class="card-grid cols-2">
+      <div>
+        <div class="card accent-left" style="margin-bottom:0.4rem"><div class="card-label accent">启动预算 ¥50,000 & 4周计划</div><div class="card-desc" style="font-size:var(--fs-caption)"><strong>首批备货¥12k（200件）+推广¥20k（10位KOC+抖音测试）+包装¥2k+上线¥3k+应急¥13k</strong><br>W1：面料供应商+打版+注册淘宝 → W2：首批订单+拍摄+详情页 → W3：联系KOC+发布品牌笔记 → W4：质检+上架+首单</div></div>
+        <div class="card-grid cols-3" style="margin-bottom:0.3rem">
+          <div class="card accent-left" style="text-align:center;padding:0.4rem"><div class="card-label accent">小红书KOC</div><div class="card-desc" style="font-size:var(--fs-caption)">10位·200人·¥20/人</div></div>
+          <div class="card primary-left" style="text-align:center;padding:0.4rem"><div class="card-label primary">抖音短视频</div><div class="card-desc" style="font-size:var(--fs-caption)">自己拍·100人·¥0</div></div>
+          <div class="card gold-left" style="text-align:center;padding:0.4rem"><div class="card-label gold">朋友圈裂变</div><div class="card-desc" style="font-size:var(--fs-caption)">老带新各¥20券·¥0</div></div>
+        </div>
+      </div>
+      <div>
+        <table class="data-table" style="margin-bottom:0.3rem">
+          <thead><tr><th>指标</th><th>M1</th><th>M2</th><th>M3</th><th>达标线</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--accent);font-weight:600">付费用户</td><td class="num">50</td><td class="num">200</td><td class="num">500</td><td style="color:var(--green)">月增≥100%</td></tr>
+            <tr><td style="color:var(--green);font-weight:600">月营收</td><td class="num">¥7.5k</td><td class="num">¥32k</td><td class="num">¥85k</td><td style="color:var(--green)">≥¥30k</td></tr>
+            <tr><td style="color:var(--gold);font-weight:600">复购率</td><td class="num">—</td><td class="num">10%</td><td class="num">20%</td><td style="color:var(--green)">≥15%</td></tr>
+          </tbody>
+        </table>
+        <div class="conclusion-block" style="padding:0.8rem;margin-top:0.3rem">
+          <h3 style="font-size:var(--fs-subhead)">结语</h3>
+          <p style="font-size:var(--fs-caption)">从一件¥199的T恤开始，您要做的不是"卖衣服"，而是为在优衣库和淘宝之间反复纠结的年轻人提供一个<strong style="color:var(--accent)">"不用妥协"</strong>的答案。当第一个用户穿上结构线T恤被夸"有品位"时，就验证了"简序"存在的意义。<strong style="color:var(--primary-bright)">5万预算的考验不是资金，是对用户痛点的理解深度。</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+</body>
+</html>

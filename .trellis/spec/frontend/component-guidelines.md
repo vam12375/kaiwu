@@ -101,6 +101,73 @@ Render AI markdown through `renderMarkdown()` from `src/utils.ts`, as `Conversat
 
 For task image/SVG events, use the `images` and `svgLogos` fields on `AgentMessage` produced by `agentEventReducer.ts`.
 
+### Scenario: AI Markdown Table Rendering
+
+#### 1. Scope / Trigger
+
+- Trigger: any change to AI Markdown table rendering in `src/utils.ts`, table CSS under `src/styles/conversation/`, or backend exported report table rendering.
+- This is a cross-layer contract because live chat uses `renderMarkdown()` while exported HTML reports use `kaiwuback/server/utils/markdown.py` plus `kaiwuback/server/utils/report_html.py`.
+
+#### 2. Signatures
+
+- Frontend renderer: `renderMarkdown(content: string): string`.
+- Frontend table CSS classes: `.md-table`, `.md-table-cols-<n>`, `.md-td-right`, `.md-td-rich`, `.md-td-compact`.
+- Backend renderer parity points: `markdown_to_html(text: str) -> str`, backend table classes `table-cols-<n>`, `cell-right`, `cell-rich`, `cell-compact`.
+
+#### 3. Contracts
+
+- Markdown tables must emit a `colgroup` with percentage widths derived from header semantics and body content length.
+- Short/numeric columns such as `序号`, `年份`, `同比增速`, `市占率`, and `市场规模` should occupy less width than descriptive columns such as `核心特征`, `机会点`, `解决方案`, `痛点`, `说明`, `文案`, and `脚本`.
+- Cells default to left alignment. Apply right alignment only via semantic classes for numeric/compact columns; never right-align the final column just because it is last.
+- Table headers follow the same semantic alignment as their body column: left for descriptive/year/source fields, right for numeric/percentage fields, and centered only for compact categorical/comparison columns.
+- Short categorical body columns such as `类目`, `维度`, `项目`, and `方式` may center-align when their values are compact; long descriptive and source/label fields stay left-aligned.
+- Two-column compact comparison tables such as `竞争者 / 市占率(估)` center-align both body columns so short values do not drift to opposite table edges.
+- First-column labels, year columns (`年份`/`年度`), and source/label fields such as `收入来源` and `数据来源` stay left-aligned even when their content is short.
+- 2/3/4-column tables should fill the message content width; avoid shrinking short tables to a partial-width block.
+- Rows with too many cells should merge overflow cells into the last column instead of dropping content.
+- Keep frontend live chat and backend report export width/alignment rules materially consistent.
+
+#### 4. Validation & Error Matrix
+
+- `|---|---|` separator rows -> skipped, not rendered as content.
+- Body row shorter than header -> pad missing cells as empty strings.
+- Body row longer than header -> merge extra cells into the final cell with ` | `.
+- Story/content-library tables with story IDs plus script/copy/platform fields -> render as accordion cards, not cramped wide tables.
+
+#### 5. Good/Base/Bad Cases
+
+- Good: `| 年份 | 市场规模（年份/口径） | 同比增速 | 数据来源 |` keeps `年份` and `数据来源` left-aligned while right-aligning only the market-size and growth columns.
+- Base: a two-column `维度/说明` table gives the label column compact width and the explanation column most width.
+- Base: table headers such as `年份` and `预测增速` sit above their own data because they use the same left/right alignment as body cells.
+- Base: compact table headers such as `类目` and their compact body values can center-align together.
+- Base: a two-column `竞争者/市占率(估)` table keeps competitor names and percentages centered under their headers rather than pinned to the left and right edges.
+- Base: a two-column `方式/节奏` table still spans the full message width, not a half-width block.
+- Bad: CSS such as `.md-table td:last-child { text-align: right; }`, because source/description/opportunity columns become hard to read.
+
+#### 6. Tests Required
+
+- Run `npm run build` from `kaiwu/`.
+- For backend parity changes, also run `python -m compileall kaiwuback/server`.
+- Smoke at least one 4-column market table and confirm generated HTML contains `colgroup`, a `*-cols-4` class, and no unconditional last-column right alignment.
+
+#### 7. Wrong vs Correct
+
+Wrong:
+
+```css
+.md-table td:last-child {
+  text-align: right;
+}
+```
+
+Correct:
+
+```typescript
+if (isRightAlignedTableColumn(header, bodyRows, index)) {
+  classes.push('md-td-right');
+}
+```
+
 ---
 
 ## High-Volume Image Lists

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<!-- saved from url=(0119)file:///Users/wangzijian/Desktop/%E5%90%88%E7%A7%9F%E4%BE%A0%E4%BA%A7%E5%93%81%E8%90%BD%E5%9C%B0%E6%89%8B%E5%86%8C.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合租侠 — 产品落地手册</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2.2rem,3.8vw,3.6rem);--fs-display:clamp(1.5rem,2.3vw,2.2rem);
+  --fs-heading:clamp(1.1rem,1.6vw,1.4rem);--fs-subhead:clamp(0.88rem,1.1vw,1rem);
+  --fs-body:clamp(0.78rem,0.9vw,0.88rem);--fs-small:clamp(0.68rem,0.78vw,0.76rem);--fs-caption:0.66rem;
+  --slide-padding:clamp(1.3rem,3vw,3.5rem);--card-radius:10px;--card-radius-sm:6px;
+  --ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.6}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.4rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.5rem;letter-spacing:-0.01em;line-height:1.2}
+.section-subtitle{font-size:var(--fs-body);color:var(--text-secondary);margin-bottom:1.2rem;max-width:650px}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}
+.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.35rem 1.2rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.5rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.8rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:1rem}
+.cover-tags{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.3rem 1rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted);letter-spacing:0.1em}
+.card-grid{display:grid;gap:0.9rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card-grid.cols-1-2{grid-template-columns:1fr 2fr}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.1rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}
+.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}
+.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.08em;margin-bottom:0.3rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-title{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.25rem}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.6}
+.stat-row{display:flex;gap:2rem;justify-content:center;margin:0.8rem 0 1.2rem;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.3rem;letter-spacing:0.05em}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.3rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.5rem 0.7rem;text-align:left;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.45rem 0.7rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);vertical-align:top;line-height:1.5}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.data-table .num{font-family:"SF Mono","JetBrains Mono",monospace;text-align:right;white-space:nowrap}
+.data-table .paint-col{color:var(--crimson);font-weight:600}
+.data-table .gain-col{color:var(--green);font-weight:500}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.9rem 1.1rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin:0.8rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.tag{display:inline-block;padding:2px 8px;border-radius:100px;font-size:0.62rem;font-weight:600;letter-spacing:0.04em;white-space:nowrap}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}
+.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}
+.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.tag-sku{background:rgba(33,150,243,0.12);color:var(--primary-bright)}
+.revenue-bars{display:flex;flex-direction:column;gap:0.4rem;margin:0.8rem 0}
+.revenue-bar-row{display:flex;align-items:center;gap:0.4rem}
+.revenue-bar-label{width:110px;font-size:var(--fs-caption);color:var(--text-secondary);text-align:right;flex-shrink:0}
+.revenue-bar-track{flex:1;height:22px;background:var(--bg-card-alt);border-radius:11px;overflow:hidden;position:relative}
+.revenue-bar-fill{height:100%;border-radius:11px;display:flex;align-items:center;padding-left:0.6rem;font-size:var(--fs-caption);font-weight:700;white-space:nowrap}
+.revenue-bar-fill.c1{background:linear-gradient(90deg,var(--primary-dim),var(--primary-bright));color:#fff}
+.revenue-bar-fill.c2{background:linear-gradient(90deg,var(--accent-dim),var(--accent));color:#fff}
+.revenue-bar-fill.c3{background:var(--gold-dim);color:#fff}
+.revenue-bar-val{font-size:var(--fs-caption);color:var(--text-muted);width:70px;flex-shrink:0}
+.quote-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:1rem 1.2rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin-top:1rem}
+.quote-block p{font-size:var(--fs-subhead);color:var(--primary-bright);font-weight:500;font-style:italic}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.3rem;margin-top:0.8rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.5rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.8}
+.cta-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.8rem}
+.cta-tag{padding:3px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);border-radius:100px;font-size:var(--fs-caption);color:var(--text-muted)}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:repeat(2,1fr)}.card-grid.cols-1-2{grid-template-columns:1fr}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.8rem;overflow-y:auto}.nav-dots{bottom:0.5rem}.keyboard-hint{display:none}.stat-row{gap:1rem}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas" width="1512" height="827"></canvas>
+<nav class="nav-dots" id="navDots"><button class="nav-dot active" aria-label="Slide 1"></button><button class="nav-dot" aria-label="Slide 2"></button><button class="nav-dot" aria-label="Slide 3"></button><button class="nav-dot" aria-label="Slide 4"></button><button class="nav-dot" aria-label="Slide 5"></button><button class="nav-dot" aria-label="Slide 6"></button><button class="nav-dot" aria-label="Slide 7"></button><button class="nav-dot" aria-label="Slide 8"></button><button class="nav-dot" aria-label="Slide 9"></button><button class="nav-dot" aria-label="Slide 10"></button></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 3 · 产品落地手册</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">合租侠</span> · 产品落地手册</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">服务产品 · 单人启动 · 预算 ¥50,000 · 3个月PMF验证</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">SKU规划</span><span class="cover-tag">定价策略</span><span class="cover-tag">成本核算</span><span class="cover-tag">获客方案</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 产品定位 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 产品定位</div>
+    <h2 class="section-title">"办公+商业"复合型物业的一站式找房服务</h2>
+    <p class="section-subtitle">精准匹配 + 谈判顾问 + 运营赋能 — 解决信息不透明、匹配效率低、谈判易吃亏的核心问题。</p>
+    <div class="stat-row">
+      <div class="stat-item"><div class="stat-number">1周<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">内</span></div><div class="stat-label">找房交付周期</div></div>
+      <div class="stat-item"><div class="stat-number">50%<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">+</span></div><div class="stat-label">谈判成功率提升</div></div>
+      <div class="stat-item"><div class="stat-number">5-10%</div><div class="stat-label">首年租金节省</div></div>
+      <div class="stat-item"><div class="stat-number">¥199<span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);-webkit-text-fill-color:var(--text-muted)">起</span></div><div class="stat-label">引流款定价</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th style="width:100px">场景</th><th style="color:var(--crimson)">没有我们时</th><th style="color:var(--green)">有我们后</th></tr></thead>
+      <tbody>
+        <tr><td class="paint-col">找房匹配</td><td>企业主自己上58同城搜，约10个房源8个是假的。平均<strong>耗时2-3周</strong>。</td><td class="gain-col">"人工+AI"深度诊断，筛选<strong>3-5个真实房源</strong>，<strong>1周内</strong>完成带看。效率提升50%+。</td></tr>
+        <tr><td class="paint-col">谈判签约</td><td>企业主自己对条款不熟悉，<strong>可能签下高于市场价10%的合同</strong>。</td><td class="gain-col">创始人<strong>10年经验亲自陪同谈判</strong>，分析行情、制定策略，<strong>节省租金5%-10%</strong>。</td></tr>
+        <tr><td class="paint-col">后续运营</td><td>装修、办证接踵而至，企业主需自己找装修队、跑工商局，<strong>分散精力</strong>。</td><td class="gain-col">对接可靠装修公司、财税公司等伙伴，让企业主<strong>"拎包入驻"</strong>，专注核心业务。</td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-3" style="margin-top:0.8rem">
+      <div class="card accent-left"><div class="card-label accent">差异化 1</div><div class="card-title">精准匹配</div><div class="card-desc">不同于58的信息堆砌，"人工+AI"深度诊断，只推荐<strong>3-5个真实高匹配度</strong>房源。</div></div>
+      <div class="card primary-left"><div class="card-label primary">差异化 2</div><div class="card-title">谈判赋能</div><div class="card-desc">创始人<strong>10年经验</strong>直接介入，帮用户争取免租期、租金折扣等核心利益。</div></div>
+      <div class="card gold-left"><div class="card-label gold">差异化 3</div><div class="card-title">运营增值</div><div class="card-desc">不仅帮找房，还提供装修、工商注册、运营咨询等<strong>闭环增值服务</strong>。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: 目标人群 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">02 · 目标人群画像</div>
+    <h2 class="section-title">三类核心人群，聚焦杭州"办公+商业"需求</h2>
+    <div class="card-grid cols-3" style="margin-bottom:0.8rem">
+      <div class="card accent-left"><div class="card-label accent">核心人群A</div><div class="card-title">初创团队负责人</div><div class="card-desc"><strong>28-35岁</strong>，互联网/设计/咨询。月租金<strong>1-3万</strong>，对"省时间"有强烈付费意愿。决策关键词：效率、真实性、性价比。</div></div>
+      <div class="card primary-left"><div class="card-label primary">次要人群B</div><div class="card-title">成长型企业主</div><div class="card-desc"><strong>35-45岁</strong>，贸易/科技/服务。月租金<strong>3-8万</strong>，需"展示+办公"复合空间。决策关键词：专业性、省心、资源。</div></div>
+      <div class="card gold-left"><div class="card-label gold">次要人群C</div><div class="card-title">个体经营者/工作室</div><div class="card-desc"><strong>25-40岁</strong>，美业/健身/摄影/咖啡。月租金<strong>0.5-2万</strong>，需临街或底商。决策关键词：价格、灵活性、信任感。</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>维度</th><th>核心人群A</th><th>次要人群B</th><th>次要人群C</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--primary-bright);font-weight:600">年龄/职业</td><td>28-35岁，互联网/设计/咨询创始人</td><td>35-45岁，贸易/科技/服务公司老板</td><td>25-40岁，美业/健身/咖啡个体老板</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">月租金预算</td><td class="num">1-3万</td><td class="num">3-8万</td><td class="num">0.5-2万</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">核心痛点</td><td>团队扩张快需灵活空间，找房效率低</td><td>现有空间无法满足复合需求，怕被坑</td><td>稀缺房源难找，不懂谈判常被拿捏</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">决策因素</td><td><strong>效率、真实性、性价比</strong></td><td><strong>专业性、省心、资源</strong></td><td><strong>价格、灵活性、信任感</strong></td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">触达方式</td><td>行业社群、知乎/即刻/小红书</td><td>商会/协会、LinkedIn/脉脉、写字楼</td><td>大众点评/抖音、社区商圈、推荐</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 3: SKU规划 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">03 · 首批SKU规划（MVP）</div>
+    <h2 class="section-title">4个SKU起盘，引流-利润-形象三层覆盖</h2>
+    <table class="data-table" style="margin-bottom:0.8rem">
+      <thead><tr><th>SKU</th><th>产品名</th><th>类型</th><th>规格/参数</th><th>成本</th><th>定价</th><th>毛利率</th></tr></thead>
+      <tbody>
+        <tr style="background:rgba(33,150,243,0.03)"><td><span class="tag tag-sku">SKU-01</span></td><td style="color:var(--primary-bright);font-weight:700">合租侠·找房快车</td><td><span class="tag tag-low">引流款</span></td><td>1次需求诊断+3个精准房源+1次陪同带看。3工作日。</td><td class="num">¥50</td><td class="num" style="color:var(--accent);font-weight:700">¥199</td><td class="num" style="color:var(--green)">74.9%</td></tr>
+        <tr style="background:rgba(212,168,83,0.03)"><td><span class="tag tag-sku">SKU-02</span></td><td style="color:var(--gold);font-weight:700">合租侠·谈判专家</td><td><span class="tag tag-mid">利润款</span></td><td>1次行情报告+1次谈判策略+1次创始人陪同谈判。5工作日。</td><td class="num">¥200</td><td class="num" style="color:var(--accent);font-weight:700">¥1,999</td><td class="num" style="color:var(--green)">90.0%</td></tr>
+        <tr><td><span class="tag tag-sku">SKU-03</span></td><td style="color:var(--text-primary);font-weight:700">合租侠·无忧入驻</td><td><span class="tag tag-high">形象款</span></td><td>含SKU-01+02全部+装修咨询+工商代办+1年运营顾问。</td><td class="num">¥1,000</td><td class="num" style="color:var(--accent);font-weight:700">¥5,999</td><td class="num" style="color:var(--green)">83.3%</td></tr>
+        <tr><td><span class="tag tag-sku">SKU-04</span></td><td style="color:var(--text-primary);font-weight:700">合租侠·空间快诊</td><td><span class="tag tag-low">引流款</span></td><td>1次空间评估+《空间适配性诊断报告》。2工作日。</td><td class="num">¥30</td><td class="num" style="color:var(--accent);font-weight:700">¥99</td><td class="num" style="color:var(--green)">69.7%</td></tr>
+      </tbody>
+    </table>
+    <div class="card-grid cols-4">
+      <div class="card"><div class="card-label accent">SKU-01 找房快车</div><div class="card-desc" style="font-size:var(--fs-caption)">引流主力 · 预期占比 <strong style="color:var(--accent);font-size:1.1rem">60%</strong></div></div>
+      <div class="card"><div class="card-label primary">SKU-04 空间快诊</div><div class="card-desc" style="font-size:var(--fs-caption)">补充引流 · 预期占比 <strong style="color:var(--accent);font-size:1.1rem">20%</strong></div></div>
+      <div class="card"><div class="card-label gold">SKU-02 谈判专家</div><div class="card-desc" style="font-size:var(--fs-caption)">利润核心 · 预期占比 <strong style="color:var(--accent);font-size:1.1rem">15%</strong></div></div>
+      <div class="card"><div class="card-label green">SKU-03 无忧入驻</div><div class="card-desc" style="font-size:var(--fs-caption)">形象展示 · 预期占比 <strong style="color:var(--accent);font-size:1.1rem">5%</strong></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 产品命名 + 定价 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">04 · 产品命名与定价策略</div>
+    <h2 class="section-title">四SKU命名精准命中 + 三维定价法</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.8rem">
+      <div class="card accent-left"><div class="card-label accent">SKU-01 找房快车 · ¥199</div><div class="card-desc">"快车"类比滴滴，"像打车一样快速找到房源"。命中人群A对<strong>"快速入驻"</strong>的渴望。3工作日交付，匹配"快"的承诺。</div></div>
+      <div class="card primary-left"><div class="card-label primary">SKU-02 谈判专家 · ¥1,999</div><div class="card-desc">"专家"突出专业权威，直接点明创始人10年经验核心价值。解决所有人<strong>"怕吃亏"</strong>的最大焦虑。传统中介佣金¥5,000-10,000的1/3-1/5。</div></div>
+      <div class="card gold-left"><div class="card-label gold">SKU-03 无忧入驻 · ¥5,999</div><div class="card-desc">"无忧"传递一站式省心承诺。"入驻"将服务边界从匹配拓展到运营，锁定高价值客户。一单对标传统中介佣金。</div></div>
+      <div class="card green-left"><div class="card-label green">SKU-04 空间快诊 · ¥99</div><div class="card-desc">"快诊"类比医疗问诊，为已有目标房源但犹豫的用户提供决策依据。¥99占月租金<strong>0.1%-1%</strong>，决策成本趋近于零。</div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>产品包</th><th>目标客户</th><th>定价</th><th>包含内容</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--green);font-weight:600">基础包</td><td>所有人群，想先试试</td><td class="num" style="color:var(--accent);font-weight:700">¥199</td><td>1次深度需求诊断 + 3个精准房源推荐 + 1次陪同带看</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">标准包</td><td>核心人群A/B，担心谈判吃亏</td><td class="num" style="color:var(--accent);font-weight:700">¥1,999</td><td>1次行情分析报告 + 1次谈判策略 + 1次创始人陪同谈判</td></tr>
+        <tr><td style="color:var(--gold);font-weight:600">旗舰包</td><td>人群B，追求一站式省心</td><td class="num" style="color:var(--accent);font-weight:700">¥5,999</td><td>基础包+标准包全部 + 装修咨询 + 1年运营顾问</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 5: 成本核算 -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="section-eyebrow">05 · 成本核算</div>
+    <h2 class="section-title">SKU-01 单件成本仅¥50，边际成本递减</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.8rem">
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.6rem">SKU-01 成本拆解（首月预估10单）</div>
+        <div class="revenue-bars">
+          <div class="revenue-bar-row"><div class="revenue-bar-label">👤 创始人时间</div><div class="revenue-bar-track"><div class="revenue-bar-fill c1" style="width:60%">¥30/单 · ¥300/月</div></div><div class="revenue-bar-val">60%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🚗 交通费</div><div class="revenue-bar-track"><div class="revenue-bar-fill c2" style="width:20%">¥10/单 · ¥100/月</div></div><div class="revenue-bar-val">20%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">📱 通讯费</div><div class="revenue-bar-track"><div class="revenue-bar-fill c3" style="width:10%">¥5/单 · ¥50/月</div></div><div class="revenue-bar-val">10%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">📢 获客成本</div><div class="revenue-bar-track"><div class="revenue-bar-fill" style="width:10%;background:var(--border-card)">¥5/单 · ¥50/月</div></div><div class="revenue-bar-val">10%</div></div>
+        </div>
+        <div class="card-desc" style="text-align:center"><strong>单件成本 ¥50</strong> · 首月10单总成本 ¥500</div>
+      </div>
+      <div class="card">
+        <div class="card-label gold" style="margin-bottom:0.6rem">边际成本变化趋势</div>
+        <div class="card-desc" style="line-height:1.7">
+          <strong style="color:var(--primary-bright)">创始人时间：</strong>不随订单线性下降，但可通过<strong>标准化SOP</strong>提升效率，降低单件时间成本。<br><br>
+          <strong style="color:var(--accent)">交通/通讯费：</strong>随订单线性增长，可通过<strong>线上化</strong>（视频看房、远程诊断）部分替代。<br><br>
+          <strong style="color:var(--gold)">获客成本：</strong>初期较高，随<strong>口碑积累和转介绍</strong>比例提升（目标30%+），获客成本呈下降趋势。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: 利润空间 -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="section-eyebrow">06 · 利润空间</div>
+    <h2 class="section-title">首月即可盈利，年预估净利 ¥73,752</h2>
+    <p class="section-subtitle">基于首月14单预估（10单SKU-01 + 3单SKU-02 + 1单SKU-04），加权均价¥577，毛利率84.8%。</p>
+    <div class="card-grid cols-3" style="margin-bottom:0.8rem">
+      <div class="card accent-left"><div class="card-label accent">单件模型</div><div class="card-desc" style="line-height:2"><strong>加权售价：</strong>¥577<br><strong>加权成本：</strong>¥88<br><strong style="color:var(--green)">单件毛利：¥489</strong><br><strong style="color:var(--primary-bright)">毛利率：84.8%</strong></div></div>
+      <div class="card primary-left"><div class="card-label primary">月度预估</div><div class="card-desc" style="line-height:2"><strong>月营收：</strong>¥8,078<br><strong>交付成本：</strong>¥1,232<br><strong style="color:var(--green)">月毛利：¥6,846</strong><br><strong>月净利：¥6,146</strong></div></div>
+      <div class="card gold-left"><div class="card-label gold">年度预估</div><div class="card-desc" style="line-height:2"><strong>年营收：</strong>¥96,936<br><strong>交付成本：</strong>¥14,784<br><strong style="color:var(--green)">年毛利：¥82,152</strong><br><strong>年净利：¥73,752</strong></div></div>
+    </div>
+    <div class="insight-card"><p>随着高利润SKU-02和SKU-03占比提升，整体盈利能力将显著增强。对于单人启动、5万元预算的项目，这是一个非常好的起点。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 7: 最小启动方案 -->
+<section class="slide" id="slide-7">
+  <div class="slide-inner">
+    <div class="section-eyebrow">07 · 最小启动方案</div>
+    <h2 class="section-title">¥50,000 预算分配 + 4周启动计划</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.8rem">
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.6rem">启动预算分配</div>
+        <div class="revenue-bars">
+          <div class="revenue-bar-row"><div class="revenue-bar-label">💼 应急储备</div><div class="revenue-bar-track"><div class="revenue-bar-fill c1" style="width:64%">¥32,000</div></div><div class="revenue-bar-val">64%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">📢 推广预算</div><div class="revenue-bar-track"><div class="revenue-bar-fill c2" style="width:30%">¥15,000</div></div><div class="revenue-bar-val">30%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🎨 品牌物料</div><div class="revenue-bar-track"><div class="revenue-bar-fill c3" style="width:4%">¥2,000</div></div><div class="revenue-bar-val">4%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">🌐 上线费用</div><div class="revenue-bar-track"><div class="revenue-bar-fill" style="width:2%;background:var(--border-card)">¥1,000</div></div><div class="revenue-bar-val">2%</div></div>
+        </div>
+        <div class="card-desc" style="text-align:center"><strong>总预算 ¥50,000</strong> · 64%作为3-6个月安全垫</div>
+      </div>
+      <div class="card">
+        <div class="card-label gold" style="margin-bottom:0.6rem">4周启动路径</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="card accent-left" style="padding:0.6rem 0.9rem"><div style="display:flex;gap:0.6rem;align-items:flex-start"><span class="tag tag-high" style="flex-shrink:0">W1</span><div><strong style="font-size:var(--fs-small)">品牌搭建+产品上线</strong><div style="font-size:var(--fs-caption);color:var(--text-muted)">里程碑：VI设计完成，公众号/小程序上线。交付物：Logo、名片、服务手册。</div></div></div></div>
+          <div class="card primary-left" style="padding:0.6rem 0.9rem"><div style="display:flex;gap:0.6rem;align-items:flex-start"><span class="tag tag-mid" style="flex-shrink:0">W2</span><div><strong style="font-size:var(--fs-small)">内容准备+种子用户</strong><div style="font-size:var(--fs-caption);color:var(--text-muted)">里程碑：5篇内容发布，3个社群加入。交付物：小红书/抖音内容、社群成员。</div></div></div></div>
+          <div class="card gold-left" style="padding:0.6rem 0.9rem"><div style="display:flex;gap:0.6rem;align-items:flex-start"><span class="tag tag-low" style="flex-shrink:0">W3</span><div><strong style="font-size:var(--fs-small)">首单转化+跑通SOP</strong><div style="font-size:var(--fs-caption);color:var(--text-muted)">里程碑：第1个付费用户服务交付。交付物：服务流程SOP文档。</div></div></div></div>
+          <div class="card green-left" style="padding:0.6rem 0.9rem"><div style="display:flex;gap:0.6rem;align-items:flex-start"><span class="tag tag-low" style="flex-shrink:0;background:rgba(76,175,80,0.15);color:var(--green)">W4</span><div><strong style="font-size:var(--fs-small)">复盘优化+口碑传播</strong><div style="font-size:var(--fs-caption);color:var(--text-muted)">里程碑：首月数据复盘，启动转介绍。交付物：运营报告、转介绍激励方案。</div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: 获客方案 -->
+<section class="slide" id="slide-8">
+  <div class="slide-inner">
+    <div class="section-eyebrow">08 · 第一批获客方案</div>
+    <h2 class="section-title">三大获客方式 + 从0到100客户的完整路径</h2>
+    <div class="card-grid cols-3" style="margin-bottom:0.8rem">
+      <div class="card accent-left"><div class="card-label accent">方式1：内容营销</div><div class="card-title">小红书/抖音干货输出</div><div class="card-desc">发布"杭州办公选址避坑指南"、"如何跟物业谈免租期"等干货。<br><strong>首月预期：</strong>50个潜在客户<br><strong>获客成本：</strong>¥5/个 · 第1周启动</div></div>
+      <div class="card primary-left"><div class="card-label primary">方式2：社群渗透</div><div class="card-title">行业社群专家定位</div><div class="card-desc">加入创业社群、孵化器群、商会群，主动回答找房问题。<br><strong>首月预期：</strong>30个潜在客户<br><strong>获客成本：</strong>¥0 · 第1周启动</div></div>
+      <div class="card gold-left"><div class="card-label gold">方式3：线下地推</div><div class="card-title">核心商圈精准触达</div><div class="card-desc">在未来科技城、滨江写字楼大堂或园区食堂派发"免费找房咨询"名片。<br><strong>首月预期：</strong>20个潜在客户<br><strong>获客成本：</strong>¥10/个 · 第2周启动</div></div>
+    </div>
+    <div class="insight-card"><p>从0到100客户的路径：<strong style="color:var(--text-primary)">第1个靠内容爆款建立信任</strong> → <strong style="color:var(--text-primary)">第10个靠口碑裂变+社群专家定位</strong> → <strong style="color:var(--text-primary)">第100个靠合作渠道+付费投放的标准化漏斗</strong>，让口碑和流量形成飞轮效应。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 9: 验证周期 + 结语 -->
+<section class="slide" id="slide-9">
+  <div class="slide-inner">
+    <div class="section-eyebrow">09 · 三个月PMF验证</div>
+    <h2 class="section-title">数据驱动验证，月均增长100%</h2>
+    <table class="data-table" style="margin-bottom:0.8rem">
+      <thead><tr><th>验证指标</th><th>第1月目标</th><th>第2月目标</th><th>第3月目标</th><th>达标线</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--accent);font-weight:600">付费用户数</td><td class="num">10</td><td class="num">30</td><td class="num">60</td><td style="color:var(--green)">月增50%+</td></tr>
+        <tr><td style="color:var(--primary-bright);font-weight:600">客单价</td><td class="num">¥577</td><td class="num">¥800</td><td class="num">¥1,000</td><td style="color:var(--green)">月增20%+</td></tr>
+        <tr><td style="color:var(--gold);font-weight:600">月营收</td><td class="num">¥8,078</td><td class="num">¥24,000</td><td class="num">¥60,000</td><td style="color:var(--green)">月增100%+</td></tr>
+        <tr><td style="color:var(--green);font-weight:600">升级转化率</td><td class="num">—</td><td class="num">—</td><td class="num">≥10%</td><td>SKU-01→02</td></tr>
+        <tr><td style="color:var(--accent);font-weight:600">转介绍比率</td><td class="num">10%</td><td class="num">20%</td><td class="num">30%</td><td style="color:var(--green)">持续提升</td></tr>
+      </tbody>
+    </table>
+
+    <div class="card-grid cols-3" style="margin-bottom:0.8rem">
+      <div class="card accent-left"><div class="card-label accent">第2周末复盘</div><div class="card-desc">检查内容营销数据（阅读/点赞/私信量）。不达标→从"干货分享"转向<strong>"真实案例+痛点故事"</strong>。</div></div>
+      <div class="card primary-left"><div class="card-label primary">第6周（第2月中）</div><div class="card-desc">检查付费用户数和客单价。增长慢→加大地推+<strong>"老客户推荐返现"</strong>。客单价低→优化SKU-02销售话术。</div></div>
+      <div class="card gold-left"><div class="card-label gold">第10周复盘</div><div class="card-desc">月营收达¥60,000且转介绍&gt;30%→<strong>PMF初步验证成功</strong>，可考虑扩团队、增投入。不达标→审视定位或获客方式。</div></div>
+    </div>
+
+    <div class="conclusion-block">
+      <h3>结语</h3>
+      <p>从"找房快车"的¥199，到"无忧入驻"的¥5,999，我们不是在卖服务，而是在为杭州那些为"办公+商业"复合空间而焦虑的企业主们，提供一条确定性的路径。您10年的行业经验，就是这条路上最可靠的导航。<strong style="color:var(--primary-bright)">5万预算，一个人，三个月，让我们用专业和真诚，去验证这个模式，去赢得第一批100个用户的信任。</strong></p>
+      <div class="cta-row">
+        <span class="cta-tag">SKU-01 合租侠·找房快车 ¥199</span>
+        <span class="cta-tag">SKU-02 合租侠·谈判专家 ¥1,999</span>
+        <span class="cta-tag">SKU-03 合租侠·无忧入驻 ¥5,999</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+
+</body></html>

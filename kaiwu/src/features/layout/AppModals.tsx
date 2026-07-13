@@ -1,7 +1,7 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 
-import { skillOptions } from '../../data';
+import { skillCategories, skillOptions } from '../../data';
 import { createProjectFolder, uploadProjectFile } from '../../api/projectFiles';
 import type { CustomSkillInput, ProjectFile, ProjectFolder, ShowToast, SkillLibraryItem } from '../../types';
 import '../../styles/modals/modal-base.css';
@@ -54,7 +54,7 @@ export function AppModals(props: AppModalsProps) {
 
   const [customSkillForm, setCustomSkillForm] = useState<CustomSkillInput>({
     name: '',
-    category: '办公提效',
+    category: '市场调研',
     description: '',
     connection: '',
   });
@@ -100,7 +100,7 @@ export function AppModals(props: AppModalsProps) {
     if (skillModal === 'custom') {
       setCustomSkillForm({
         name: '',
-        category: '办公提效',
+        category: '市场调研',
         description: '',
         connection: '',
       });
@@ -285,11 +285,9 @@ export function AppModals(props: AppModalsProps) {
                       <div className="form-field">
                         <span>分类</span>
                         <select value={customSkillForm.category} onChange={(event) => updateCustomSkillForm('category', event.target.value)}>
-                          <option>办公提效</option>
-                          <option>方法论</option>
-                          <option>研究分析</option>
-                          <option>内容创意</option>
-                          <option>开发自动化</option>
+                          {skillCategories.filter((category) => category !== '全部').map((category) => (
+                            <option key={category}>{category}</option>
+                          ))}
                         </select>
                       </div>
                       <div className="form-field">

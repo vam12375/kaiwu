@@ -283,6 +283,7 @@ function AppShell() {
     imageResolution,
     imageCount,
     modelId: modelOptions[modelIndex].id,
+    selectedSkill: selectedComposerSkill,
     setInputText,
     setSuggestedQuestions,
     setMessages,

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>简序 — 内容营销体系</title>
+<style>:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--gold:#D4A853;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.2rem);--fs-subhead:clamp(0.82rem,1vw,0.9rem);
+  --fs-body:clamp(0.72rem,0.82vw,0.78rem);--fs-small:clamp(0.63rem,0.72vw,0.68rem);--fs-caption:0.58rem;
+  --slide-padding:clamp(1.1rem,2.5vw,2.5rem);--card-radius:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.5}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.2rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;line-height:1.2}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all .4s cubic-bezier(0.19,1,0.22,1)}
+.nav-dot:hover{background:#1565C0}.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:.4rem;opacity:.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,.12);color:var(--accent);padding:.3rem 1rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.2rem;letter-spacing:.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:.6rem;letter-spacing:-.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:.8rem}
+.cover-tags{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:.25rem .8rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted)}
+.card-grid{display:grid;gap:.4rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:.45rem;transition:all .4s cubic-bezier(0.19,1,0.22,1);position:relative;overflow:hidden}
+.card:hover{border-color:#1565C0;transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:.06em;margin-bottom:.08rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.45}
+.stat-row{display:flex;gap:1.2rem;justify-content:center;margin:.3rem 0 .5rem;flex-wrap:wrap}
+.stat-item{text-align:center}.stat-n{font-size:clamp(1.3rem,2.4vw,1.7rem);font-weight:800;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}.stat-l{font-size:var(--fs-caption);color:var(--text-muted)}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:.1rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:.22rem .35rem;font-weight:600;font-size:var(--fs-caption);border-bottom:2px solid var(--border-card)}
+.data-table td{padding:.2rem .35rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);line-height:1.3;font-size:var(--fs-caption)}
+.tag{display:inline-block;padding:1px 5px;border-radius:100px;font-size:.52rem;font-weight:600}
+.tag-high{background:rgba(239,83,80,.15);color:var(--crimson)}.tag-mid{background:rgba(212,168,83,.15);color:var(--gold)}.tag-low{background:rgba(76,175,80,.12);color:var(--green)}
+.story-q{color:var(--gold);font-style:italic;font-size:var(--fs-caption);line-height:1.25;margin-bottom:.06rem}
+.media-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:.4rem;text-align:center;transition:all .4s cubic-bezier(0.19,1,0.22,1)}
+.media-card:hover{border-color:#1565C0;transform:translateY(-2px)}
+.media-icon{font-size:.85rem}.media-name{font-size:var(--fs-small);font-weight:700;color:var(--text-primary)}.media-desc{font-size:var(--fs-caption);color:var(--text-muted);line-height:1.2}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,.06),rgba(255,107,53,.04));border-left:3px solid var(--primary);padding:.4rem .65rem;border-radius:0 6px 6px 0;margin:.3rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,.06),rgba(255,107,53,.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:.65rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:.2rem}
+.conclusion-block p{font-size:var(--fs-caption);color:var(--text-secondary);line-height:1.45}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp .7s cubic-bezier(0.19,1,0.22,1) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:.4rem;overflow-y:auto}.nav-dots{bottom:.3rem}.keyboard-hint{display:none}.stat-row{gap:.6rem}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas"></canvas>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 5 · 内容营销体系</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">简序</span> · 内容营销体系</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">32条故事 × 8周发布节奏 × 5大媒介策略</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">品牌×8</span><span class="cover-tag">创始人×8</span><span class="cover-tag">产品×8</span><span class="cover-tag">客户×8</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<-- SLIDE 1: 内容库总览 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 内容库总览</div>
+    <h2 class="section-title">32条故事，覆盖5A全漏斗</h2>
+    <div class="stat-row"><div class="stat-item"><div class="stat-n">8</div><div class="stat-l">品牌故事</div></div><div class="stat-item"><div class="stat-n">8</div><div class="stat-l">创始人故事</div></div><div class="stat-item"><div class="stat-n">8</div><div class="stat-l">产品故事</div></div><div class="stat-item"><div class="stat-n">8</div><div class="stat-l">客户故事</div></div></div>
+    <table class="data-table">
+      <thead><tr><th>5A</th><th>目标</th><th>内容组合</th><th>数</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-high">Aware</span></td><td>认识品牌</td><td>品牌初心+理念+文化+创始人初心+逆境</td><td>5</td></tr>
+        <tr><td><span class="tag tag-mid">Appeal</span></td><td>产生兴趣</td><td>品牌共鸣+挑战+产品研发+命名+场景</td><td>5</td></tr>
+        <tr><td><span class="tag tag-low">Ask</span></td><td>建立信任</td><td>创始人天真+困境+传承+客户痛点+对比</td><td>5</td></tr>
+        <tr><td><span class="tag tag-sku">Act</span></td><td>购买转化</td><td>产品改变+诞生+客户证言+场景+福利</td><td>4</td></tr>
+        <tr><td style="color:var(--primary-bright)">Advocate</td><td>复购传播</td><td>客户推荐+生活+复购+UGC</td><td>5</td></tr>
+      </tbody>
+    </table>
+    <div class="insight-card"><p>核心：<strong style="color:var(--text-primary)">"故事替代广告"</strong>——内容不是一次性投放，而是持续与用户对话。每条含60s短视频+800字图文+200字私域。</p></div>
+  </div>
+</section>
+
+<-- SLIDE 2: 品牌故事全8条 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">品牌故事 B01-B08</div>
+    <h2 class="section-title">从"简序为生活做减法"到"慢的底气"</h2>
+    <div class="card-grid cols-2">
+      <div class="card accent-left"><div class="card-label accent">B01 · 品牌初心</div><div class="story-q">"不是所有衣服都值得你花时间思考，简序帮你省下选择的时间。"</div></div>
+      <div class="card accent-left"><div class="card-label accent">B02 · 理念传递</div><div class="story-q">"极简不是空无一物，而是每一件都值得。"</div></div>
+      <div class="card accent-left"><div class="card-label accent">B03 · 文化传承</div><div class="story-q">"结构线不是装饰，是东方建筑美学在服装上的投影。"</div></div>
+      <div class="card accent-left"><div class="card-label accent">B04 · 用户共鸣</div><div class="story-q">"你不是不会穿，你只是没遇到对的T恤。"</div></div>
+      <div class="card accent-left"><div class="card-label accent">B05 · 挑战胜利</div><div class="story-q">"当所有人都说基础款做不出差异化时，我们用结构线证明：细节就是差异。"</div></div>
+      <div class="card accent-left"><div class="card-label accent">B06 · 品牌创新</div><div class="story-q">"快时尚教会我们'快'，简序想教会我们'慢'。"</div></div>
+      <div class="card accent-left"><div class="card-label accent">B07 · 社会责任</div><div class="story-q">"每一件简序T恤，都是对'快时尚'的一次投票。"</div></div>
+      <div class="card accent-left"><div class="card-label accent">B08 · 情感共鸣</div><div class="story-q">"在这个什么都快的时代，简序想给你一点'慢'的底气。"</div></div>
+    </div>
+  </div>
+</section>
+
+<-- SLIDE 3: 创始人 + 产品 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">创始人 F01-F08 & 产品 P01-P08</div>
+    <h2 class="section-title">从UP主到匠心打磨 · 每处细节都有故事</h2>
+    <div class="card-grid cols-2">
+      <div class="card primary-left"><div class="card-label primary">F01 · 初心</div><div class="story-q">"我做了5年UP主，发现粉丝最常问：你这件衣服在哪买？"</div></div>
+      <div class="card primary-left"><div class="card-label primary">F02 · 逆境</div><div class="story-q">"团队只剩我1个人，预算只剩5万，但我告诉自己：不能放弃。"</div></div>
+      <div class="card primary-left"><div class="card-label primary">F03 · 天真</div><div class="story-q">"别人问我为什么做T恤：因为我想让每个人都能穿上一件好T恤。"</div></div>
+      <div class="card primary-left"><div class="card-label primary">F04 · 困境</div><div class="story-q">"花了3个月打20个版才明白：好产品不是设计出来的是磨出来的。"</div></div>
+      <div class="card primary-left"><div class="card-label primary">F05 · 传承</div><div class="story-q">"我爷爷是个裁缝，他教会我：一件好衣服，能穿一辈子。"</div></div>
+      <div class="card primary-left"><div class="card-label primary">F06 · 信念</div><div class="story-q">"当所有人都说你不行的时候，我选择相信自己的判断。"</div></div>
+      <div class="card primary-left"><div class="card-label primary">F07 · 突破</div><div class="story-q">"当基础款成为红海时，我用结构线找到了蓝海。"</div></div>
+      <div class="card primary-left"><div class="card-label primary">F08 · 团队</div><div class="story-q">"从1个人到10个人，我们不是同事，是战友。"</div></div>
+    </div>
+    <div class="card-grid cols-2" style="margin-top:.3rem">
+      <div class="card gold-left"><div class="card-label gold">P01 · 研发</div><div class="story-q">"为了找到那根刚刚好的线，我们试了30种缝纫线。"</div></div>
+      <div class="card gold-left"><div class="card-label gold">P02 · 命名</div><div class="story-q">"简序，不是简单，而是简而有序。"</div></div>
+      <div class="card gold-left"><div class="card-label gold">P03 · 场景</div><div class="story-q">"从办公室到咖啡厅，一件简序T恤就够了。"</div></div>
+      <div class="card gold-left"><div class="card-label gold">P04 · 改变</div><div class="story-q">"穿上简序T恤后，她不再为穿什么而焦虑了。"</div></div>
+      <div class="card gold-left"><div class="card-label gold">P05 · 诞生</div><div class="story-q">"我们花了3个月，只为了让你穿上后说一句刚刚好。"</div></div>
+      <div class="card gold-left"><div class="card-label gold">P06 · 五感</div><div class="story-q">"摸到它的那一刻，你就知道，它不一样。"</div></div>
+      <div class="card gold-left"><div class="card-label gold">P07 · 细节</div><div class="story-q">"领口加固、肩线前移、下摆开衩……这些细节让你穿得更舒服。"</div></div>
+      <div class="card gold-left"><div class="card-label gold">P08 · 创新</div><div class="story-q">"一件简序T恤，可以穿出10种风格。"</div></div>
+    </div>
+  </div>
+</section>
+
+<-- SLIDE 4: 客户 + 节奏 + 结语 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">客户 C01-C08 & 节奏 & 结语</div>
+    <h2 class="section-title">8周从认知到复购 · 小红书P0日更</h2>
+    <div class="card-grid cols-2" style="margin-bottom:.3rem">
+      <div class="card green-left"><div class="card-label green">C01 · 痛点解决</div><div class="story-q">"我终于找到了一件不用思考就能穿的T恤。"</div></div>
+      <div class="card green-left"><div class="card-label green">C02 · 前后对比</div><div class="story-q">"以前每天花20分钟选衣服，现在只要2分钟。"</div></div>
+      <div class="card green-left"><div class="card-label green">C03 · 用户证言</div><div class="story-q">"这是我穿过最舒服的T恤，没有之一。"</div></div>
+      <div class="card green-left"><div class="card-label green">C04 · 场景重现</div><div class="story-q">"穿着简序T恤去面试，我拿到了offer。"</div></div>
+      <div class="card green-left"><div class="card-label green">C05 · 推荐理由</div><div class="story-q">"我推荐简序，因为它让我看起来更专业。"</div></div>
+      <div class="card green-left"><div class="card-label green">C06 · 生活方式</div><div class="story-q">"自从有了简序，我的衣柜变得极简了。"</div></div>
+      <div class="card green-left"><div class="card-label green">C07 · 复购故事</div><div class="story-q">"买了第一件后又买了3件，还推荐给了家人。"</div></div>
+      <div class="card green-left"><div class="card-label green">C08 · UGC激励</div><div class="story-q">"穿上简序T恤拍了一组照片，获得了1000个赞。"</div></div>
+    </div>
+    <div class="card-grid cols-2">
+      <div>
+        <table class="data-table" style="margin-bottom:.2rem"><thead><tr><th>周</th><th>5A</th><th>内容</th></tr></thead><tbody>
+        <tr><td>W1</td><td><span class="tag tag-high">了解</span></td><td>品牌×3+创始人×2</td></tr>
+        <tr><td>W2</td><td><span class="tag tag-mid">兴趣</span></td><td>品牌×2+产品×3</td></tr>
+        <tr><td>W3</td><td><span class="tag tag-low">信任</span></td><td>创始人×3+客户×2</td></tr>
+        <tr><td>W4</td><td><span class="tag tag-sku">行动</span></td><td>产品×2+客户×2+福利</td></tr>
+        <tr><td>W5-8</td><td style="color:var(--primary-bright)">复购</td><td>客户+UGC+综合复用</td></tr></tbody></table>
+        <div class="card-grid cols-3" style="margin-top:.2rem"><div class="media-card"><div class="media-icon">📱</div><div class="media-name">小红书</div><div class="media-desc">P0·8条/周</div></div><div class="media-card"><div class="media-icon">🎵</div><div class="media-name">抖音</div><div class="media-desc">4条/周</div></div><div class="media-card"><div class="media-icon">🎬</div><div class="media-name">视频号</div><div class="media-desc">2条/周</div></div></div>
+      </div>
+      <div class="conclusion-block" style="margin-top:0"><h3>结语</h3><p>简序的内容营销体系，核心是用<strong style="color:var(--accent)">"真实的故事"</strong>替代"虚假的广告"。创始人5年UP主的真实经历、3个月打20个版的匠心——这些不是编造出来的卖点，而是简序品牌的血肉。<strong style="color:var(--primary-bright)">从明天开始在小红书发布B01，用"每天少花15分钟纠结穿什么"切入，吸引第一批种子用户。</strong></p></div>
+    </div>
+  </div>
+</section>
+
+</main>
+<script>
+(function(){var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,d=48;function r(){c.width=W=innerWidth;c.height=H=innerHeight}function dr(){ctx.clearRect(0,0,W,H);ctx.strokeStyle='rgba(42,69,128,.25)';ctx.lineWidth=.5;for(var x=d;x<W;x+=d)ctx.beginPath(),ctx.moveTo(x,0),ctx.lineTo(x,H),ctx.stroke();for(var y=d;y<H;y+=d)ctx.beginPath(),ctx.moveTo(0,y),ctx.lineTo(W,y),ctx.stroke();ctx.fillStyle='rgba(33,150,243,.18)';for(var x=d;x<W;x+=d)for(var y=d;y<H;y+=d)ctx.beginPath(),ctx.arc(x,y,1,0,Math.PI*2),ctx.fill()}r();dr();addEventListener('resize',function(){r();dr()})})();
+(function(){var d=document.getElementById('deck'),s=d.querySelectorAll('.slide'),t=s.length,ds=document.getElementById('navDots');for(var i=0;i<t;i++)(function(j){var b=document.createElement('button');b.className='nav-dot';b.setAttribute('aria-label','Slide '+(j+1));b.addEventListener('click',function(){s[j].scrollIntoView({behavior:'smooth'})});ds.appendChild(b)})(i);var ad=ds.querySelectorAll('.nav-dot');function ua(){var i=Math.round(d.scrollLeft/innerWidth);if(i<0)i=0;if(i>=t)i=t-1;ad.forEach(function(dt,j){dt.classList.toggle('active',j===i)})}d.addEventListener('scroll',ua,{passive:true});addEventListener('resize',ua);document.addEventListener('keydown',function(e){var i=Math.round(d.scrollLeft/innerWidth);if(e.key==='ArrowRight'&&i<t-1)s[i+1].scrollIntoView({behavior:'smooth'});if(e.key==='ArrowLeft'&&i>0)s[i-1].scrollIntoView({behavior:'smooth'})});ua()})();
+</script>
+</body>
+</html>

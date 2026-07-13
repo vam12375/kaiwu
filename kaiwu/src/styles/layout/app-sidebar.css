@@ -21,24 +21,14 @@
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 7px;
+  min-width: 0;
 }
 
-.sidebar-brand-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: #0f172a;
-  color: #fff;
-  display: grid;
-  place-items: center;
-}
-
-.sidebar-brand-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: 0.5px;
+.sidebar-brand-logo {
+  width: 86px;
+  height: 27px;
+  object-fit: contain;
+  display: block;
 }
 
 .sidebar-tools {
@@ -172,4 +162,3 @@
 .sidebar-chevron.open {
   transform: rotate(180deg);
 }
-

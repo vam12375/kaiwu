@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>凝时 — 内容营销体系</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.2rem);--fs-subhead:clamp(0.82rem,1vw,0.9rem);
+  --fs-body:clamp(0.72rem,0.82vw,0.78rem);--fs-small:clamp(0.63rem,0.72vw,0.68rem);--fs-caption:0.58rem;
+  --slide-padding:clamp(1.1rem,2.5vw,2.5rem);--card-radius:10px;--ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.5}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.2rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;line-height:1.2}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.3rem 1rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.2rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.6rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:0.8rem}
+.cover-tags{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.25rem 0.8rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted)}
+.card-grid{display:grid;gap:0.45rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.5rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.06em;margin-bottom:0.1rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.5}
+.stat-row{display:flex;gap:1.2rem;justify-content:center;margin:0.3rem 0 0.5rem;flex-wrap:wrap}
+.stat-item{text-align:center}.stat-n{font-size:clamp(1.4rem,2.5vw,1.8rem);font-weight:800;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}.stat-l{font-size:var(--fs-caption);color:var(--text-muted)}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.12rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.25rem 0.4rem;font-weight:600;font-size:var(--fs-caption);border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.22rem 0.4rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);line-height:1.35;font-size:var(--fs-caption)}
+.tag{display:inline-block;padding:1px 5px;border-radius:100px;font-size:0.55rem;font-weight:600}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.story-q{color:var(--gold);font-style:italic;font-size:var(--fs-caption);line-height:1.3;margin-bottom:0.08rem}
+.media-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.45rem;text-align:center;transition:all var(--duration-normal) var(--ease-out-expo)}
+.media-card:hover{border-color:var(--primary-dim);transform:translateY(-2px)}
+.media-icon{font-size:0.9rem}.media-name{font-size:var(--fs-small);font-weight:700;color:var(--text-primary)}.media-desc{font-size:var(--fs-caption);color:var(--text-muted);line-height:1.3}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.45rem 0.7rem;border-radius:0 6px 6px 0;margin:0.35rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:0.7rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.25rem}
+.conclusion-block p{font-size:var(--fs-caption);color:var(--text-secondary);line-height:1.5}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.5rem;overflow-y:auto}.nav-dots{bottom:0.4rem}.keyboard-hint{display:none}.stat-row{gap:0.8rem}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas"></canvas>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 5 · 内容营销体系</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">凝时</span> · 内容营销体系</h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">26条故事 × 8周发布节奏 × 5大媒介策略</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">品牌×8</span><span class="cover-tag">创始人×6</span><span class="cover-tag">产品×6</span><span class="cover-tag">客户×6</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 内容库总览 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 内容库总览</div>
+    <h2 class="section-title">26条故事，覆盖5A全漏斗</h2>
+    <div class="stat-row"><div class="stat-item"><div class="stat-n">8</div><div class="stat-l">品牌故事</div></div><div class="stat-item"><div class="stat-n">6</div><div class="stat-l">创始人故事</div></div><div class="stat-item"><div class="stat-n">6</div><div class="stat-l">产品故事</div></div><div class="stat-item"><div class="stat-n">6</div><div class="stat-l">客户故事</div></div></div>
+    <table class="data-table">
+      <thead><tr><th>5A</th><th>目标</th><th>内容组合</th><th>数量</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-high">Aware</span></td><td>认识品牌</td><td>品牌初心+理念+创始人初心</td><td>3条</td></tr>
+        <tr><td><span class="tag tag-mid">Appeal</span></td><td>产生兴趣</td><td>品牌共鸣+挑战+产品研发</td><td>3条</td></tr>
+        <tr><td><span class="tag tag-low">Ask</span></td><td>建立信任</td><td>创始人逆境+信念+客户痛点解决</td><td>3条</td></tr>
+        <tr><td><span class="tag tag-sku">Act</span></td><td>购买转化</td><td>产品场景+细节+客户转变</td><td>3条</td></tr>
+        <tr><td style="color:var(--primary-bright)">Advocate</td><td>复购传播</td><td>客户证言+品牌创新</td><td>2条</td></tr>
+      </tbody>
+    </table>
+    <div class="insight-card"><p>核心：<strong style="color:var(--text-primary)">用"真实"打动人心</strong>——创始人的真实经历、产品的真实细节、用户的真实反馈，构成品牌最坚固的护城河。</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 2: 品牌 + 创始人故事 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">品牌 B01-B05 & 创始人 F01-F03</div>
+    <h2 class="section-title">品牌初心→创始人信念→用户信任</h2>
+    <div class="card-grid cols-2">
+      <div class="card accent-left"><div class="card-label accent">B01 · 品牌初心</div><div class="story-q">"我们不是在做首饰，是在为每一份'家人'的爱，铸造一个永恒的容器。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">创始人手打磨银戒→猫窝/女孩哭泣→"市面廉价合金千篇模板"→刻猫爪印银牌→"用纯银把肉垫胡须温度都凝固下来"。抖音。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B02 · 理念传递</div><div class="story-q">"真正的奢侈，不是价格，而是你愿意为一份情感花多少心思。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">宠物撒娇/金毛老去→"家人不止一张照片"→银牌鼻纹→"让爱被看见被触摸被传承"→925纯银手工雕刻。全平台。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B03 · 用户共鸣</div><div class="story-q">"你缺的不是一件首饰，而是一个能让你随时'拥抱'它的方式。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">女孩深夜抱枕→翻手机相册→收到凝时礼盒→戴上抚摸爪印银牌→微笑→"摸到肉垫纹理时感觉它小爪子按在我心上"。抖音。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B04 · 挑战与胜利</div><div class="story-q">"所有人都说'不可能'时，我们用300天把它变成'理所当然'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">失败银版入回收桶→"复刻猫胡须弧度失败137次"→300天研发微雕复刻→鼻纹/肉垫/胡须完美呈现→"为爱从不妥协"。视频号。</div></div>
+      <div class="card accent-left"><div class="card-label accent">B05 · 品牌创新</div><div class="story-q">"当整个行业都在做'快消品'时，我们选择做'慢'的'情感容器'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">流水线金属/刻字/褪色合金→"99%宠物纪念品是快消品"→匠人手工雕刻→7-15天定制→"真正的爱值得等待"。抖音。</div></div>
+    </div>
+    <div class="card-grid cols-3" style="margin-top:0.3rem">
+      <div class="card primary-left"><div class="card-label primary">F01 · 初心召唤</div><div class="story-q">"我不是在创业，我是为自己，也为所有像我一样的人，找一个'家'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">林夕曾是珠宝设计师→猫年糕走了→翻遍所有找不到纪念品→创立凝时。抖音。</div></div>
+      <div class="card primary-left"><div class="card-label primary">F02 · 逆境奋起</div><div class="story-q">"当所有人都说'你不行'时，我选择用作品说话。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">空荡工作室/被退稿/催款短信→朋友劝放弃→坚持→首件成功→客户哭着感谢。抖音。</div></div>
+      <div class="card primary-left"><div class="card-label primary">F03 · 精神信念</div><div class="story-q">"你可以质疑我的选择，但不能质疑我对'年糕'的爱。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">恶评"智商税/割韭菜"→创始人平静雕刻年糕鼻纹→用户感谢信→"他们不懂但这不重要"。抖音。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: 产品 + 客户故事 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">产品 P01-P03 & 客户 C01-C03</div>
+    <h2 class="section-title">产品细节打消疑虑 → 真实证言促成转化</h2>
+    <div class="card-grid cols-2">
+      <div class="card gold-left"><div class="card-label gold">P01 · 研发历程</div><div class="story-q">"为了复刻你家毛孩子的鼻纹，我们研发了整整300天。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">显微镜下鼻纹→"每只猫狗鼻纹独一无二"→匠人雕刻→"微雕复刻精度0.01mm"→鼻纹1:1还原→"让独一无二成为永恒"。抖音。</div></div>
+      <div class="card gold-left"><div class="card-label gold">P02 · 场景体验</div><div class="story-q">"戴上它，就像它从未离开。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">起床戴银牌→办公室摸吊坠减压→回家亲吻→睡前握手心→"戴上它就像它从未离开，让陪伴无处不在"。全平台。</div></div>
+      <div class="card gold-left"><div class="card-label gold">P03 · 细节打动</div><div class="story-q">"一个肉垫的弧度，我们打磨了整整一周。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">肉垫纹理→砂纸反复打磨→"太圆假太尖扎手"→软布擦拭→"追求婴儿肌肤触感"→用户摸后"对了就是这感觉"。小红书。</div></div>
+      <div class="card green-left"><div class="card-label green">C01 · 痛点解决</div><div class="story-q">"我终于找到了一件，能让我随时'拥抱'它的东西。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">女士狗走了半年→试过水晶/油画/纹身都不对→收到凝时爪印银牌→摸到肉垫纹理哭了→"它用小爪子按在我心上告诉我妈妈我还在"。全平台。</div></div>
+      <div class="card green-left"><div class="card-label green">C02 · 前后对比</div><div class="story-q">"从'不敢回家'到'随身携带'，一枚银牌改变了一切。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">女孩门口犹豫不敢开门→"家里没有它了"→收到凝时银牌→戴上微笑→下班后开心回家→"它就在身边从未离开"。抖音。</div></div>
+      <div class="card green-left"><div class="card-label green">C03 · 用户证言</div><div class="story-q">"这不是一件首饰，这是我和它之间，唯一的'信物'。"</div><div class="card-desc" style="font-size:var(--fs-caption);color:var(--text-muted)">男士阿杰狗坦克去年走了→展示鼻纹银牌→"每次摸到都想起它湿漉漉鼻子蹭我手"→亲吻→"跨越生死的信物"。小红书。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 发布节奏 + 媒介 + 结语 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">02-03 · 发布 & 媒介 & 结语</div>
+    <h2 class="section-title">8周从认知到复购 + 5媒介日均发布</h2>
+    <div class="card-grid cols-2">
+      <div>
+        <table class="data-table" style="margin-bottom:0.25rem">
+          <thead><tr><th>周</th><th>5A</th><th>内容</th></tr></thead>
+          <tbody>
+            <tr><td>W1</td><td><span class="tag tag-high">了解</span></td><td>品牌初心+理念+创始人初心</td></tr>
+            <tr><td>W2</td><td><span class="tag tag-mid">兴趣</span></td><td>品牌共鸣+挑战+产品研发</td></tr>
+            <tr><td>W3</td><td><span class="tag tag-low">信任</span></td><td>创始人逆境+信念+客户痛点</td></tr>
+            <tr><td>W4</td><td><span class="tag tag-sku">行动</span></td><td>产品场景+细节+客户转变</td></tr>
+            <tr><td>W5-8</td><td style="color:var(--primary-bright)">复购</td><td>证言+创新+复用高表现内容</td></tr>
+          </tbody>
+        </table>
+        <div class="card-grid cols-3" style="margin-top:0.25rem"><div class="media-card"><div class="media-icon">🎵</div><div class="media-name">抖音</div><div class="media-desc">每周5条</div></div><div class="media-card"><div class="media-icon">📱</div><div class="media-name">小红书</div><div class="media-desc">每周6条</div></div><div class="media-card"><div class="media-icon">🎬</div><div class="media-name">视频号</div><div class="media-desc">每周4条</div></div></div>
+      </div>
+      <div class="conclusion-block" style="margin-top:0"><h3>结语</h3><p>"凝时"的内容营销体系核心在于用<strong style="color:var(--accent)">"真实"</strong>打动人心。创始人的真实经历、产品的真实细节、用户的真实反馈，构成品牌最坚固的护城河。<br><br><strong style="color:var(--primary-bright)">建议从F01开始，在抖音发布第一条视频，用最真诚的故事找到第一批"同频"用户。</strong></p></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+</body>
+</html>

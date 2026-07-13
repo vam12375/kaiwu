@@ -53,7 +53,6 @@ NODE_REPORT_MAP = [
     ({"node1"}, "杂志风报告模板.html", "深度商业调研报告"),
 ]
 
-
 def detect_nodes_from_history(history: list) -> set:
     """从对话历史中推断涉及哪些node。通过分析意图识别结果。
     由于历史消息不包含node标记，使用关键词匹配推断。"""
@@ -174,11 +173,11 @@ def generate_summary_report(message, history, model=None):
     # 深度调研/商业计划书 → 编程文件库 + 创业资料 + AI对话产出
     # 产品落地手册 → 编程文件库 + AI对话产出
     # 营销解决方案 → 编程文件库 + 营销素材 + AI对话产出
-    archive_folders = {"编程文件库", "AI 对话产出"}
+    archive_folders = ["编程文件库", "AI 对话产出"]
     if "调研" in report_title or "商业计划书" in report_title:
-        archive_folders.add("创业资料")
+        archive_folders.insert(1, "创业资料")
     if "营销" in report_title:
-        archive_folders.add("营销素材")
+        archive_folders.insert(1, "营销素材")
 
     file_path = None
     for folder in archive_folders:
@@ -189,7 +188,7 @@ def generate_summary_report(message, history, model=None):
             file_path = str(fp)
 
     print(f"[HANDBOOK] Template-rendered {len(html_content)} chars → {archive_folders}", flush=True)
-    return {"report_title": report_title, "file_path": file_path or "", "method": "template"}
+    return {"report_title": report_title, "file_path": file_path or "", "archive_folders": archive_folders, "method": "template"}
 
 
 def _esc(s):

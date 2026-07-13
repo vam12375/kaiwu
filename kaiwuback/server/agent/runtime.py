@@ -83,6 +83,7 @@ class AgentRuntime:
         followup_node = payload.get("followup_node")
         selected_model = payload.get("model")
         conversation_id = payload.get("conversation_id")
+        skill_context = payload.get("skill_context") if isinstance(payload.get("skill_context"), dict) else None
 
         self.event_store.update_task(task_id, status=ROUTING)
 
@@ -215,10 +216,11 @@ class AgentRuntime:
 
         ai_response = [None]
         llm_error = [None]
+        llm_message = self._build_node6_message(message, skill_context) if node_id == "node6" else message
 
         def run_llm():
             try:
-                ai_response[0] = generate_ai_response(node_id, message, history, selected_model, bool(followup_node))
+                ai_response[0] = generate_ai_response(node_id, llm_message, history, selected_model, bool(followup_node) and node_id != "node6")
             except Exception as exc:
                 llm_error[0] = str(exc)[:300]
 
@@ -264,9 +266,6 @@ class AgentRuntime:
         sess_save(history, node_id)
         save_session_state(history, node_id)
 
-        # 缓存节点输出，供导出 HTML 时按 node 取对应内容
-        _node_output_cache[node_id] = ai_text
-
         # node0 完成后将 dialogue_brief.md 存入 AI 对话产出
         if node_id == "node0":
             import re as _re_md
@@ -284,7 +283,7 @@ class AgentRuntime:
             node1_leak_markers = [
                 "报告一：深度市场调研报告", "一、市场规模分析", "二、核心驱动因素",
                 "三、竞争格局", "四、目标人群画像", "五、商业机会", "六、机会评估",
-                "七、建议方向", "🔮 解语", "## 报告一", "### 报告一",
+                "七、建议方向", "🔮 解语", "### 结语", "## 报告一", "### 报告一",
             ]
             for marker in node1_leak_markers:
                 idx = ai_text.find(marker)
@@ -306,7 +305,10 @@ class AgentRuntime:
                 (PROJECT_LIB / "AI 对话产出" / fname).write_text(brief_md, encoding='utf-8')
                 print(f"[NODE0] dialogue_brief.md → AI 对话产出", flush=True)
 
-        suggested_questions = self._suggested_questions(node_id)
+        # 缓存节点输出，供导出 HTML 时按 node 取对应内容
+        _node_output_cache[node_id] = ai_text
+
+        suggested_questions = self._suggested_questions(node_id, ai_text)
 
         self.event_store.update_task(task_id, status=STREAMING)
         self.emit(task_id, "response_start", {})
@@ -352,6 +354,24 @@ class AgentRuntime:
                 return
             self.emit(task_id, "content", {"content": text[i : i + chunk_size]})
             time.sleep(0.006)
+
+    @staticmethod
+    def _build_node6_message(message: str, skill_context: dict[str, Any] | None) -> str:
+        if not skill_context:
+            return message
+        name = str(skill_context.get("name") or "").strip()
+        category = str(skill_context.get("category") or "").strip()
+        description = str(skill_context.get("description") or "").strip()
+        doc = str(skill_context.get("doc") or skill_context.get("full_content") or "").strip()
+        return (
+            "[当前技能卡]\n"
+            f"- 名称：{name or '未命名技能'}\n"
+            f"- 分类：{category or '未分类'}\n"
+            f"- 简介：{description or '无'}\n"
+            f"- 详情：{doc[:3000] or '无'}\n\n"
+            "---\n"
+            f"用户问题：{message}"
+        )
 
     def _execute_image_generation_task(
         self,
@@ -666,6 +686,42 @@ class AgentRuntime:
             print(f"[DB] Save failed: {exc}", flush=True)
         return saved_text, None
 
+    @staticmethod
+    def _report_card_marker(event: dict[str, Any]) -> str | None:
+        if event.get("artifact_type") != "report" and not event.get("report_title"):
+            return None
+
+        def pick_string(*keys: str) -> str:
+            for key in keys:
+                value = event.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip()
+            return ""
+
+        raw_folders = event.get("folders")
+        folders = []
+        if isinstance(raw_folders, list):
+            for folder in raw_folders:
+                if isinstance(folder, str) and folder.strip() and folder.strip() not in folders:
+                    folders.append(folder.strip())
+        fallback_folder = pick_string("folder")
+        if fallback_folder and fallback_folder not in folders:
+            folders.append(fallback_folder)
+
+        file_name = pick_string("file_name", "filename")
+        title = pick_string("report_title", "title") or file_name or pick_string("message")
+        card = {
+            "title": title,
+            "fileName": file_name or title,
+            "fileType": pick_string("file_type") or "HTML",
+            "generatedAt": pick_string("generated_at"),
+            "folders": folders,
+            "sourceLabel": pick_string("source_label"),
+            "url": pick_string("file_url", "url"),
+        }
+        compact = json.dumps(card, ensure_ascii=False, separators=(",", ":"))
+        return f"\n\n<!--kaiwu-report-card:{compact}-->"
+
     def _relay_legacy_sse(self, task_id: str, packets: Iterable[str]) -> str:
         content_parts = []
         for packet in packets:
@@ -678,7 +734,11 @@ class AgentRuntime:
                 if event_type == "content":
                     content_parts.append(event.get("content", ""))
                 elif event_type == "file_saved" and event.get("message"):
-                    content_parts.append(f"\n\n📁 {event['message']}")
+                    marker = self._report_card_marker(event)
+                    if marker:
+                        content_parts.append(marker)
+                    else:
+                        content_parts.append(f"\n\n📁 {event['message']}")
                 if event_type == "done":
                     continue
                 self.emit(task_id, event_type, event)
@@ -755,8 +815,20 @@ class AgentRuntime:
         return node_id
 
     @staticmethod
-    def _suggested_questions(node_id: str) -> list[str]:
+    def _node0_dialogue_brief_completed(ai_text: str) -> bool:
+        return (
+            "# 品牌全案策略 · 对话信息摘要" in ai_text
+            and (
+                "## §7 信息充分度自评" in ai_text
+                or "以上为 node0 用户诊断 + dialogue_brief.md 完整输出" in ai_text
+            )
+        )
+
+    @classmethod
+    def _suggested_questions(cls, node_id: str, ai_text: str = "") -> list[str]:
         if node_id == "node0":
+            if not cls._node0_dialogue_brief_completed(ai_text):
+                return []
             return ["开始进行调研"]
         if node_id == "node1":
             return ["开始生成商业方案"]

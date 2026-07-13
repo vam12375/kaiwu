@@ -309,6 +309,71 @@ Use the local capability boundaries before adding new helpers:
 
 `server/utils/common.py` is a compatibility re-export layer. Do not add new implementation there; add implementation to the real utility module and only re-export if old imports require it.
 
+### Scenario: Markdown And Report HTML Table Rendering
+
+#### 1. Scope / Trigger
+
+- Trigger: any backend change to `server/utils/markdown.py` or `server/utils/report_html.py` that affects AI Markdown tables or generated report HTML.
+- Keep this synchronized with frontend `renderMarkdown()` because users see the same AI content in chat and exported reports.
+
+#### 2. Signatures
+
+- `markdown_to_html(text: str) -> str` converts AI Markdown into report body HTML.
+- Table HTML should include `class="table-cols-<n>"`, a `colgroup`, and semantic cell classes such as `cell-right`, `cell-rich`, and `cell-compact`.
+
+#### 3. Contracts
+
+- Width is semantic plus content-length based, not a fixed equal split for every column.
+- Right alignment is semantic only: numeric, market-size, amount, and percentage columns may align right; the final column is not right-aligned by default.
+- Table headers follow the same semantic alignment as their body column: left for descriptive/year/source fields, right for numeric/percentage fields, and centered only for compact categorical/comparison columns.
+- Short categorical body columns such as `类目`, `维度`, `项目`, and `方式` may center-align when their values are compact; long descriptive and source/label fields stay left-aligned.
+- Two-column compact comparison tables such as `竞争者 / 市占率(估)` center-align both body columns so short values do not drift to opposite table edges.
+- First-column labels, year columns (`年份`/`年度`), and source/label fields such as `收入来源` and `数据来源` stay left-aligned even when their content is short.
+- 2/3/4-column tables should fill the report content width; do not shrink short tables to partial-width blocks.
+- Header/body row normalization must preserve data by padding short rows and merging overflow cells into the last column.
+- Story-output tables with script/copy/private-domain/platform columns render as accordion cards so long generated copy remains readable.
+
+#### 4. Validation & Error Matrix
+
+- Empty table block -> return an empty string.
+- Separator-only table block -> return an empty string.
+- Missing cells -> pad with empty cells.
+- Extra cells -> merge into the last cell.
+- Developer-only node hints or terminal markers -> hide with `dev-ghost`/`dev-ghost-line`, not visible report text.
+
+#### 5. Good/Base/Bad Cases
+
+- Good: exported market tables match frontend live-chat proportions for `市场规模`, `核心特征`, and `机会点`, while keeping `年份`/`数据来源` left-aligned.
+- Base: older simple tables still render with standard `<thead>`/`<tbody>` and readable cells.
+- Base: exported table headers such as `年份` and `预测增速` sit above their own data because they use the same left/right alignment as body cells.
+- Base: compact table headers and body cells can center-align together.
+- Base: a two-column `竞争者/市占率(估)` table keeps competitor names and percentages centered under their headers rather than pinned to the left and right edges.
+- Base: a two-column `方式/节奏` table spans the full report content width.
+- Bad: updating only frontend table weights while backend report export keeps equal-width or last-column-right behavior.
+
+#### 6. Tests Required
+
+- Run `python -m compileall kaiwuback/server`.
+- If frontend rendering changed too, run `npm run build` from `kaiwu/`.
+- Smoke `markdown_to_html()` with a 4-column market table and assert output contains `<colgroup>`, `table-cols-4`, and semantic right-align classes only where expected.
+
+#### 7. Wrong vs Correct
+
+Wrong:
+
+```python
+html.append('<tr>' + ''.join(f'<td>{_cell_html(c)}</td>' for c in row) + '</tr>')
+```
+
+Correct:
+
+```python
+html.append('<tr>' + ''.join(
+    f'<td class="{_cell_class(headers, body_rows, idx)}">{_cell_html(c)}</td>'
+    for idx, c in enumerate(row)
+) + '</tr>')
+```
+
 ---
 
 ## Naming Conventions

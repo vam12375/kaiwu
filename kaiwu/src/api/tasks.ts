@@ -40,6 +40,15 @@ export type ImageReferenceInput = {
   data_url: string;
 };
 
+export type SkillContextInput = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  doc?: string;
+  full_content?: string;
+};
+
 export type CreateTaskPayload = {
   message: string;
   history?: unknown[];
@@ -52,6 +61,7 @@ export type CreateTaskPayload = {
   followup_node?: string | null;
   model?: string;
   conversation_id?: number | null;
+  skill_context?: SkillContextInput | null;
   stream?: boolean;
 };
 

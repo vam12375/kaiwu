@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>凝时 — 商业模式计划书（含品牌体系）</title>
+<style>
+:root {
+  --bg-deep:#060d18;--bg-base:#0a1628;--bg-surface:#0f1f38;--bg-card:#162744;--bg-card-alt:#1b2f50;
+  --border-subtle:#1f3560;--border-card:#2a4580;
+  --primary:#2196F3;--primary-dim:#1565C0;--primary-bright:#42A5F5;
+  --accent:#FF6B35;--accent-dim:#E55A2B;--gold:#D4A853;--gold-dim:#8B7030;--green:#4CAF50;--crimson:#EF5350;
+  --text-primary:#E8EDF5;--text-secondary:#94A3B8;--text-muted:#5A6A82;
+  --fs-hero:clamp(2rem,3.5vw,3.2rem);--fs-display:clamp(1.4rem,2.1vw,2rem);
+  --fs-heading:clamp(1rem,1.4vw,1.3rem);--fs-subhead:clamp(0.84rem,1.05vw,0.95rem);
+  --fs-body:clamp(0.74rem,0.85vw,0.82rem);--fs-small:clamp(0.65rem,0.75vw,0.72rem);--fs-caption:0.62rem;
+  --slide-padding:clamp(1.2rem,2.8vw,3rem);--card-radius:10px;--card-radius-sm:6px;
+  --ease-out-expo:cubic-bezier(0.19,1,0.22,1);--duration-normal:0.4s;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow:hidden;height:100vh;width:100vw;line-height:1.6}
+#gridCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.22}
+.deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;height:100vh;width:100vw;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.deck::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100vw;width:100vw;height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-padding);position:relative;overflow-y:auto}
+.slide-inner{max-width:1200px;margin:0 auto;width:100%}
+.section-eyebrow{font-size:var(--fs-caption);text-transform:uppercase;letter-spacing:0.25em;color:var(--primary-bright);margin-bottom:0.3rem;font-weight:600}
+.section-title{font-size:var(--fs-display);font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;letter-spacing:-0.01em;line-height:1.2}
+.section-subtitle{font-size:var(--fs-body);color:var(--text-secondary);margin-bottom:0.8rem}
+.nav-dots{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;z-index:100}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border-card);cursor:pointer;border:none;padding:0;transition:all var(--duration-normal) var(--ease-out-expo)}
+.nav-dot:hover{background:var(--primary-dim)}.nav-dot.active{background:var(--primary);width:24px;border-radius:12px}
+.keyboard-hint{position:fixed;bottom:2rem;right:2rem;z-index:100;display:flex;gap:0.4rem;opacity:0.3;font-size:var(--fs-caption);color:var(--text-muted);pointer-events:none}
+.keyboard-hint kbd{background:var(--bg-card);border:1px solid var(--border-card);border-radius:4px;padding:1px 7px;font-family:inherit;font-size:inherit}
+.cover{align-items:center;text-align:center;justify-content:center}
+.cover-badge{display:inline-block;background:rgba(255,107,53,0.12);color:var(--accent);padding:0.35rem 1.2rem;border-radius:20px;font-size:var(--fs-small);font-weight:600;margin-bottom:1.5rem;letter-spacing:0.08em}
+.cover-title{font-size:var(--fs-hero);font-weight:800;line-height:1.15;margin-bottom:0.8rem;letter-spacing:-0.02em}
+.cover-title .brand{color:var(--primary-bright)}
+.cover-subtitle{font-size:var(--fs-heading);color:var(--text-secondary);font-weight:400;margin-bottom:1rem}
+.cover-tags{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.cover-tag{background:var(--bg-card);border:1px solid var(--border-card);color:var(--text-secondary);padding:0.3rem 1rem;border-radius:16px;font-size:var(--fs-caption);font-weight:500}
+.cover-meta{font-size:var(--fs-small);color:var(--text-muted);letter-spacing:0.1em}
+.card-grid{display:grid;gap:0.9rem}
+.card-grid.cols-2{grid-template-columns:repeat(2,1fr)}.card-grid.cols-3{grid-template-columns:repeat(3,1fr)}
+.card-grid.cols-4{grid-template-columns:repeat(4,1fr)}.card-grid.cols-1-2{grid-template-columns:1fr 2fr}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:1.1rem;transition:all var(--duration-normal) var(--ease-out-expo);position:relative;overflow:hidden}
+.card:hover{border-color:var(--primary-dim);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.card.accent-left{border-left:3px solid var(--accent)}.card.primary-left{border-left:3px solid var(--primary)}
+.card.gold-left{border-left:3px solid var(--gold)}.card.green-left{border-left:3px solid var(--green)}
+.card-label{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.08em;margin-bottom:0.3rem}
+.card-label.accent{color:var(--accent)}.card-label.primary{color:var(--primary-bright)}
+.card-label.gold{color:var(--gold)}.card-label.green{color:var(--green)}
+.card-title{font-size:var(--fs-subhead);font-weight:700;color:var(--text-primary);margin-bottom:0.25rem}
+.card-desc{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.6}
+.stat-row{display:flex;gap:2rem;justify-content:center;margin:0.8rem 0 1.2rem;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1;background:linear-gradient(180deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:var(--fs-caption);color:var(--text-muted);margin-top:0.3rem}
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-small);margin-top:0.3rem}
+.data-table th{background:var(--bg-card-alt);color:var(--primary-bright);padding:0.5rem 0.7rem;text-align:left;font-weight:600;font-size:var(--fs-caption);letter-spacing:0.04em;border-bottom:2px solid var(--border-card)}
+.data-table td{padding:0.45rem 0.7rem;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);line-height:1.5}
+.data-table tr:hover td{background:rgba(33,150,243,0.02)}
+.data-table .num{font-family:"SF Mono","JetBrains Mono",monospace;text-align:right;white-space:nowrap}
+.data-table .paint-col{color:var(--crimson);font-weight:600}.data-table .gain-col{color:var(--green);font-weight:500}
+.insight-card{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:0.9rem 1.1rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin:0.8rem 0}
+.insight-card p{font-size:var(--fs-small);color:var(--primary-bright);font-weight:500}
+.tag{display:inline-block;padding:2px 8px;border-radius:100px;font-size:0.62rem;font-weight:600;letter-spacing:0.04em;white-space:nowrap}
+.tag-high{background:rgba(239,83,80,0.15);color:var(--crimson)}.tag-mid{background:rgba(212,168,83,0.15);color:var(--gold)}.tag-low{background:rgba(76,175,80,0.12);color:var(--green)}
+.pricing-cards{display:flex;gap:0.8rem;margin:0.8rem 0}
+.pricing-card{flex:1;background:var(--bg-card);border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.4rem 1rem;text-align:center;position:relative;transition:all var(--duration-normal) var(--ease-out-expo)}
+.pricing-card.featured{border-color:var(--primary);box-shadow:0 0 28px rgba(33,150,243,0.1);transform:scale(1.03)}
+.pricing-card:hover{transform:translateY(-4px)}.pricing-card.featured:hover{transform:scale(1.03) translateY(-4px)}
+.pricing-tier{font-size:var(--fs-caption);font-weight:700;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem}
+.pricing-tier.featured{color:var(--primary-bright)}
+.pricing-price{font-size:var(--fs-display);font-weight:800;color:var(--text-primary);margin-bottom:0.2rem}
+.pricing-price span{font-size:var(--fs-small);color:var(--text-muted);font-weight:400}
+.pricing-target{font-size:var(--fs-caption);color:var(--text-muted);margin-bottom:0.8rem}
+.pricing-features{text-align:left;font-size:var(--fs-caption);color:var(--text-secondary);line-height:1.8;padding-left:0}
+.pricing-features li{list-style:none;padding-left:1.1rem;position:relative}
+.pricing-features li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
+.revenue-bars{display:flex;flex-direction:column;gap:0.4rem;margin:0.8rem 0}
+.revenue-bar-row{display:flex;align-items:center;gap:0.4rem}
+.revenue-bar-label{width:110px;font-size:var(--fs-caption);color:var(--text-secondary);text-align:right;flex-shrink:0}
+.revenue-bar-track{flex:1;height:22px;background:var(--bg-card-alt);border-radius:11px;overflow:hidden;position:relative}
+.revenue-bar-fill{height:100%;border-radius:11px;display:flex;align-items:center;padding-left:0.6rem;font-size:var(--fs-caption);font-weight:700;white-space:nowrap}
+.revenue-bar-fill.c1{background:linear-gradient(90deg,var(--primary-dim),var(--primary-bright));color:#fff}
+.revenue-bar-fill.c2{background:linear-gradient(90deg,var(--accent-dim),var(--accent));color:#fff}
+.revenue-bar-fill.c3{background:var(--gold-dim);color:#fff}
+.revenue-bar-val{font-size:var(--fs-caption);color:var(--text-muted);width:70px;flex-shrink:0}
+.brand-name-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--card-radius);padding:0.9rem;text-align:center;position:relative;transition:all var(--duration-normal) var(--ease-out-expo)}
+.brand-name-card.top-pick{border-color:var(--primary);box-shadow:0 0 24px rgba(33,150,243,0.1)}
+.brand-name-card:hover{border-color:var(--primary-dim);transform:translateY(-2px)}
+.brand-name{font-size:var(--fs-heading);font-weight:800;color:var(--text-primary);margin-bottom:0.15rem}
+.brand-name.top-pick-name{background:linear-gradient(135deg,var(--primary-bright),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand-meaning{font-size:var(--fs-caption);color:var(--text-secondary);margin-bottom:0.2rem}
+.brand-stars{color:var(--gold);font-size:var(--fs-caption)}
+.badge-recommended{display:inline-block;background:var(--accent);color:#fff;font-size:0.55rem;font-weight:700;padding:0.12rem 0.5rem;border-radius:10px;position:absolute;top:-7px;right:-3px;letter-spacing:0.05em}
+.conclusion-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border:1px solid var(--border-card);border-radius:var(--card-radius);padding:1.3rem;margin-top:0.8rem}
+.conclusion-block h3{font-size:var(--fs-heading);font-weight:700;color:var(--primary-bright);margin-bottom:0.5rem}
+.conclusion-block p{font-size:var(--fs-small);color:var(--text-secondary);line-height:1.8}
+.cta-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.8rem}
+.cta-tag{padding:3px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);border-radius:100px;font-size:var(--fs-caption);color:var(--text-muted)}
+.quote-block{background:linear-gradient(135deg,rgba(33,150,243,0.06),rgba(255,107,53,0.04));border-left:3px solid var(--primary);padding:1rem 1.2rem;border-radius:0 var(--card-radius-sm) var(--card-radius-sm) 0;margin-top:1rem}
+.quote-block p{font-size:var(--fs-subhead);color:var(--primary-bright);font-weight:500;font-style:italic}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeInUp 0.7s var(--ease-out-expo) both}
+@media(max-width:1024px){.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:repeat(2,1fr)}.pricing-cards{flex-direction:column}.pricing-card.featured{transform:none}}
+@media(max-width:640px){.card-grid.cols-2,.card-grid.cols-3,.card-grid.cols-4{grid-template-columns:1fr}.slide{padding:0.8rem;overflow-y:auto}.nav-dots{bottom:0.5rem}.keyboard-hint{display:none}.stat-row{gap:1rem}}
+</style>
+</head>
+<body>
+
+<canvas id="gridCanvas"></canvas>
+<nav class="nav-dots" id="navDots"></nav>
+<div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> 或滚轮翻页</div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 0: COVER -->
+<section class="slide cover" id="slide-0">
+  <div class="cover-badge anim-in" style="animation-delay:0.1s">Node 2 · 商业模式计划书（含品牌体系）</div>
+  <h1 class="cover-title anim-in" style="animation-delay:0.3s"><span class="brand">凝时</span></h1>
+  <p class="cover-subtitle anim-in" style="animation-delay:0.5s">宠物纪念银饰赛道 · 启动 ¥50,000 · 5个月盈亏平衡</p>
+  <div class="cover-tags anim-in" style="animation-delay:0.6s">
+    <span class="cover-tag">商业模式</span><span class="cover-tag">品牌体系</span><span class="cover-tag">情感定制</span><span class="cover-tag">¥399-1,499</span>
+  </div>
+  <p class="cover-meta anim-in" style="animation-delay:0.7s">曜势科技 Kaiwu · 2026年7月</p>
+</section>
+
+<!-- SLIDE 1: 核心价值主张 -->
+<section class="slide" id="slide-1">
+  <div class="slide-inner">
+    <div class="section-eyebrow">01 · 核心价值主张</div>
+    <h2 class="section-title">"一件银饰，一个故事，一生陪伴"</h2>
+    <p class="section-subtitle">为养宠人提供能永久珍藏、承载与宠物独特情感记忆的银饰，而非冰冷的金属项圈。</p>
+    <table class="data-table">
+      <thead><tr><th>场景</th><th style="color:var(--crimson)">没有我们时</th><th style="color:var(--green)">有我们后</th></tr></thead>
+      <tbody>
+        <tr><td class="paint-col">纪念宠物生日</td><td>购买通用刻字铭牌或项圈，样式千篇一律，缺乏情感温度。</td><td class="gain-col"><strong>"故事定制"服务：</strong>照片+故事→设计师转化为专属银饰图案，让纪念品真正"有故事"。</td></tr>
+        <tr><td class="paint-col">纪念已故宠物</td><td>骨灰晶石或骨灰盒，缺乏日常佩戴的纪念方式。</td><td class="gain-col"><strong>"纪念银坠"：</strong>封存毛发/骨灰或肖像浮雕，让思念"随身携带"。客单价¥800-1,500。</td></tr>
+        <tr><td class="paint-col">日常社交炫耀</td><td>朋友圈晒宠物照片，缺"主人品味"的实物载体。</td><td class="gain-col"><strong>高颜值设计银饰：</strong>宠物出街"时尚单品"，社交自发分享率可达15%。</td></tr>
+      </tbody>
+    </table>
+    <div class="quote-block"><p>"凝时，将陪伴凝结成永恒。"</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 2: 目标用户 + 痛点 -->
+<section class="slide" id="slide-2">
+  <div class="slide-inner">
+    <div class="section-eyebrow">02-03 · 目标用户与痛点</div>
+    <h2 class="section-title">500万目标用户，五大痛点覆盖"纪念→社交"</h2>
+    <div class="card-grid cols-3" style="margin-bottom:0.6rem">
+      <div class="card accent-left"><div class="card-label accent">种子用户</div><div class="card-title">20-29岁单身养宠女性</div><div class="card-desc">新一线城市，小红书重度用户，月消费¥5,000+。"仪式感"+"情感链接"。<strong>付费：¥399-799。</strong></div></div>
+      <div class="card primary-left"><div class="card-label primary">核心用户</div><div class="card-title">30-39岁高收入养宠女性</div><div class="card-desc">有稳定情感消费习惯，愿为"纪念"+"设计"付费。<strong>付费：¥799-1,499。</strong></div></div>
+      <div class="card gold-left"><div class="card-label gold">价值用户</div><div class="card-title">40-49岁品质追求者</div><div class="card-desc">宠物如家人，对"定制"+"品质"要求高。<strong>付费：¥1,000-1,500。</strong></div></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>痛点</th><th>程度</th><th>现有方案缺陷</th><th>解法</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--crimson);font-weight:600">1. 纪念方式单一</td><td><span class="tag tag-high">高</span></td><td>刻字铭牌无法承载故事</td><td style="color:var(--green)">"故事定制"：照片+故事→专属图案</td></tr>
+        <tr><td style="color:var(--crimson);font-weight:600">2. 设计同质化</td><td><span class="tag tag-high">高</span></td><td>网红易撞款，手工品质不稳</td><td style="color:var(--green)">独立设计师联名，每季限定</td></tr>
+        <tr><td style="color:var(--crimson);font-weight:600">4. 情感无处安放</td><td><span class="tag tag-high">高</span></td><td>骨灰盒只能放家中</td><td style="color:var(--green)">"纪念银坠"封存毛发/骨灰</td></tr>
+        <tr><td style="color:var(--gold);font-weight:600">3. 品质焦虑</td><td><span class="tag tag-mid">中</span></td><td>低价金属易过敏褪色</td><td style="color:var(--green)">925纯银+终身免费保养</td></tr>
+        <tr><td style="color:var(--gold);font-weight:600">5. 送礼选择困难</td><td><span class="tag tag-mid">中</span></td><td>零食玩具易消耗</td><td style="color:var(--green)">"礼品卡+定制服务"模式</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 3: 盈利 + 定价 -->
+<section class="slide" id="slide-3">
+  <div class="slide-inner">
+    <div class="section-eyebrow">04-05 · 盈利模式与定价</div>
+    <h2 class="section-title">月入10万，¥399-1,499卡位情感定制蓝海</h2>
+    <div class="card-grid cols-1-2" style="margin-bottom:0.8rem">
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.6rem">收入构成（稳定期月均）</div>
+        <div class="revenue-bars">
+          <div class="revenue-bar-row"><div class="revenue-bar-label">定制银饰销售</div><div class="revenue-bar-track"><div class="revenue-bar-fill c1" style="width:70%">70% · ¥70,000/月</div></div><div class="revenue-bar-val">毛利率65%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">成品银饰销售</div><div class="revenue-bar-track"><div class="revenue-bar-fill c2" style="width:20%">20% · ¥20,000/月</div></div><div class="revenue-bar-val">毛利率70%</div></div>
+          <div class="revenue-bar-row"><div class="revenue-bar-label">配件/保养</div><div class="revenue-bar-track"><div class="revenue-bar-fill c3" style="width:10%">10% · ¥10,000/月</div></div><div class="revenue-bar-val">毛利率80%</div></div>
+        </div>
+        <div class="card-desc" style="text-align:center"><strong>月收入 ¥100,000</strong></div>
+      </div>
+      <div class="card">
+        <div class="card-label gold" style="margin-bottom:0.6rem">三维定价逻辑</div>
+        <div class="card-desc" style="line-height:1.7">
+          <strong style="color:var(--primary-bright)">成本导向：</strong>材料¥150+设计¥100+营销¥100=成本¥400。定价¥700毛利率43%，¥1,000毛利率60%。<br><br>
+          <strong style="color:var(--accent)">竞品锚定：</strong>AI刻字¥100-300（缺设计）← <strong>我们¥399-1,499</strong> → 手工工作室¥1,000-3,000（慢贵）。<br><br>
+          <strong style="color:var(--gold)">用户承受力：</strong>月宠物消费¥500-2,000。¥799="永久纪念"，性价比极高。
+        </div>
+      </div>
+    </div>
+    <div class="pricing-cards">
+      <div class="pricing-card"><div class="pricing-tier">基础版 / 启步包</div><div class="pricing-price">¥399</div><div class="pricing-target">年轻用户首次定制</div><ul class="pricing-features"><li>基础定制铭牌（刻字+简图）</li><li>品牌故事卡</li><li>免费保养1次</li></ul></div>
+      <div class="pricing-card featured"><div class="pricing-tier featured">⭐ 标准版 / 增长包（推荐）</div><div class="pricing-price">¥799</div><div class="pricing-target">核心用户情感深度定制</div><ul class="pricing-features"><li>"故事定制"银坠（含设计师沟通）</li><li>精美礼盒</li><li>终身免费保养</li></ul></div>
+      <div class="pricing-card"><div class="pricing-tier">旗舰版 / 旗舰包</div><div class="pricing-price">¥1,499</div><div class="pricing-target">极致纪念与品质</div><ul class="pricing-features"><li>"纪念银坠"（封存毛发/骨灰）</li><li>专属设计师一对一</li><li>纯银链+终身保养+纪念日提醒</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: 渠道 + 成本 + 盈亏平衡 -->
+<section class="slide" id="slide-4">
+  <div class="slide-inner">
+    <div class="section-eyebrow">06-08 · 渠道 / 成本 / 盈亏平衡</div>
+    <h2 class="section-title">小红书P0 · 月成本¥20k · 第5月盈亏平衡</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.5rem">
+      <div>
+        <div class="card-grid cols-4" style="margin-bottom:0.4rem">
+          <div class="card accent-left" style="text-align:center;padding:0.6rem"><div class="card-label accent">小红书</div><div class="card-desc" style="font-size:var(--fs-caption)"><strong>P0·50%</strong><br>获客¥50-100<br>第1周</div></div>
+          <div class="card primary-left" style="text-align:center;padding:0.6rem"><div class="card-label primary">抖音</div><div class="card-desc" style="font-size:var(--fs-caption)"><strong>P1·25%</strong><br>获客¥80-150<br>第4周</div></div>
+          <div class="card gold-left" style="text-align:center;padding:0.6rem"><div class="card-label gold">微信私域</div><div class="card-desc" style="font-size:var(--fs-caption)"><strong>P1·15%</strong><br>获客¥10-30<br>第2周</div></div>
+          <div class="card green-left" style="text-align:center;padding:0.6rem"><div class="card-label green">线下市集</div><div class="card-desc" style="font-size:var(--fs-caption)"><strong>P2·10%</strong><br>获客¥200-500<br>第8周</div></div>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>资源</th><th>状态</th><th>成本</th></tr></thead>
+          <tbody>
+            <tr><td>创始人（营销+运营）</td><td style="color:var(--green)">✓</td><td>¥0</td></tr>
+            <tr><td>兼职设计师</td><td style="color:var(--accent)">待招</td><td>¥8,000/月</td></tr>
+            <tr><td>银饰供应链</td><td style="color:var(--accent)">待对接</td><td>首批¥5,000</td></tr>
+            <tr><td>启动资金</td><td style="color:var(--gold)">待确认</td><td>¥50,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <table class="data-table" style="margin-bottom:0.3rem">
+          <thead><tr><th>月份</th><th>收入</th><th>成本</th><th>累计盈亏</th></tr></thead>
+          <tbody>
+            <tr><td>M1</td><td class="num">¥0</td><td class="num">-20,000</td><td class="num" style="color:var(--crimson)">-20,000</td></tr>
+            <tr><td>M3</td><td class="num">¥15,000</td><td class="num">-20,000</td><td class="num" style="color:var(--crimson)">-40,000</td></tr>
+            <tr style="background:rgba(76,175,80,0.04)"><td style="font-weight:700">M5 ⚡</td><td class="num">¥50,000</td><td class="num">-20,000</td><td class="num" style="color:var(--green)">0</td></tr>
+            <tr><td>M6</td><td class="num">¥70,000</td><td class="num">-20,000</td><td class="num" style="color:var(--green)">+50,000</td></tr>
+          </tbody>
+        </table>
+        <div class="insight-card" style="margin:0.3rem 0"><p>月均成本¥20,000（人力8k+生产5k+营销4k+其他3k）。<strong style="color:var(--text-primary)">¥50,000</strong>覆盖前4个月亏损+首批采购。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: 品牌命名 + 品牌理念 + 差异化 -->
+<section class="slide" id="slide-5">
+  <div class="slide-inner">
+    <div class="section-eyebrow">10-12 · 品牌命名 / 理念 / 差异化</div>
+    <h2 class="section-title">「凝时」— 将陪伴凝结成永恒</h2>
+    <div class="card-grid cols-3" style="margin-bottom:0.5rem">
+      <div class="brand-name-card top-pick"><span class="badge-recommended">推荐</span><div class="brand-name top-pick-name">凝时</div><div class="brand-meaning">凝结时光，永久保存陪伴记忆</div><div class="brand-stars">⭐⭐⭐⭐⭐</div></div>
+      <div class="brand-name-card"><div class="brand-name">爪印</div><div class="brand-meaning">宠物最熟悉的印记，直接亲切</div><div class="brand-stars">⭐⭐⭐⭐</div></div>
+      <div class="brand-name-card"><div class="brand-name">念念</div><div class="brand-meaning">念念不忘，必有回响</div><div class="brand-stars">⭐⭐⭐⭐</div></div>
+    </div>
+    <div class="card-grid cols-2">
+      <div class="card">
+        <div class="card-label primary" style="margin-bottom:0.4rem">品牌理念 & 差异化</div>
+        <div class="card-desc" style="line-height:1.6">
+          <strong style="color:var(--primary-bright)">定位：</strong>宠物纪念银饰 · 专注"情感故事定制"<br>
+          <strong style="color:var(--accent)">价值观：</strong>真实·匠心·陪伴<br>
+          <strong style="color:var(--gold)">使命：</strong>让每一份宠物陪伴的记忆，都有处安放<br>
+          <strong style="color:var(--green)">愿景：</strong>3年→宠物纪念银饰第一品牌<br>
+          <strong>差异化：</strong>从"卖产品"到"卖故事"，终身保养+一对一设计师
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label gold" style="margin-bottom:0.4rem">视觉 & 决策汇总</div>
+        <div class="card-desc" style="line-height:1.6;font-size:var(--fs-caption)">
+          <strong>风格：</strong>温暖极简风 — 暖金色#C9A96E+象牙白<br>
+          <strong>字体：</strong>思源宋体+Playfair Display<br>
+          <strong>Logo：</strong>爪印与时钟结合的"时间印记"<br>
+          <strong>品牌：</strong>凝时 | <strong>首发：</strong>标准版¥799<br>
+          <strong>渠道：</strong>小红书P0 | <strong>平衡：</strong>M5·¥50,000启动
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: 品牌故事 + 结语 -->
+<section class="slide" id="slide-6">
+  <div class="slide-inner">
+    <div class="section-eyebrow">13-15 · 品牌故事 & 总结</div>
+    <h2 class="section-title">从大毛的爪印到"凝时"的诞生</h2>
+    <div class="card-grid cols-2" style="margin-bottom:0.5rem">
+      <div class="card accent-left"><div class="card-label accent">开头 · 冲突</div><div class="card-desc" style="font-size:var(--fs-caption)">2024年冬，创始人的金毛"大毛"因病离世。他想找一件能随身携带的纪念品，但市面产品令人失望：<strong>廉价的刻字铭牌，或千篇一律的卡通项圈</strong>——没有一件能表达对大毛独一无二的情感。</div></div>
+      <div class="card primary-left"><div class="card-label primary">过程 · 突破</div><div class="card-desc" style="font-size:var(--fs-caption)">他联系珠宝设计朋友，花了<strong>三个月</strong>研究3D建模、手工雕刻、激光蚀刻。最艰难时，为"封存毛发"工艺连续熬夜一周，报废十几件样品。最终找到<strong>"真空封存+透明树脂"</strong>工艺。第一件样品是用大毛爪印定制的银坠——拿到时他哭了。</div></div>
+      <div class="card gold-left"><div class="card-label gold">高潮 · 爆发</div><div class="card-desc" style="font-size:var(--fs-caption)">2025年春，他在小红书发布"<strong>我用三个月，把去世金毛的爪印做成了银坠</strong>"——一夜<strong>10万+点赞</strong>，上千条留言。一条留言写道："我家猫上月走了，一直不知怎么纪念。看到你的故事，终于找到了答案。"<strong>他做的不是银饰，是"情感容器"。</strong></div></div>
+      <div class="card green-left"><div class="card-label green">结尾 · 主张</div><div class="card-desc" style="font-size:var(--fs-caption)">2025年夏，"凝时"成立。使命：让每一份宠物陪伴的记忆，都有处安放。<strong>我们不卖冰冷金属，我们卖"故事"、"情感"、"陪伴"。</strong>每一件凝时银饰都承载真实故事，都经匠人打磨，都值得一生珍藏。</div></div>
+    </div>
+    <div class="conclusion-block">
+      <h3>结语</h3>
+      <p>"<strong style="color:var(--primary-bright)">陪伴是最长情的告白</strong>"，"凝时"让这份告白永不褪色。从一件银饰开始，陪伴养宠人走过每一个重要时刻。<strong style="color:var(--accent)">这条路或许漫长，但每一步都充满意义。</strong></p>
+      <div class="cta-row">
+        <span class="cta-tag">启动小红书内容测试</span>
+        <span class="cta-tag">完成供应链对接打样</span>
+        <span class="cta-tag">建立"凝时·宠物故事"社群</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var c=document.getElementById('gridCanvas'),ctx=c.getContext('2d'),W,H,dotSpacing=48;
+  function resize(){c.width=W=window.innerWidth;c.height=H=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);ctx.strokeStyle='rgba(42,69,128,0.25)';ctx.lineWidth=0.5;
+    for(var x=dotSpacing;x<W;x+=dotSpacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+    for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+    ctx.fillStyle='rgba(33,150,243,0.18)';
+    for(var x=dotSpacing;x<W;x+=dotSpacing){for(var y=dotSpacing;y<H;y+=dotSpacing){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill()}}
+  }
+  draw();window.addEventListener('resize',draw);
+})();
+(function(){
+  var deck=document.getElementById('deck'),dots=document.getElementById('navDots'),slides=deck.querySelectorAll('.slide'),total=slides.length;
+  for(var i=0;i<total;i++){(function(idx){var dot=document.createElement('button');dot.className='nav-dot';dot.setAttribute('aria-label','Slide '+(idx+1));dot.addEventListener('click',function(){slides[idx].scrollIntoView({behavior:'smooth'})});dots.appendChild(dot)})(i)}
+  var allDots=dots.querySelectorAll('.nav-dot');
+  function updateActive(){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(idx<0)idx=0;if(idx>=total)idx=total-1;allDots.forEach(function(d,i){d.classList.toggle('active',i===idx)})}
+  deck.addEventListener('scroll',updateActive,{passive:true});window.addEventListener('resize',updateActive);
+  document.addEventListener('keydown',function(e){var idx=Math.round(deck.scrollLeft/window.innerWidth);if(e.key==='ArrowRight'&&idx<total-1){slides[idx+1].scrollIntoView({behavior:'smooth'})}if(e.key==='ArrowLeft'&&idx>0){slides[idx-1].scrollIntoView({behavior:'smooth'})}});
+  updateActive();
+})();
+</script>
+</body>
+</html>

@@ -7,11 +7,25 @@ from fastapi.responses import JSONResponse
 from server.config import SKILLS_DIR
 
 
-DEFAULT_SKILL_CATEGORY = "方法论"
+DEFAULT_SKILL_CATEGORY = "市场调研"
+
+SKILL_CATEGORY_ALIASES = {
+    "方法论": "市场调研",
+    "办公提效": "商业方案",
+    "研究分析": "品牌建设",
+    "内容创意": "产品设计",
+    "开发自动化": "营销方案",
+}
 
 
 def _clean_meta_value(value: str) -> str:
     return value.strip().strip('"').strip("'")
+
+
+def _normalize_skill_category(category: str | None) -> str:
+    if not category:
+        return DEFAULT_SKILL_CATEGORY
+    return SKILL_CATEGORY_ALIASES.get(category, category)
 
 
 def _parse_frontmatter(content: str) -> dict[str, str]:
@@ -77,7 +91,7 @@ def _read_skill(skill_dir: Path) -> dict[str, str] | None:
         or _first_body_summary(content)
         or name
     )
-    category = meta.get("category") or DEFAULT_SKILL_CATEGORY
+    category = _normalize_skill_category(meta.get("category"))
 
     return {
         "id": skill_dir.name,
